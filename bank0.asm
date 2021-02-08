@@ -208,6 +208,7 @@ readPad:
         sta     PadPort
 
         lda     <z_pad
+        eor     #$ff
         sta     <z_padold
 
         lda     #1
@@ -234,7 +235,7 @@ readPad:
         eor     #$ff
         sta     <z_pad
 
-        eor     <z_padold
+        and     <z_padold
         sta     <z_paddelta
 
         rts

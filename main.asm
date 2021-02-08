@@ -145,6 +145,8 @@ main:
 
 	jsr	initPsgTest
 
+	jsr PB_init		; player's bullet
+
 mainloop:
 ;       scroll
 	ldx	#scry&$ff
@@ -207,6 +209,41 @@ mainloop:
 
         jsr     spr_update
 
+			; shoot
+		bbr0	<z_paddelta,.pbmove
+		ldy		#0
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+		iny
+		jsr		PB_shoot
+.pbmove:
+		jsr		PB_move
+		jsr		PB_setSatb
 
 ;
 ;       vsync
@@ -222,7 +259,7 @@ mainloop:
 
 ;       pad
         jsr     readPad
-	bra	mainloop
+	jmp	mainloop
 
 	
 

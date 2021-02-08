@@ -6,3 +6,4 @@ MAIN_BANK       .equ    1
         .include "pce.asm"        
         .include "bank0.asm"
         .include "main.asm"
+        .include "pbullet.asm"
