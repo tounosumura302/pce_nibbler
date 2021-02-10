@@ -1,3 +1,8 @@
+; 自機弾処理　のテスト
+; 弾の構造体へのアクセスを absolute,x でやれるようにするために、
+; 構造体メンバーを1バイトずつに分け、それぞれを個別の配列となるよう配置。
+; x は弾のインデックスとなる
+
     .bss
 
 PB_MAXNUM   .equ    60  ; maximum number of player's bullets
@@ -159,6 +164,10 @@ PB_dy2_table:
 PB_setSatb:
     clx
     ldy #4*8
+
+    ; satbの前半256バイトの範囲の書き込み
+    ; y が８ビットなので、前半後半で分けている
+    ; sta (),y で書き込むべきなんだろうか
 .loop:
         ; enable?
     tst #$ff,PB_enable,x
@@ -191,9 +200,53 @@ PB_setSatb:
     cla
     sta satb,y
     iny
+    beq .step2
 
 .next:
     inx
     cpx #PB_MAXNUM
     bmi .loop
+    rts
+
+    ; satbの後半256バイトの範囲の書き込み
+    ; 絶対アドレスを +256 しておくことで後半256バイトにアクセス
+.step2
+;    ldy #0
+.loop2:
+        ; enable?
+    tst #$ff,PB_enable,x
+    beq .next2
+        ; set y
+    lda PB_y1,x
+    sta satb+256,y
+    iny
+    lda PB_y2,x
+    sta satb+256,y
+    iny
+        ; set x
+    lda PB_x1,x
+    sta satb+256,y
+    iny
+    lda PB_x2,x
+    sta satb+256,y
+    iny
+        ; set chr
+    lda PB_chr0,x
+    sta satb+256,y
+    iny
+    lda PB_chr1,x
+    sta satb+256,y
+    iny
+        ; set attribute
+    lda #$80
+    sta satb+256,y
+    iny
+    cla
+    sta satb+256,y
+    iny
+
+.next2:
+    inx
+    cpx #PB_MAXNUM
+    bmi .loop2
     rts
