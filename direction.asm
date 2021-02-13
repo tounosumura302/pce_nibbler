@@ -89,12 +89,21 @@ getDirection:
 .03:
                 ; z_dir_quotient=dy/dx
         ldx     #8
-        lda     <z_dir_dy
+        lda     <z_dir_dy       ; a       = lower byte of divident
+        stz     <z_dir_dy       ; z_dir_y = higher byte of divident
 .divloop:
         asl     a
+        rol     <z_dir_dy
+        bne     .gt             ; divident is always greater than divisor if higher byte of divident > 0
         cmp     <z_dir_dx
         bcc     .divskip
+                ; 9bit（被除数）-8bit（除数）だが、被除数の9ビット目は減算で必ず0になるので、減算はせずに強制的に0にしている。
+                ; ただし、9ビット目が１だった場合、下位8ビットの減算でCフラグが0になってしまうので、強制的にC=1にする必要がある。
+.gt:
+        sec
         sbc     <z_dir_dx
+        stz     <z_dir_dy
+        sec
 .divskip:
         rol     <z_dir_quotient
         dex
