@@ -7,25 +7,19 @@
 
 PB_MAXNUM   .equ    60  ; maximum number of player's bullets
                         ; x coordinate
-PB_x0:  .ds PB_MAXNUM
-PB_x1:  .ds PB_MAXNUM
-PB_x2:  .ds PB_MAXNUM
+PB_x0:  .ds PB_MAXNUM   ; fraction
+PB_x1:  .ds PB_MAXNUM   ; integer(low)
+PB_x2:  .ds PB_MAXNUM   ; integer(high)
                         ; y coordinate
-PB_y0:  .ds PB_MAXNUM
-PB_y1:  .ds PB_MAXNUM
-PB_y2:  .ds PB_MAXNUM
-                        ; difference
-PB_dx0: .ds PB_MAXNUM
-PB_dx1: .ds PB_MAXNUM
-PB_dx2: .ds PB_MAXNUM
-
-PB_dy0: .ds PB_MAXNUM
-PB_dy1: .ds PB_MAXNUM
-PB_dy2: .ds PB_MAXNUM
-                        ; character number / enable flag
+PB_y0:  .ds PB_MAXNUM   ; fraction
+PB_y1:  .ds PB_MAXNUM   ; integer(low)
+PB_y2:  .ds PB_MAXNUM   ; integer(high)
+                        ; direction/enable flag   $80=disabled  $00-$0e=enabled and direction
+PB_dir: .ds PB_MAXNUM
+                        ; character number
+                        ; setSatb のコードが冗長になるのでキャラごとにキャッシュ
 PB_chr0: .ds PB_MAXNUM
 PB_chr1: .ds PB_MAXNUM
-PB_enable   .equ    PB_chr1
 
     .code
     .bank   MAIN_BANK
@@ -33,8 +27,11 @@ PB_enable   .equ    PB_chr1
 ;   initialize
 PB_init:
         ; disable all bullets
-    stz PB_enable
-    tii PB_enable,PB_enable+1,PB_MAXNUM-1
+;    stz PB_enable
+;    tii PB_enable,PB_enable+1,PB_MAXNUM-1
+    lda #$80
+    sta PB_dir
+    tii PB_dir,PB_dir+1,PB_MAXNUM-1
 
     rts
 
@@ -43,18 +40,26 @@ PB_move:
     clx
 .loop:
         ; enable?
-    tst #$ff,PB_enable,x
-    beq .next
+;    tst #$ff,PB_enable,x
+;    beq .next
+    tst #$80,PB_dir,x
+    bne .next
+
+    ldy PB_dir,x
+
         ; add x
     lda PB_x0,x
     clc
-    adc PB_dx0,x
+;    adc PB_dx0,x
+    adc PB_dx0_table,y
     sta PB_x0,x
     lda PB_x1,x
-    adc PB_dx1,x
+;    adc PB_dx1,x
+    adc PB_dx1_table,y
     sta PB_x1,x
     lda PB_x2,x
-    adc PB_dx2,x
+;    adc PB_dx2,x
+    adc PB_dx2_table,y
     sta PB_x2,x
         ; out?
     cmp #$01
@@ -66,13 +71,16 @@ PB_move:
 .addy:
     lda PB_y0,x
     clc
-    adc PB_dy0,x
+;    adc PB_dy0,x
+    adc PB_dy0_table,y
     sta PB_y0,x
     lda PB_y1,x
-    adc PB_dy1,x
+;    adc PB_dy1,x
+    adc PB_dy1_table,y
     sta PB_y1,x
     lda PB_y2,x
-    adc PB_dy2,x
+;    adc PB_dy2,x
+    adc PB_dy2_table,y
     sta PB_y2,x
         ; next
 .next:
@@ -82,7 +90,9 @@ PB_move:
     rts
         ; out of screen
 .out:
-    stz PB_enable,x
+;    stz PB_enable,x
+    lda #$80
+    sta PB_dir,x
     bra .next
 
 ; shoot bullets
@@ -90,8 +100,10 @@ PB_move:
 PB_shoot:
     clx
 .loop:
-    tst #$ff,PB_enable,x
-    beq .found
+;    tst #$ff,PB_enable,x
+;    beq .found
+    tst #$80,PB_dir,x
+    bne .found
 
     inx
     cpx #PB_MAXNUM
@@ -112,19 +124,22 @@ PB_shoot:
     lda <z_spry+1
     sta PB_y2,x
         ; set difference
-    lda PB_dx0_table,y
-    sta PB_dx0,x
-    lda PB_dx1_table,y
-    sta PB_dx1,x
-    lda PB_dx2_table,y
-    sta PB_dx2,x
+;    lda PB_dx0_table,y
+;    sta PB_dx0,x
+;    lda PB_dx1_table,y
+;    sta PB_dx1,x
+;    lda PB_dx2_table,y
+;    sta PB_dx2,x
 
-    lda PB_dy0_table,y
-    sta PB_dy0,x
-    lda PB_dy1_table,y
-    sta PB_dy1,x
-    lda PB_dy2_table,y
-    sta PB_dy2,x
+;    lda PB_dy0_table,y
+;    sta PB_dy0,x
+;    lda PB_dy1_table,y
+;    sta PB_dy1,x
+;    lda PB_dy2_table,y
+;    sta PB_dy2,x
+
+    tya
+    sta PB_dir,x
 
         ; set character and enable
     lda #$0f
@@ -170,8 +185,10 @@ PB_setSatb:
     ; sta (),y で書き込むべきなんだろうか
 .loop:
         ; enable?
-    tst #$ff,PB_enable,x
-    beq .next
+;    tst #$ff,PB_enable,x
+;    beq .next
+    tst #$80,PB_dir,x
+    bne .next
         ; set y
     lda PB_y1,x
     sta satb,y
@@ -214,8 +231,10 @@ PB_setSatb:
 ;    ldy #0
 .loop2:
         ; enable?
-    tst #$ff,PB_enable,x
-    beq .next2
+;    tst #$ff,PB_enable,x
+;    beq .next2
+    tst #$80,PB_dir,x
+    bne .next2
         ; set y
     lda PB_y1,x
     sta satb+256,y

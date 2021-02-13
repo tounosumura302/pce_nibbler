@@ -16,6 +16,10 @@ z_sprx: .ds     2
 z_spry: .ds     2
 
 
+z_curchr_x:	.ds	3
+z_curchr_y:	.ds	3
+
+z_frame:	.ds	1
 
 ;--- CODE area ----------
 
@@ -146,6 +150,7 @@ main:
 	jsr	initPsgTest
 
 	jsr PB_init		; player's bullet
+	jsr	EB_init
 
 mainloop:
 ;       scroll
@@ -209,6 +214,9 @@ mainloop:
 
         jsr     spr_update
 
+;--
+;	shoot player's bullet (experimental)
+;--
 			; shoot
 		bbr0	<z_paddelta,.pbmove
 		ldy		#0
@@ -245,6 +253,36 @@ mainloop:
 		jsr		PB_move
 		jsr		PB_setSatb
 
+;--
+; enemy's bullets
+;--
+	tst	#$07,<z_frame
+	bne	.skipeb
+
+	lda	<z_sprx
+	sta	<z_dir_targetx
+	lda	<z_sprx+1
+	sta	<z_dir_targetx+1
+	lda	<z_spry
+	sta	<z_dir_targety
+	lda	<z_spry+1
+	sta	<z_dir_targety+1
+
+	lda	#$40
+	sta	<z_dir_sourcex
+	lda	#$01
+	sta	<z_dir_sourcex+1
+	lda	#$80
+	sta	<z_dir_sourcey
+	lda	#$00
+	sta	<z_dir_sourcey+1
+
+	jsr	getDirection
+	tay
+	jsr	EB_shoot
+.skipeb:
+	jsr	EB_move
+	jsr	EB_setSatb
 ;
 ;       vsync
 ;
@@ -259,6 +297,8 @@ mainloop:
 
 ;       pad
         jsr     readPad
+
+	inc	<z_frame
 	jmp	mainloop
 
 	
