@@ -256,7 +256,7 @@ mainloop:
 ;--
 ; enemy's bullets
 ;--
-	tst	#$07,<z_frame
+	tst	#$03,<z_frame
 	bne	.skipeb
 
 	lda	<z_sprx

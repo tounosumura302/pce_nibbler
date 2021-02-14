@@ -25,11 +25,24 @@ z_dir_quotient: .ds     1       ;quotient
 getDirection:
         stz     <z_dir_flag
 
+        .if     0
                 ; dx=(targetx/2)-(sourcex/2)
         lsr     <z_dir_targetx+1
         ror     <z_dir_targetx
         lsr     <z_dir_sourcex+1
         ror     <z_dir_sourcex
+        .else
+                ; dx=(targetx/4)-(sourcex/4)
+        lsr     <z_dir_targetx+1
+        ror     <z_dir_targetx
+        lsr     <z_dir_targetx+1
+        ror     <z_dir_targetx
+        lsr     <z_dir_sourcex+1
+        ror     <z_dir_sourcex
+        lsr     <z_dir_sourcex+1
+        ror     <z_dir_sourcex
+        .endif
+
         lda     <z_dir_targetx
         sec
         sbc     <z_dir_sourcex
@@ -40,11 +53,24 @@ getDirection:
         inc     a
 .01:    sta     <z_dir_dx
 
+        .if     0
                 ; dy=(targety/2)-(sourcey/2)
         lsr     <z_dir_targety+1
         ror     <z_dir_targety
         lsr     <z_dir_sourcey+1
         ror     <z_dir_sourcey
+        .else
+                ; dy=(targety/4)-(sourcey/4)
+        lsr     <z_dir_targety+1
+        ror     <z_dir_targety
+        lsr     <z_dir_targety+1
+        ror     <z_dir_targety
+        lsr     <z_dir_sourcey+1
+        ror     <z_dir_sourcey
+        lsr     <z_dir_sourcey+1
+        ror     <z_dir_sourcey
+        .endif
+
         lda     <z_dir_targety
         sec
         sbc     <z_dir_sourcey
@@ -88,6 +114,7 @@ getDirection:
         stx     <z_dir_dy
 .03:
                 ; z_dir_quotient=dy/dx
+        .if     0
         ldx     #8
         lda     <z_dir_dy       ; a       = lower byte of divident
         stz     <z_dir_dy       ; z_dir_y = higher byte of divident
@@ -108,6 +135,19 @@ getDirection:
         rol     <z_dir_quotient
         dex
         bne     .divloop
+        .else
+        ldx     #8
+        lda     <z_dir_dy       ; a       = lower byte of divident
+.divloop:
+        asl     a
+        cmp     <z_dir_dx
+        bcc     .divskip
+        sbc     <z_dir_dx
+.divskip:
+        rol     <z_dir_quotient
+        dex
+        bne     .divloop
+        .endif
                 ; quotient -> direction index
         lda     <z_dir_quotient
         cmp     #$4d
@@ -201,6 +241,7 @@ move2Direction:
 
         rts
 
+        .if     0
 dirtable_x_l:
     .db $00,$05,$14,$2c,$4b,$72,$9f,$cf,$00,$31,$61,$8e,$b5,$d4,$ec,$fb,$00,$fb,$ec,$d4,$b5,$8e,$61,$31,$00,$cf,$9f,$72,$4b,$2c
     .db $14,$05
@@ -219,3 +260,26 @@ dirtable_y_m:
 dirtable_y_h:
     .db $00,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
     .db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+
+        .else
+
+dirtable_x_l:
+    .db $00,$14,$4e,$ad,$2c,$c8,$79,$39,$00,$c7,$87,$38,$d4,$53,$b2,$ec
+    .db $00,$ec,$b2,$53,$d4,$38,$87,$c7,$00,$39,$79,$c8,$2c,$ad,$4e,$14
+dirtable_x_m:
+    .db $fc,$fc,$fc,$fc,$fd,$fd,$fe,$ff,$00,$00,$01,$02,$02,$03,$03,$03
+    .db $04,$03,$03,$03,$02,$02,$01,$00,$00,$ff,$fe,$fd,$fd,$fc,$fc,$fc
+dirtable_x_h:
+    .db $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$00,$00,$00,$00,$00,$00,$00,$00
+    .db $00,$00,$00,$00,$00,$00,$00,$00,$00,$ff,$ff,$ff,$ff,$ff,$ff,$ff
+dirtable_y_l:
+    .db $00,$39,$79,$c8,$2c,$ad,$4e,$14,$00,$14,$4e,$ad,$2c,$c8,$79,$39
+    .db $00,$c7,$87,$38,$d4,$53,$b2,$ec,$00,$ec,$b2,$53,$d4,$38,$87,$c7
+dirtable_y_m:
+    .db $00,$ff,$fe,$fd,$fd,$fc,$fc,$fc,$fc,$fc,$fc,$fc,$fd,$fd,$fe,$ff
+    .db $00,$00,$01,$02,$02,$03,$03,$03,$04,$03,$03,$03,$02,$02,$01,$00
+dirtable_y_h:
+    .db $00,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
+    .db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+
+        .endif
