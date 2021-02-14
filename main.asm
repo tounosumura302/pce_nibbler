@@ -12,9 +12,10 @@ scrx:	.ds	2
 scry:	.ds	2
 	;...
 
-z_sprx: .ds     2
-z_spry: .ds     2
+;z_sprx: .ds     2
+;z_spry: .ds     2
 
+z_tmp0:	.ds	1
 
 z_curchr_x:	.ds	3
 z_curchr_y:	.ds	3
@@ -135,12 +136,7 @@ main:
 	jsr	spr_init
 	jsr	spr_update
 
-        lda     #$40
-        sta     z_sprx
-        stz     z_sprx+1
-        lda     #$60
-        sta     z_spry
-        stz     z_spry+1
+	jsr	PL_init
 	;;
 	;; .loop:	bra	.loop
 				;
@@ -163,57 +159,8 @@ mainloop:
 	adc	#0
  	
 ;       move sprite
-        bbr7    <z_pad,.notleft
-.left:
-        lda     <z_sprx
-        sec
-        sbc     #1
-        sta     <z_sprx
-        lda     <z_sprx+1
-        sbc     #0
-        sta     <z_sprx+1
-.notleft:
-        bbr5    <z_pad,.notright
-.right:
-        lda     <z_sprx
-        clc
-        adc     #1
-        sta     <z_sprx
-        lda     <z_sprx+1
-        adc     #0
-        sta     <z_sprx+1
-.notright:
-        bbr4    <z_pad,.notup
-.up:
-        lda     <z_spry
-        sec
-        sbc     #1
-        sta     <z_spry
-        lda     <z_spry+1
-        sbc     #0
-        sta     <z_spry+1
-.notup:
-        bbr6    <z_pad,.notdown
-.down:
-        lda     <z_spry
-        clc
-        adc     #1
-        sta     <z_spry
-        lda     <z_spry+1
-        adc     #0
-        sta     <z_spry+1
-.notdown:
-        lda     <z_spry
-        sta     satb+8
-        lda     <z_spry+1
-        sta     satb+9
-        lda     <z_sprx
-        sta     satb+10
-        lda     <z_sprx+1
-        sta     satb+11
-
-        jsr     spr_update
-
+	jsr	PL_move
+	jsr	PL_setSatb
 ;--
 ;	shoot player's bullet (experimental)
 ;--
@@ -259,23 +206,14 @@ mainloop:
 	tst	#$03,<z_frame
 	bne	.skipeb
 
-	lda	<z_sprx
+	lda	PL_x+1
 	sta	<z_dir_targetx
-	lda	<z_sprx+1
-	sta	<z_dir_targetx+1
-	lda	<z_spry
+	lda	PL_y+1
 	sta	<z_dir_targety
-	lda	<z_spry+1
-	sta	<z_dir_targety+1
-
-	lda	#$40
+	lda	#300/2
 	sta	<z_dir_sourcex
-	lda	#$01
-	sta	<z_dir_sourcex+1
-	lda	#$80
+	lda	#140/2
 	sta	<z_dir_sourcey
-	lda	#$00
-	sta	<z_dir_sourcey+1
 
 	jsr	getDirection
 	tay
@@ -283,9 +221,12 @@ mainloop:
 .skipeb:
 	jsr	EB_move
 	jsr	EB_setSatb
+
+
 ;
 ;       vsync
 ;
+        jsr     spr_update
         jsr     waitVsync
 
 ;       scroll

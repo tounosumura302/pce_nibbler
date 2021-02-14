@@ -1,9 +1,9 @@
 
         .zp
-z_dir_targetx:  .ds     2       ;target x pos
-z_dir_targety:  .ds     2       ;target y pos
-z_dir_sourcex:  .ds     2       ;source x pos
-z_dir_sourcey:  .ds     2       ;source y pos
+z_dir_targetx:  .ds     1       ;target x pos
+z_dir_targety:  .ds     1       ;target y pos
+z_dir_sourcex:  .ds     1       ;source x pos
+z_dir_sourcey:  .ds     1       ;source y pos
 z_dir_dx:       .ds     1       ;dx
 z_dir_dy:       .ds     1       ;du
 z_dir_flag:     .ds     1       ;flag
@@ -24,25 +24,7 @@ z_dir_quotient: .ds     1       ;quotient
         ; return  a
 getDirection:
         stz     <z_dir_flag
-
-        .if     0
-                ; dx=(targetx/2)-(sourcex/2)
-        lsr     <z_dir_targetx+1
-        ror     <z_dir_targetx
-        lsr     <z_dir_sourcex+1
-        ror     <z_dir_sourcex
-        .else
-                ; dx=(targetx/4)-(sourcex/4)
-        lsr     <z_dir_targetx+1
-        ror     <z_dir_targetx
-        lsr     <z_dir_targetx+1
-        ror     <z_dir_targetx
-        lsr     <z_dir_sourcex+1
-        ror     <z_dir_sourcex
-        lsr     <z_dir_sourcex+1
-        ror     <z_dir_sourcex
-        .endif
-
+                ; dx=(targetx-sourcex)/4
         lda     <z_dir_targetx
         sec
         sbc     <z_dir_sourcex
@@ -51,26 +33,10 @@ getDirection:
         smb2    <z_dir_flag
         eor     #$ff
         inc     a
-.01:    sta     <z_dir_dx
+.01:    lsr     a
+        sta     <z_dir_dx
 
-        .if     0
-                ; dy=(targety/2)-(sourcey/2)
-        lsr     <z_dir_targety+1
-        ror     <z_dir_targety
-        lsr     <z_dir_sourcey+1
-        ror     <z_dir_sourcey
-        .else
-                ; dy=(targety/4)-(sourcey/4)
-        lsr     <z_dir_targety+1
-        ror     <z_dir_targety
-        lsr     <z_dir_targety+1
-        ror     <z_dir_targety
-        lsr     <z_dir_sourcey+1
-        ror     <z_dir_sourcey
-        lsr     <z_dir_sourcey+1
-        ror     <z_dir_sourcey
-        .endif
-
+                ; dy=(tagety-sourcey)/4
         lda     <z_dir_targety
         sec
         sbc     <z_dir_sourcey
@@ -79,7 +45,8 @@ getDirection:
         smb3    <z_dir_flag
         eor     #$ff
         inc     a
-.02:    sta     <z_dir_dy
+.02:    lsr     a
+        sta     <z_dir_dy
 
                 ; dy=0?
         beq     .dy0
@@ -113,31 +80,9 @@ getDirection:
         sta     <z_dir_dx
         stx     <z_dir_dy
 .03:
-                ; z_dir_quotient=dy/dx
-        .if     0
+                ; z_dir_quotient=dy/dx  dx and dy are 7bit
         ldx     #8
-        lda     <z_dir_dy       ; a       = lower byte of divident
-        stz     <z_dir_dy       ; z_dir_y = higher byte of divident
-.divloop:
-        asl     a
-        rol     <z_dir_dy
-        bne     .gt             ; divident is always greater than divisor if higher byte of divident > 0
-        cmp     <z_dir_dx
-        bcc     .divskip
-                ; 9bit（被除数）-8bit（除数）だが、被除数の9ビット目は減算で必ず0になるので、減算はせずに強制的に0にしている。
-                ; ただし、9ビット目が１だった場合、下位8ビットの減算でCフラグが0になってしまうので、強制的にC=1にする必要がある。
-.gt:
-        sec
-        sbc     <z_dir_dx
-        stz     <z_dir_dy
-        sec
-.divskip:
-        rol     <z_dir_quotient
-        dex
-        bne     .divloop
-        .else
-        ldx     #8
-        lda     <z_dir_dy       ; a       = lower byte of divident
+        lda     <z_dir_dy
 .divloop:
         asl     a
         cmp     <z_dir_dx
@@ -147,7 +92,7 @@ getDirection:
         rol     <z_dir_quotient
         dex
         bne     .divloop
-        .endif
+
                 ; quotient -> direction index
         lda     <z_dir_quotient
         cmp     #$4d
@@ -214,72 +159,15 @@ getDirection:
         rts
 
 
-        ; move
-        ; y = direction
-move2Direction:
-        lda     <z_curchr_x
-        clc
-        adc     dirtable_x_l,y
-        sta     <z_curchr_x
-        lda     <z_curchr_x+1
-        adc     dirtable_x_m,y
-        sta     <z_curchr_x+1
-        lda     <z_curchr_x+2
-        adc     dirtable_x_h,y
-        sta     <z_curchr_x+2
-
-        lda     <z_curchr_y
-        clc
-        adc     dirtable_y_l,y
-        sta     <z_curchr_y
-        lda     <z_curchr_y+1
-        adc     dirtable_y_m,y
-        sta     <z_curchr_y+1
-        lda     <z_curchr_y+2
-        adc     dirtable_y_h,y
-        sta     <z_curchr_y+2
-
-        rts
-
-        .if     0
 dirtable_x_l:
-    .db $00,$05,$14,$2c,$4b,$72,$9f,$cf,$00,$31,$61,$8e,$b5,$d4,$ec,$fb,$00,$fb,$ec,$d4,$b5,$8e,$61,$31,$00,$cf,$9f,$72,$4b,$2c
-    .db $14,$05
-dirtable_x_m:
-    .db $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$00,$00,$00,$00,$00,$00,$00,$00
-    .db $01,$00,$00,$00,$00,$00,$00,$00,$00,$ff,$ff,$ff,$ff,$ff,$ff,$ff
+    .db $80,$83,$8a,$96,$a6,$b9,$d0,$e8,$00,$18,$30,$47,$5a,$6a,$76,$7d
+    .db $80,$7d,$76,$6a,$5a,$47,$30,$18,$00,$e8,$d0,$b9,$a6,$96,$8a,$83
 dirtable_x_h:
     .db $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$00,$00,$00,$00,$00,$00,$00,$00
     .db $00,$00,$00,$00,$00,$00,$00,$00,$00,$ff,$ff,$ff,$ff,$ff,$ff,$ff
 dirtable_y_l:
-    .db $00,$cf,$9f,$72,$4b,$2c,$14,$05,$00,$05,$14,$2c,$4b,$72,$9f,$cf
-    .db $00,$31,$61,$8e,$b5,$d4,$ec,$fb,$00,$fb,$ec,$d4,$b5,$8e,$61,$31
-dirtable_y_m:
-    .db $00,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
-    .db $00,$00,$00,$00,$00,$00,$00,$00,$01,$00,$00,$00,$00,$00,$00,$00
+    .db $00,$e8,$d0,$b9,$a6,$96,$8a,$83,$80,$83,$8a,$96,$a6,$b9,$d0,$e8
+    .db $00,$18,$30,$47,$5a,$6a,$76,$7d,$80,$7d,$76,$6a,$5a,$47,$30,$18
 dirtable_y_h:
     .db $00,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
     .db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-
-        .else
-
-dirtable_x_l:
-    .db $00,$14,$4e,$ad,$2c,$c8,$79,$39,$00,$c7,$87,$38,$d4,$53,$b2,$ec
-    .db $00,$ec,$b2,$53,$d4,$38,$87,$c7,$00,$39,$79,$c8,$2c,$ad,$4e,$14
-dirtable_x_m:
-    .db $fc,$fc,$fc,$fc,$fd,$fd,$fe,$ff,$00,$00,$01,$02,$02,$03,$03,$03
-    .db $04,$03,$03,$03,$02,$02,$01,$00,$00,$ff,$fe,$fd,$fd,$fc,$fc,$fc
-dirtable_x_h:
-    .db $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$00,$00,$00,$00,$00,$00,$00,$00
-    .db $00,$00,$00,$00,$00,$00,$00,$00,$00,$ff,$ff,$ff,$ff,$ff,$ff,$ff
-dirtable_y_l:
-    .db $00,$39,$79,$c8,$2c,$ad,$4e,$14,$00,$14,$4e,$ad,$2c,$c8,$79,$39
-    .db $00,$c7,$87,$38,$d4,$53,$b2,$ec,$00,$ec,$b2,$53,$d4,$38,$87,$c7
-dirtable_y_m:
-    .db $00,$ff,$fe,$fd,$fd,$fc,$fc,$fc,$fc,$fc,$fc,$fc,$fd,$fd,$fe,$ff
-    .db $00,$00,$01,$02,$02,$03,$03,$03,$04,$03,$03,$03,$02,$02,$01,$00
-dirtable_y_h:
-    .db $00,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
-    .db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-
-        .endif

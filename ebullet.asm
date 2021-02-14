@@ -2,13 +2,11 @@
 
 EB_MAXNUM   .equ    40  ; maximum number of player's bullets
                         ; x coordinate
-EB_x0:  .ds EB_MAXNUM   ; fraction
-EB_x1:  .ds EB_MAXNUM   ; integer(low)
-EB_x2:  .ds EB_MAXNUM   ; integer(high)
+EB_x0:  .ds EB_MAXNUM   ; low
+EB_x1:  .ds EB_MAXNUM   ; high
                         ; y coordinate
-EB_y0:  .ds EB_MAXNUM   ; fraction
-EB_y1:  .ds EB_MAXNUM   ; integer(low)
-EB_y2:  .ds EB_MAXNUM   ; integer(high)
+EB_y0:  .ds EB_MAXNUM   ; low
+EB_y1:  .ds EB_MAXNUM   ; high
                         ; direction/enable flag   $80=disabled  $00-$0e=enabled and direction
 EB_dir: .ds EB_MAXNUM
                         ; character number
@@ -34,59 +32,33 @@ EB_move:
         tst #$80,EB_dir,x
         bne .next
 
-                ; copy x/y for move2Direction
-        lda EB_x0,x
-        sta <z_curchr_x
-        lda EB_x1,x
-        sta <z_curchr_x+1
-        lda EB_x2,x
-        sta <z_curchr_x+2
-
-        lda EB_y0,x
-        sta <z_curchr_y
-        lda EB_y1,x
-        sta <z_curchr_y+1
-        lda EB_y2,x
-        sta <z_curchr_y+2
-
-                ; move
         ldy     EB_dir,x
-        jsr     move2Direction
 
-                ; copy back x
-        lda     <z_curchr_x
+        lda     EB_x0,x
+        clc
+        adc     dirtable_x_l,y
         sta     EB_x0,x
-        lda     <z_curchr_x+1
+        lda     EB_x1,x
+        adc     dirtable_x_h,y
         sta     EB_x1,x
-        tay                     ; used for clipping
-        lda     <z_curchr_x+2
-        sta     EB_x2,x
 
-                ; clipping x pos
-        bne     .x1
-        cpy     #$20-16         ; x<$0010 ?
-        bcc     .out
-        bra     .sety
-.x1:    cpy     #$50+$20            ; x>=$0170 ?
+        cmp     #(336+32)/2
         bcs     .out
+        cmp     #32/2
+        bcc     .out
 
-                ; copy back y
-.sety:
-        lda     <z_curchr_y
+        lda     EB_y0,x
+        clc
+        adc     dirtable_y_l,y
         sta     EB_y0,x
-        lda     <z_curchr_y+1
+        lda     EB_y1,x
+        adc     dirtable_y_h,y
         sta     EB_y1,x
-        tay
-        lda     <z_curchr_y+2
-        sta     EB_y2,x
 
-                ; clipping y pos
-        bne     .y1
-        cpy     #$40-16         ; y<$0030 ?
-        bcc     .out
-        bra     .next
-.y1:    cpy     #$30            ; y>=$0130 ?
+        cmp     #(240+64)/2
         bcs     .out
+        cmp     #64/2
+        bcc     .out
 
                 ; next
 .next:
@@ -118,16 +90,12 @@ EB_shoot:
 .found:
         ; set x
     stz EB_x0,x
-    lda #$40
+    lda #300/2
     sta EB_x1,x
-    lda #$01
-    sta EB_x2,x
         ; set y
     stz EB_y0,x
-    lda #$80
+    lda #140/2
     sta EB_y1,x
-    lda #$00
-    sta EB_y2,x
 
     tya
     sta EB_dir,x
@@ -154,20 +122,36 @@ EB_setSatb:
         ; enable?
     tst #$80,EB_dir,x
     bne .next
-        ; set y
-    lda EB_y1,x
-    sta satb,y
-    iny
-    lda EB_y2,x
-    sta satb,y
-    iny
-        ; set x
-    lda EB_x1,x
-    sta satb,y
-    iny
-    lda EB_x2,x
-    sta satb,y
-    iny
+
+    lda EB_y0,x
+    asl a
+    php
+    lda EB_y1,x          ;5
+        sec                     ;2
+        sbc     #8/2            ;2
+        plp                     ;3
+        rol     a               ;2
+        sta     satb,y          ;5
+        iny
+        rol     a               ;2
+        and     #1              ;2
+        sta     satb,y          ;5   38
+        iny
+
+    lda EB_x0,x
+    asl a
+    php
+    lda EB_x1,x          ;5
+        sec                     ;2
+        sbc     #8/2            ;2
+        plp                     ;3
+        rol     a               ;2
+        sta     satb,y          ;5
+        iny
+        rol     a               ;2
+        and     #1              ;2
+        sta     satb,y          ;5   38
+        iny
         ; set chr
     lda EB_chr0,x
     sta satb,y
@@ -198,20 +182,36 @@ EB_setSatb:
         ; enable?
     tst #$80,EB_dir,x
     bne .next2
-        ; set y
-    lda EB_y1,x
-    sta satb+256,y
-    iny
-    lda EB_y2,x
-    sta satb+256,y
-    iny
-        ; set x
-    lda EB_x1,x
-    sta satb+256,y
-    iny
-    lda EB_x2,x
-    sta satb+256,y
-    iny
+
+    lda EB_y0,x
+    asl a
+    php
+    lda EB_y1,x          ;5
+        sec                     ;2
+        sbc     #8/2            ;2
+        plp                     ;3
+        rol     a               ;2
+        sta     satb+256,y          ;5
+        iny
+        rol     a               ;2
+        and     #1              ;2
+        sta     satb+256,y          ;5   38
+        iny
+
+    lda EB_x0,x
+    asl a
+    php
+    lda EB_x1,x          ;5
+        sec                     ;2
+        sbc     #8/2            ;2
+        plp                     ;3
+        rol     a               ;2
+        sta     satb+256,y          ;5
+        iny
+        rol     a               ;2
+        and     #1              ;2
+        sta     satb+256,y          ;5   38
+        iny
         ; set chr
     lda EB_chr0,x
     sta satb+256,y
