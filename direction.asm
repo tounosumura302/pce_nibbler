@@ -13,6 +13,10 @@ z_dir_flag:     .ds     1       ;flag
                                 ; bit3 : 1 => dy<0 
 z_dir_quotient: .ds     1       ;quotient
 
+z_dir_multiplicand:     .ds     2
+z_dir_multiplier:       .ds     2
+z_dir_result_dx:        .ds     2
+z_dir_result_dy:        .ds     2
 
         .code
         .bank   MAIN_BANK
@@ -171,3 +175,69 @@ dirtable_y_l:
 dirtable_y_h:
     .db $00,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
     .db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+
+        ; y=direction
+        ; a=length of vector
+        ; @result
+        ; z_dir_result_dx
+        ; z_dir_result_dy
+convDirection2DxDy:
+                ; result_dx=dx*a
+        sta     <z_dir_multiplier
+        pha
+
+        lda     dirtable_x_l,y
+        sta     <z_dir_multiplicand
+        lda     dirtable_x_h,y
+        sta     <z_dir_multiplicand+1
+
+        stz     <z_dir_result_dx
+        stz     <z_dir_result_dx+1
+        ldx     #8
+.loopx:
+        lsr     <z_dir_multiplier
+        bcc     .nextx
+.addx:  lda     <z_dir_result_dx
+        clc
+        adc     <z_dir_multiplicand
+        sta     <z_dir_result_dx
+        lda     <z_dir_result_dx+1
+        adc     <z_dir_multiplicand+1
+        sta     <z_dir_result_dx+1
+.nextx:
+        asl     <z_dir_multiplicand
+        rol     <z_dir_multiplicand+1
+        dex
+        bne     .loopx
+.endx:
+                ; result_dy=dy*a
+        pla
+        sta     <z_dir_multiplier
+
+        lda     dirtable_y_l,y
+        sta     <z_dir_multiplicand
+        lda     dirtable_y_h,y
+        sta     <z_dir_multiplicand+1
+
+
+        stz     <z_dir_result_dy
+        stz     <z_dir_result_dy+1
+        ldx     #8
+.loopy:
+        lsr     <z_dir_multiplier
+        bcc     .nexty
+.addy:  lda     <z_dir_result_dy
+        clc
+        adc     <z_dir_multiplicand
+        sta     <z_dir_result_dy
+        lda     <z_dir_result_dy+1
+        adc     <z_dir_multiplicand+1
+        sta     <z_dir_result_dy+1
+.nexty:
+        asl     <z_dir_multiplicand
+        rol     <z_dir_multiplicand+1
+        dex
+        bne     .loopy
+.endy:
+        rts
+

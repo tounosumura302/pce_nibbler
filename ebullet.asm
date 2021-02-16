@@ -9,6 +9,11 @@ EB_y0:  .ds EB_MAXNUM   ; low
 EB_y1:  .ds EB_MAXNUM   ; high
                         ; direction/enable flag   $80=disabled  $00-$0e=enabled and direction
 EB_dir: .ds EB_MAXNUM
+
+EB_dx0: .ds EB_MAXNUM
+EB_dx1: .ds EB_MAXNUM
+EB_dy0: .ds EB_MAXNUM
+EB_dy1: .ds EB_MAXNUM
                         ; character number
                         ; setSatb のコードが冗長になるのでキャラごとにキャッシュ
 EB_chr0: .ds EB_MAXNUM
@@ -32,6 +37,7 @@ EB_move:
         tst #$80,EB_dir,x
         bne .next
 
+        .if     0
         ldy     EB_dir,x
 
         lda     EB_x0,x
@@ -41,12 +47,22 @@ EB_move:
         lda     EB_x1,x
         adc     dirtable_x_h,y
         sta     EB_x1,x
+        .else
+        lda     EB_x0,x
+        clc
+        adc     EB_dx0,x
+        sta     EB_x0,x
+        lda     EB_x1,x
+        adc     EB_dx1,x
+        sta     EB_x1,x
+        .endif
 
         cmp     #(336+32)/2
         bcs     .out
         cmp     #32/2
         bcc     .out
 
+        .if     0
         lda     EB_y0,x
         clc
         adc     dirtable_y_l,y
@@ -54,6 +70,15 @@ EB_move:
         lda     EB_y1,x
         adc     dirtable_y_h,y
         sta     EB_y1,x
+        .else
+        lda     EB_y0,x
+        clc
+        adc     EB_dy0,x
+        sta     EB_y0,x
+        lda     EB_y1,x
+        adc     EB_dy1,x
+        sta     EB_y1,x
+        .endif
 
         cmp     #(240+64)/2
         bcs     .out
@@ -97,14 +122,34 @@ EB_shoot:
     lda #140/2
     sta EB_y1,x
 
+        .if     0
     tya
     sta EB_dir,x
+        .endif
 
         ; set character
     lda #$0f
     sta EB_chr0,x
     lda #$03
     sta EB_chr1,x
+
+        .if     1
+        phx
+        lda     #3
+        jsr     convDirection2DxDy
+        plx
+
+        lda     <z_dir_result_dx
+        sta     EB_dx0,x
+        lda     <z_dir_result_dx+1
+        sta     EB_dx1,x
+        lda     <z_dir_result_dy
+        sta     EB_dy0,x
+        lda     <z_dir_result_dy+1
+        sta     EB_dy1,x
+
+        stz     EB_dir,x
+        .endif
 
     rts
 
