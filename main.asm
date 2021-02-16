@@ -166,36 +166,9 @@ mainloop:
 ;--
 			; shoot
 		bbr0	<z_paddelta,.pbmove
-		ldy		#0
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
-		iny
-		jsr		PB_shoot
+
+		ldy	#2
+		jsr	PB_shoot
 .pbmove:
 		jsr		PB_move
 		jsr		PB_setSatb
@@ -203,7 +176,7 @@ mainloop:
 ;--
 ; enemy's bullets
 ;--
-	tst	#$03,<z_frame
+	tst	#$7f,<z_frame
 	bne	.skipeb
 
 	lda	PL_x+1

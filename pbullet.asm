@@ -2,10 +2,15 @@
 ; 弾の構造体へのアクセスを absolute,x でやれるようにするために、
 ; 構造体メンバーを1バイトずつに分け、それぞれを個別の配列となるよう配置。
 ; x は弾のインデックスとなる
+;
+; ４連射であることを前提としたコードになっている
 
     .bss
 
-PB_MAXNUM   .equ    60  ; maximum number of player's bullets
+PB_MAXSLOT  .equ    4
+PB_MAXNUM   .equ    PB_MAXSLOT*15  ; maximum number of player's bullets
+
+PB_slotcount:   .ds PB_MAXSLOT
                         ; x coordinate
 PB_x0:  .ds PB_MAXNUM   ; low
 PB_x1:  .ds PB_MAXNUM   ; high
@@ -19,6 +24,7 @@ PB_dir: .ds PB_MAXNUM
 PB_chr0: .ds PB_MAXNUM
 PB_chr1: .ds PB_MAXNUM
 
+
     .code
     .bank   MAIN_BANK
 
@@ -28,6 +34,12 @@ PB_init:
     lda #$80
     sta PB_dir
     tii PB_dir,PB_dir+1,PB_MAXNUM-1
+
+        ; 4連射が前提
+    stz PB_slotcount
+    stz PB_slotcount+1
+    stz PB_slotcount+2
+    stz PB_slotcount+3
 
     rts
 
@@ -64,7 +76,7 @@ PB_move:
     lda PB_y1,x
     adc PB_dy1_table,y
     sta PB_y1,x
-
+        ; out?
     cmp #152
     bcs .out
     cmp #32
@@ -80,22 +92,42 @@ PB_move:
 .out:
     lda #$80
     sta PB_dir,x
+        ; 
+    txa
+    sxy
+    and #3
+    tax
+    dec PB_slotcount,x
+    sxy
+
     bra .next
 
 ; shoot bullets
-;   y = direction (0x00-0x0e)
+;   y = level(0-3)
 PB_shoot:
     clx
 .loop:
-    tst #$80,PB_dir,x
-    bne .found
+    lda PB_slotcount,x
+    beq .found
 
     inx
-    cpx #PB_MAXNUM
+    cpx #PB_MAXSLOT
     bmi .loop
+.end:
     rts
 
 .found:
+    lda PB_level_num,y
+    sta PB_slotcount,x
+
+    lda PB_level_table,y
+    tay
+
+.loop2:
+    lda PB_level0,y
+    bmi .end
+    sta PB_dir,x
+
         ; set x
     lda PL_x
     sta PB_x0,x
@@ -106,17 +138,36 @@ PB_shoot:
     lda PL_y+1
     sta PB_y1,x
 
-    tya
-    sta PB_dir,x
-
         ; set character and enable
     lda #$0f
     sta PB_chr0,x
     lda #$03
     sta PB_chr1,x
 
-    rts
+    iny
+    inx
+    inx
+    inx
+    inx
+    bra .loop2
 
+
+        ; number of bullet per 1 shot
+PB_level_num:
+    .db 3,5,9,15
+        ; direction table for each level
+PB_level_table:
+    .db 0,PB_level1-PB_level0,PB_level2-PB_level0,PB_level3-PB_level0
+PB_level0:
+    .db 0,7,14,$ff
+PB_level1:
+    .db 0,3,7,11,14,$ff
+PB_level2:
+    .db 0,1,2,6,7,8,12,13,14,$ff
+PB_level3:
+    .db 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,$ff
+
+        ; 方向別移動量
 PB_dx0_table:
     .db $f8,$3c,$76,$a7,$cd,$e9,$fa,$00,$fa,$e9,$cd,$a7,$76,$3c,$f8
 PB_dx1_table:
