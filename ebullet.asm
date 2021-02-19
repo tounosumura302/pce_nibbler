@@ -1,6 +1,6 @@
     .bss
 
-EB_MAXNUM   .equ    40  ; maximum number of player's bullets
+EB_MAXNUM   .equ    24  ; maximum number of player's bullets
                         ; x coordinate
 EB_x0:  .ds EB_MAXNUM   ; low
 EB_x1:  .ds EB_MAXNUM   ; high
@@ -128,14 +128,14 @@ EB_shoot:
         .endif
 
         ; set character
-    lda #$0f
+    lda #$20
     sta EB_chr0,x
     lda #$03
     sta EB_chr1,x
 
         .if     1
         phx
-        lda     #3
+        lda     #4
         jsr     convDirection2DxDy
         plx
 

@@ -16,6 +16,13 @@ scry:	.ds	2
 ;z_spry: .ds     2
 
 z_tmp0:	.ds	1
+z_tmp1:	.ds	1
+z_tmp2:	.ds	1
+z_tmp3:	.ds	1
+z_tmp4:	.ds	1
+z_tmp5:	.ds	1
+z_tmp6:	.ds	1
+z_tmp7:	.ds	1
 
 z_curchr_x:	.ds	3
 z_curchr_y:	.ds	3
@@ -147,6 +154,7 @@ main:
 
 	jsr PB_init		; player's bullet
 	jsr	EB_init
+	jsr	EN_init
 
 mainloop:
 ;       scroll
@@ -167,7 +175,7 @@ mainloop:
 			; shoot
 		bbr0	<z_paddelta,.pbmove
 
-		ldy	#2
+		ldy	#3
 		jsr	PB_shoot
 .pbmove:
 		jsr		PB_move
@@ -176,7 +184,7 @@ mainloop:
 ;--
 ; enemy's bullets
 ;--
-	tst	#$7f,<z_frame
+	tst	#$03,<z_frame
 	bne	.skipeb
 
 	lda	PL_x+1
@@ -194,6 +202,27 @@ mainloop:
 .skipeb:
 	jsr	EB_move
 	jsr	EB_setSatb
+;--
+; enemy
+;--
+	tst	#$0f,<z_frame
+	bne	.skipen
+
+	lda	#0
+	sta	<z_tmp0
+	lda	#320/2
+	sta	<z_tmp1
+	lda	#0
+	sta	<z_tmp2
+	lda	<z_frame
+	lsr	a
+	sta	<z_tmp3
+	lda	#1
+	sta	<z_tmp4
+	jsr	EN_create
+.skipen:
+	jsr	EN_move
+	jsr	EN_setSatb
 
 
 ;
@@ -319,6 +348,14 @@ spr_init:
         sta     VdcDataH
 	st0	#2
 	tia	spr_pat_0,VdcData,16*4*2*8
+
+	st0	#0
+        lda     #$00
+        sta     VdcDataL
+        lda     #$64
+        sta     VdcDataH
+	st0	#2
+	tia	spr_pattern_eb,VdcData,16*4
 
 	;; clear satb
 	stz	satb
@@ -936,6 +973,17 @@ spr_pattern_1:
 	db	$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
 	db	$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
 	db	$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
+
+spr_pattern_eb:
+	dw	$3c00,$7e00,$ff00,$ff00,$ff00,$ff00,$7e00,$3c00
+	dw	$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+	dw	$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+	dw	$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+	dw	$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+	dw	$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+	dw	$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+	dw	$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+
 
 	;; satb
 	.bss

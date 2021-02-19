@@ -65,7 +65,7 @@ PL_setSatb:
         php                     ;3
         lda     PL_y+1          ;5
         sec                     ;2
-        sbc     #8/2            ;2
+        sbc     #16/2            ;2
         plp                     ;3
         rol     a               ;2
         sta     satb+8          ;5
@@ -78,11 +78,22 @@ PL_setSatb:
         php
         lda     PL_x+1
         sec
-        sbc     #8/2
+        sbc     #16/2
         plp
         rol     a
         sta     satb+10
         rol     a
         and     #1
         sta     satb+11
+
+     	lda	#$0f
+	sta	satb+12
+	lda	#$03		;vram address = $4040 -> $202
+	sta	satb+13
+
+	lda	#$80		;priority = sprite & color=1
+	sta	satb+14
+        lda     #$11
+	sta	satb+15
+
         rts

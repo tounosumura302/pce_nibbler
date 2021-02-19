@@ -139,7 +139,7 @@ PB_shoot:
     sta PB_y1,x
 
         ; set character and enable
-    lda #$0f
+    lda #$20
     sta PB_chr0,x
     lda #$03
     sta PB_chr1,x

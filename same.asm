@@ -10,4 +10,5 @@ MAIN_BANK       .equ    1
         .include "player.asm"
         .include "pbullet.asm"
         .include "direction.asm"
+        .include "enemy.asm"
         .include "ebullet.asm"
