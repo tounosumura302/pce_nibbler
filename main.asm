@@ -143,6 +143,8 @@ main:
 	jsr	spr_init
 	jsr	spr_update
 
+
+	jsr	CDRVinit
 	jsr	PL_init
 	;;
 	;; .loop:	bra	.loop
@@ -152,9 +154,9 @@ main:
 
 	jsr	initPsgTest
 
-	jsr PB_init		; player's bullet
-	jsr	EB_init
-	jsr	EN_init
+	;jsr PB_init		; player's bullet
+	;jsr	EB_init
+	;jsr	EN_init
 
 mainloop:
 ;       scroll
@@ -166,6 +168,32 @@ mainloop:
 	set
 	adc	#0
  	
+
+;--
+; enemy's bullets
+;--
+	tst	#$03,<z_frame
+	bne	.skipeb
+
+	ldx	PL_chr
+	lda	CH_xh,x
+	sta	<z_dir_targetx
+	lda	CH_yh,x
+	sta	<z_dir_targety
+	lda	#300/2
+	sta	<z_dir_sourcex
+	lda	#140/2
+	sta	<z_dir_sourcey
+
+	jsr	getDirection
+	tay
+	jsr	EB_shoot
+.skipeb:
+
+	jsr	CDRVmove
+	jsr	CDRVsetSprite
+
+	.if	0
 ;       move sprite
 	jsr	PL_move
 	jsr	PL_setSatb
@@ -224,7 +252,7 @@ mainloop:
 	jsr	EN_move
 	jsr	EN_setSatb
 
-
+	.endif
 ;
 ;       vsync
 ;

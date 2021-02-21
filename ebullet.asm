@@ -22,6 +22,8 @@ EB_chr1: .ds EB_MAXNUM
     .code
     .bank   MAIN_BANK
 
+        .if     0
+
 EB_init:
         ; disable all bullets
     lda #$80
@@ -277,3 +279,103 @@ EB_setSatb:
     cpx #EB_MAXNUM
     bmi .loop2
     rts
+
+
+        .else
+
+EB_shoot:
+        phy
+
+        lda     #2
+        sta     <z_tmp0
+        sta     <z_tmp1
+        jsr     CDRVaddChr
+        bcs     .ret
+
+        sxy
+
+        stz     CH_xl,x
+        lda     #300/2
+        sta     CH_xh,x
+        stz     CH_yl,x
+        lda     #140/2
+        sta     CH_yh,x
+
+        lda     #$20
+        sta     CH_sprpatl,x
+        lda     #$03
+        sta     CH_sprpath,x
+
+        lda     #$80
+        sta     CH_spratrl,x
+        lda     #$11
+        sta     CH_spratrh,x
+
+        lda     #8/2
+        sta     CH_sprdx,x
+        sta     CH_sprdy,x
+
+        lda     #LOW(EB_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(EB_move)
+        sta     CH_procptrh,x
+
+        ply             ; y = direction
+
+        phx
+        lda     #4
+        jsr     convDirection2DxDy
+        plx
+
+        lda     <z_dir_result_dx
+        sta     CH_dxl,x
+        lda     <z_dir_result_dx+1
+        sta     CH_dxh,x
+        lda     <z_dir_result_dy
+        sta     CH_dyl,x
+        lda     <z_dir_result_dy+1
+        sta     CH_dyh,x
+
+        rts
+
+.ret:
+        ply
+        rts
+
+
+EB_move:
+        lda     CH_xl,x
+        clc
+        adc     CH_dxl,x
+        sta     CH_xl,x
+        lda     CH_xh,x
+        adc     CH_dxh,x
+        sta     CH_xh,x
+
+        cmp     #(336+32)/2
+        bcs     .out
+        cmp     #32/2
+        bcc     .out
+
+        lda     CH_yl,x
+        clc
+        adc     CH_dyl,x
+        sta     CH_yl,x
+        lda     CH_yh,x
+        adc     CH_dyh,x
+        sta     CH_yh,x
+
+        cmp     #(240+64)/2
+        bcs     .out
+        cmp     #64/2
+        bcc     .out
+
+        clc
+        rts
+                ; out of screen
+.out:
+;        jsr     CDRVremoveChr
+        sec
+        rts
+
+        .endif
