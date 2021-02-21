@@ -191,6 +191,7 @@ mainloop:
 .skipeb:
 
 	jsr	CDRVmove
+	jsr	CDRVallocSprite
 	jsr	CDRVsetSprite
 
 	.if	0

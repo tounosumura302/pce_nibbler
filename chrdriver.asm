@@ -43,6 +43,7 @@ CDrv_role_class_chrnum: .ds     CDRV_MAX_ROLE_CLASS
 CDRV_MAX_SPR_CLASS:   .equ    8
 CDrv_spr_class_table: .ds     CDRV_MAX_SPR_CLASS
 CDrv_spr_class_chrnum:    .ds     CDRV_MAX_SPR_CLASS
+CDrv_spr_class_allocnum:    .ds     CDRV_MAX_SPR_CLASS
 
 CDrv_chrnum:    .ds     1
 
@@ -297,6 +298,7 @@ CDRVsetSprite:
 
         phx
 .chrloop:
+                ; set sprite to satb
         tax
                 ; set y
         lda     CH_yl,x
@@ -342,6 +344,7 @@ CDRVsetSprite:
         lda     CH_spratrh,x
         sta     [.satbptr],y
         iny
+                ; y>=256 になったら .satbptr を+256
         beq     .addptr
 
 .nextchr:
@@ -383,3 +386,77 @@ CDRVsetSprite:
         bra     .next2
 
 
+;
+;
+;
+
+                ; sprite class -> allocate priority (0=end)
+CDrv_spr_class_alloc_prty:
+        .db     7,6,5,4,3,2,1,0
+                ; minimum allocate sprite
+CDrv_alloc_min:
+        .db     0,0,0,0,7,24,1,0
+
+CDRVallocSprite:
+.totalreduce         .equ    z_tmp0
+.classreduce    .equ    z_tmp1
+        lda     CDrv_chrnum
+        sec
+        sbc     #64             ;@todo 残りスプライト数
+        bcc     .allok          ;全キャラ割り当て可能
+        sta     <.totalreduce
+
+        cly
+.loop1:
+        ldx     CDrv_spr_class_alloc_prty,y     ;x=spr class
+        beq     .end
+
+        lda     CDrv_spr_class_chrnum,x
+        sec
+        sbc     CDrv_alloc_min,y
+        bcc     .02
+
+        cmp     <.totalreduce
+        bcc     .00
+        beq     .00
+                ;削減可能数>削減数
+        lda     CDrv_spr_class_chrnum,x
+        sec
+        sbc     <.totalreduce
+        sta     CDrv_spr_class_allocnum,x
+        stz     <.totalreduce
+        bra     .next
+                ;削減可能数=<削減数
+.00:
+        eor     #$ff
+        inc     a
+        clc
+        adc     CDrv_spr_class_chrnum,x
+        sta     CDrv_spr_class_allocnum,x
+
+        eor     #$ff
+        inc     a
+        clc
+        adc     <.totalreduce
+        sta     <.totalreduce
+        bra     .next
+                ;削減可能数<0
+.02:
+        lda     CDrv_spr_class_chrnum,x
+        sta     CDrv_spr_class_allocnum,x
+
+.next:
+        iny
+        bra     .loop1
+
+                ;全キャラ割り当て可能
+.allok:
+        cly
+.loop2:
+        lda     CDrv_spr_class_chrnum,y
+        sta     CDrv_spr_class_allocnum,y
+        iny
+        cpy     #CDRV_MAX_SPR_CLASS
+        bne     .loop2
+.end:
+        rts

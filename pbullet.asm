@@ -342,8 +342,9 @@ PBshoot:
         rts
 
 .shoot:
-        stx     <z_tmp0
-        stx     <z_tmp1
+        stx     <z_tmp0     ; role class
+        lda     #3
+        sta     <z_tmp1     ; sprite class
 
         ldx     PL_chr
         lda     CH_xl,x
