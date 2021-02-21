@@ -1,6 +1,6 @@
         .bss
 
-CH_MAX_CHR      .equ    60
+CH_MAX_CHR      .equ    100
 
 CH_xl:  .ds     CH_MAX_CHR
 CH_xh:  .ds     CH_MAX_CHR
@@ -36,25 +36,33 @@ CH_spr_prev:   .ds     CH_MAX_CHR
 
 ;
 
-CDRV_MAX_ROLE_CLASS       .equ    10
+CDRV_MAX_ROLE_CLASS       .equ    8
 CDrv_role_class_table:  .ds     CDRV_MAX_ROLE_CLASS
 CDrv_role_class_chrnum: .ds     CDRV_MAX_ROLE_CLASS
 
-CDRV_MAX_SPR_CLASS:   .equ    10
+CDRV_MAX_SPR_CLASS:   .equ    8
 CDrv_spr_class_table: .ds     CDRV_MAX_SPR_CLASS
 CDrv_spr_class_chrnum:    .ds     CDRV_MAX_SPR_CLASS
 
+CDrv_chrnum:    .ds     1
 
 ;
 
 CH_procptr_tmp: .ds     2
 
+
+
         .code
         .bank   MAIN_BANK
+
+                ; role class ごとの最大キャラクタ数
+CDrv_role_class_maxchr: .db     0,1,24,15,15,15,15,0,0,0
+
 ;
 ; initialize chr driver
 ;
 CDRVinit:
+        stz     CDrv_chrnum
                 ; clear role table
         ldx     #CDRV_MAX_ROLE_CLASS-1
 .loop1:
@@ -98,6 +106,11 @@ CDRVinit:
 CDRVaddChr:
 .arg_role_class     .equ    z_tmp0
 .arg_spr_class  .equ    z_tmp1
+
+        ldy     <.arg_role_class
+        lda     CDrv_role_class_chrnum,y
+        cmp     CDrv_role_class_maxchr,y
+        beq     .nochr
 
         lda     CDrv_role_class_table
         beq     .nochr
@@ -146,6 +159,8 @@ CDRVaddChr:
         cla
         sta     CH_spr_prev,y
 
+        inc     CDrv_chrnum
+
         plx
         clc
         rts
@@ -157,8 +172,12 @@ CDRVaddChr:
 ;
 ; @param        x       キャラ番号
 ;
+; ※注意
+;  キャラクタをトラバースしている最中に実行すると、次のキャラクタが未使用のものになってしまい、無限ループなど誤動作が起きる。
+;  あらかじめ次のキャラクタを保管しておいてからこれを実行すること。
 CDRVremoveChr:
                 ; キャラをrole classリストから除去
+                ; role class のキャラ数を減らす
         ldy     CH_role_class,x
         sxy
         dec     CDrv_role_class_chrnum,x
@@ -171,8 +190,10 @@ CDRVremoveChr:
         say
         sta     CH_role_prev,y
         bra     .j1
+                ; role class のリストの先頭だった場合は CDrv_role_class_table を変更
 .root:  ldy     CH_role_class,x
         sta     CDrv_role_class_table,y
+        tay
         cla
         sta     CH_role_prev,y
 .j1:
@@ -191,6 +212,7 @@ CDRVremoveChr:
         bra     .j2
 .root2: ldy     CH_spr_class,x
         sta     CDrv_spr_class_table,y
+        tay
         cla
         sta     CH_spr_prev,y
 .j2:
@@ -205,6 +227,8 @@ CDRVremoveChr:
         inc     CDrv_role_class_chrnum
         stz     CH_role_class,x
         stz     CH_spr_class,x
+
+        dec     CDrv_chrnum
 
         rts
 ;
@@ -347,9 +371,10 @@ CDRVsetSprite:
 .next2
         dec     <.sprnum
         bne     .clearloop
-.ret:
         rts
-
+.ret:
+        plx
+        rts
 .addptr:
         inc     <.satbptr+1
         bra     .nextchr
