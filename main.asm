@@ -23,6 +23,14 @@ z_tmp4:	.ds	1
 z_tmp5:	.ds	1
 z_tmp6:	.ds	1
 z_tmp7:	.ds	1
+z_tmp8:	.ds	1
+z_tmp9:	.ds	1
+z_tmp10:	.ds	1
+z_tmp11:	.ds	1
+z_tmp12:	.ds	1
+z_tmp13:	.ds	1
+z_tmp14:	.ds	1
+z_tmp15:	.ds	1
 
 z_curchr_x:	.ds	3
 z_curchr_y:	.ds	3
@@ -172,7 +180,7 @@ mainloop:
 ;--
 ; enemy's bullets
 ;--
-	tst	#$03,<z_frame
+	tst	#$01,<z_frame
 	bne	.skipeb
 
 	ldx	PL_chr
@@ -213,7 +221,7 @@ mainloop:
 ;--
 ; enemy's bullets
 ;--
-	tst	#$03,<z_frame
+	tst	#$0f,<z_frame
 	bne	.skipeb
 
 	lda	PL_x+1

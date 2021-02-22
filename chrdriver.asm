@@ -41,7 +41,8 @@ CDrv_role_class_table:  .ds     CDRV_MAX_ROLE_CLASS
 CDrv_role_class_chrnum: .ds     CDRV_MAX_ROLE_CLASS
 
 CDRV_MAX_SPR_CLASS:   .equ    8
-CDrv_spr_class_table: .ds     CDRV_MAX_SPR_CLASS
+CDrv_spr_class_table: .ds     CDRV_MAX_SPR_CLASS        ;先頭
+CDrv_spr_class_last_table: .ds     CDRV_MAX_SPR_CLASS   ;最後
 CDrv_spr_class_chrnum:    .ds     CDRV_MAX_SPR_CLASS
 CDrv_spr_class_allocnum:    .ds     CDRV_MAX_SPR_CLASS
 
@@ -94,6 +95,7 @@ CDRVinit:
         ldx     #CDRV_MAX_SPR_CLASS-1
 .loop3:
         stz     CDrv_spr_class_table,x
+        stz     CDrv_spr_class_last_table,x
         stz     CDrv_spr_class_chrnum,x
         dex
         bpl     .loop3
@@ -151,10 +153,16 @@ CDRVaddChr:
         lda     CDrv_spr_class_table,x
         sta     CH_spr_next,y
         pha
+                ; 初めてのキャラの場合は、最後のキャラでもある
+        bne     .00
+        tya
+        sta     CDrv_spr_class_last_table,x
+.00:
+
         tya
         sta     CDrv_spr_class_table,x
 
-        plx
+        plx                     ; x= 追加したキャラの次のキャラ
         sta     CH_spr_prev,x
 
         cla
@@ -201,10 +209,18 @@ CDRVremoveChr:
                 ; キャラをspr classリストから除去
         ldy     CH_spr_class,x
         sxy
-        dec     CDrv_spr_class_chrnum,x
+        dec     CDrv_spr_class_chrnum,x         ; dec nnnn,y がないので一時的にx/yを入れ替えて対処
         sxy
 
         lda     CH_spr_next,x
+                        ; 最後のキャラなら、最後のキャラを更新
+        bne     .00
+        pha
+        lda     CH_spr_prev,x
+        ldy     CH_spr_class,x
+        sta     CDrv_spr_class_last_table,y
+        pla
+.00
         ldy     CH_spr_prev,x
         beq     .root2
         sta     CH_spr_next,y
@@ -278,6 +294,246 @@ CDRVmove:
 ;
 ;
 ;
+
+        .if     1
+
+CDRVsetSprite:
+.satbptr        .equ    z_tmp0
+.sprnum         .equ    z_tmp2
+.allocnum       .equ    z_tmp3
+.chrnum         .equ    z_tmp4
+
+.firstchr       .equ    z_tmp9
+.chrnumsave     .equ    z_tmp10
+
+.chr1           .equ    z_tmp5
+.chr2           .equ    z_tmp6
+.chr3           .equ    z_tmp7
+.chr4           .equ    z_tmp8
+
+        lda     #LOW(satb)
+        sta     <.satbptr
+        lda     #HIGH(satb)
+        sta     <.satbptr+1
+
+        lda     #64
+        sta     <.sprnum
+
+        cly
+        ldx     #1
+.loop:
+        lda     CDrv_spr_class_allocnum,x
+        beq     .next
+        sta     <.allocnum
+
+        lda     CDrv_spr_class_chrnum,x
+        beq     .next
+        sta     <.chrnum
+        sta     <.chrnumsave
+
+        lda     CDrv_spr_class_table,x
+        sta     <.firstchr
+        phx
+.chrloop:
+                ; set sprite to satb
+        tax     ; x = キャラ番号
+                ; set y
+        lda     CH_yl,x
+        asl     a
+        php
+        lda     CH_yh,x
+        sec
+        sbc     CH_sprdy,x
+        plp
+        rol     a
+        sta     [.satbptr],y
+        iny
+        rol     a
+        and     #1
+        sta     [.satbptr],y
+        iny
+                ; set x
+        lda     CH_xl,x
+        asl     a
+        php
+        lda     CH_xh,x
+        sec
+        sbc     CH_sprdx,x
+        plp
+        rol     a
+        sta     [.satbptr],y
+        iny
+        rol     a
+        and     #1
+        sta     [.satbptr],y
+        iny
+                ; set pattern
+        lda     CH_sprpatl,x
+        sta     [.satbptr],y
+        iny
+        lda     CH_sprpath,x
+        sta     [.satbptr],y
+        iny
+                ; set attribute
+        lda     CH_spratrl,x
+        sta     [.satbptr],y
+        iny
+        lda     CH_spratrh,x
+        sta     [.satbptr],y
+        iny
+                ; y>=256 になったら .satbptr を+256
+        beq     .addptr
+
+.nextchr:
+        lda     CH_spr_next,x
+
+        dec     <.sprnum
+        dec     <.chrnum
+        dec     <.allocnum
+        bne     .chrloop
+
+        lda     <.chrnum   ; .chrnum == 0 ?
+        bne     .swap
+        lda     <.chrnumsave
+        cmp     #1
+        beq     .endswap
+        ldx     <.firstchr
+        bra     .swap
+.endswap:
+        plx                     ; x = sprite class
+
+.next:
+        inx
+        cpx     #CDRV_MAX_SPR_CLASS
+        bne     .loop
+
+                ; clear rest of satb
+        lda     <.sprnum
+        beq     .end
+        cla
+.clearloop:
+        sta     [.satbptr],y
+        iny
+        sta     [.satbptr],y
+        say
+        clc
+        adc     #7
+        say
+        beq     .addptr2
+.next2
+        dec     <.sprnum
+        bne     .clearloop
+.end:
+        rts
+.ret:
+        plx
+        rts
+.addptr:
+        inc     <.satbptr+1
+        bra     .nextchr
+.addptr2:
+        inc     <.satbptr+1
+        bra     .next2
+
+                ; スプライトが割り当てられたキャラと、そうでないキャラを入れ替える
+.swap:
+        phy
+                ; x=chr2
+        lda     CH_spr_prev,x
+        beq     .swap2
+        lda     CH_spr_next,x
+        beq     .swap3
+                        ; 入れ替えキャラが途中の場合
+        sta     <.chr3
+        lda     CH_spr_class,x
+        tay
+        lda     CDrv_spr_class_table,y
+        sta     <.chr1
+        lda     CDrv_spr_class_last_table,y
+        sta     <.chr4
+
+        stz     CH_spr_next,x
+
+        txa
+        sta     CDrv_spr_class_last_table,y
+
+        ldx     <.chr1
+        lda     <.chr4
+        sta     CH_spr_prev,x
+
+        sax
+        sta     CH_spr_next,x
+
+        lda     <.chr3
+        sta     CDrv_spr_class_table,y
+
+        tax
+        stz     CH_spr_prev,x
+
+        ply
+        bra     .endswap
+
+                        ; 入れ替えキャラが先頭の場合
+.swap2:
+        lda     CH_spr_next,x
+        sta     <.chr3
+        lda     CH_spr_class,x
+        tay
+        lda     CDrv_spr_class_last_table,y
+        sta     <.chr4
+
+        stz     CH_spr_next,x
+
+        txa
+        sta     CDrv_spr_class_last_table,y
+
+        lda     <.chr4
+        sta     CH_spr_prev,x
+
+        sax
+        sta     CH_spr_next,x
+
+        lda     <.chr3
+        sta     CDrv_spr_class_table,y
+
+        tax
+        stz     CH_spr_prev,x
+
+        ply
+        jmp     .endswap
+
+                        ; 入れ替えキャラが最後の場合
+.swap3:
+        lda     CH_spr_prev,x
+        sta     <.chr2
+        lda     CH_spr_class,x
+        tay
+        lda     CDrv_spr_class_table,y
+        sta     <.chr1
+
+        sta     CH_spr_next,x
+        stz     CH_spr_prev,x
+
+        txa
+        sta     CDrv_spr_class_table,y
+
+        ldx     <.chr1
+        sta     CH_spr_prev,x
+
+        sax
+        sta     CH_spr_next,x
+
+        lda     <.chr2
+        sta     CDrv_spr_class_last_table,y
+
+        tax
+        stz     CH_spr_next,x
+
+        ply
+        jmp     .endswap
+
+        .else
+
 CDRVsetSprite:
 .satbptr        .equ    z_tmp0
 .sprnum         .equ    z_tmp2
@@ -385,6 +641,7 @@ CDRVsetSprite:
         inc     <.satbptr+1
         bra     .next2
 
+        .endif
 
 ;
 ;
