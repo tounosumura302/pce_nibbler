@@ -295,7 +295,6 @@ CDRVmove:
 ;
 ;
 
-        .if     1
 
 CDRVsetSprite:
 .satbptr        .equ    z_tmp0
@@ -532,116 +531,6 @@ CDRVsetSprite:
         ply
         jmp     .endswap
 
-        .else
-
-CDRVsetSprite:
-.satbptr        .equ    z_tmp0
-.sprnum         .equ    z_tmp2
-
-        lda     #LOW(satb)
-        sta     <.satbptr
-        lda     #HIGH(satb)
-        sta     <.satbptr+1
-
-        lda     #64
-        sta     <.sprnum
-
-        cly
-        ldx     #1
-.loop:
-        lda     CDrv_spr_class_table,x
-        beq     .next
-
-        phx
-.chrloop:
-                ; set sprite to satb
-        tax
-                ; set y
-        lda     CH_yl,x
-        asl     a
-        php
-        lda     CH_yh,x
-        sec
-        sbc     CH_sprdy,x
-        plp
-        rol     a
-        sta     [.satbptr],y
-        iny
-        rol     a
-        and     #1
-        sta     [.satbptr],y
-        iny
-                ; set x
-        lda     CH_xl,x
-        asl     a
-        php
-        lda     CH_xh,x
-        sec
-        sbc     CH_sprdx,x
-        plp
-        rol     a
-        sta     [.satbptr],y
-        iny
-        rol     a
-        and     #1
-        sta     [.satbptr],y
-        iny
-                ; set pattern
-        lda     CH_sprpatl,x
-        sta     [.satbptr],y
-        iny
-        lda     CH_sprpath,x
-        sta     [.satbptr],y
-        iny
-                ; set attribute
-        lda     CH_spratrl,x
-        sta     [.satbptr],y
-        iny
-        lda     CH_spratrh,x
-        sta     [.satbptr],y
-        iny
-                ; y>=256 になったら .satbptr を+256
-        beq     .addptr
-
-.nextchr:
-        dec     <.sprnum
-        beq     .ret
-
-        lda     CH_spr_next,x
-        bne     .chrloop
-        plx
-
-.next:
-        inx
-        cpx     #CDRV_MAX_SPR_CLASS
-        bne     .loop
-
-                ; clear rest of satb
-        cla
-.clearloop:
-        sta     [.satbptr],y
-        iny
-        sta     [.satbptr],y
-        say
-        clc
-        adc     #7
-        say
-        beq     .addptr2
-.next2
-        dec     <.sprnum
-        bne     .clearloop
-        rts
-.ret:
-        plx
-        rts
-.addptr:
-        inc     <.satbptr+1
-        bra     .nextchr
-.addptr2:
-        inc     <.satbptr+1
-        bra     .next2
-
-        .endif
 
 ;
 ;

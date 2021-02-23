@@ -180,7 +180,7 @@ mainloop:
 ;--
 ; enemy's bullets
 ;--
-	tst	#$01,<z_frame
+	tst	#$07,<z_frame
 	bne	.skipeb
 
 	ldx	PL_chr
