@@ -58,7 +58,14 @@ CH_procptr_tmp: .ds     2
         .bank   MAIN_BANK
 
                 ; role class ごとの最大キャラクタ数
-CDrv_role_class_maxchr: .db     0,1,24,15,15,15,15,0,0,0
+CDrv_role_class_maxchr: .db     0,1,24,15,15,15,15,16
+
+                ; sprite class -> allocate priority (0=end)
+CDrv_spr_class_alloc_prty:
+        .db     3,7,2,1,0,0,0,0
+                ; minimum allocate sprite per sprite class
+CDrv_alloc_min:
+        .db     0,1,24,7,0,0,0,16
 
 ;
 ; initialize chr driver
@@ -536,12 +543,6 @@ CDRVsetSprite:
 ;
 ;
 
-                ; sprite class -> allocate priority (0=end)
-CDrv_spr_class_alloc_prty:
-        .db     7,6,5,4,3,2,1,0
-                ; minimum allocate sprite
-CDrv_alloc_min:
-        .db     0,0,0,0,7,24,1,0
 
 CDRVallocSprite:
 .totalreduce         .equ    z_tmp0
@@ -552,14 +553,14 @@ CDRVallocSprite:
         bcc     .allok          ;全キャラ割り当て可能
         sta     <.totalreduce
 
-        cly
+        cly                     ; y = alloc class table index
 .loop1:
         ldx     CDrv_spr_class_alloc_prty,y     ;x=spr class
         beq     .end
 
         lda     CDrv_spr_class_chrnum,x
         sec
-        sbc     CDrv_alloc_min,y
+        sbc     CDrv_alloc_min,x
         bcc     .02
 
         cmp     <.totalreduce

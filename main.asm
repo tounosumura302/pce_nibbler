@@ -198,6 +198,15 @@ mainloop:
 	jsr	EB_shoot
 .skipeb:
 
+;--
+; enemy
+;--
+	tst	#$0f,<z_frame
+	bne	.skipen
+
+	jsr	ENcreate
+.skipen:
+
 	jsr	CDRVmove
 	jsr	CDRVallocSprite
 	jsr	CDRVsetSprite
