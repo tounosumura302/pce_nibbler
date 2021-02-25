@@ -180,6 +180,7 @@ mainloop:
 ;--
 ; enemy's bullets
 ;--
+	.if	0
 	tst	#$07,<z_frame
 	bne	.skipeb
 
@@ -197,7 +198,7 @@ mainloop:
 	tay
 	jsr	EB_shoot
 .skipeb:
-
+	.endif
 ;--
 ; enemy
 ;--

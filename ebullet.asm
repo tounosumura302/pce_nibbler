@@ -284,6 +284,8 @@ EB_setSatb:
         .else
 
 EB_shoot:
+        phx
+
         phy
 
         lda     #2
@@ -293,12 +295,14 @@ EB_shoot:
         bcs     .ret
 
         sxy
-
-        stz     CH_xl,x
-        lda     #300/2
+                    ;y = source chr  x = new chr
+        lda     CH_xl,y
+        sta     CH_xl,x
+        lda     CH_xh,y
         sta     CH_xh,x
-        stz     CH_yl,x
-        lda     #140/2
+        lda     CH_yl,y
+        sta     CH_yl,x
+        lda     CH_yh,y
         sta     CH_yh,x
 
         lda     #$20
@@ -336,10 +340,12 @@ EB_shoot:
         lda     <z_dir_result_dy+1
         sta     CH_dyh,x
 
+        plx
         rts
 
 .ret:
         ply
+        plx
         rts
 
 

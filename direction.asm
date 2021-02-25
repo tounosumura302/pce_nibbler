@@ -27,6 +27,8 @@ z_dir_result_dy:        .ds     2
         ; z_dir_sourcey
         ; return  a
 getDirection:
+        phx
+
         stz     <z_dir_flag
                 ; dx=(targetx-sourcex)/4
         lda     <z_dir_targetx
@@ -61,16 +63,20 @@ getDirection:
         tst     #$08,<z_dir_flag        ; dy>0 ?
         bne     .dir8
         lda     #24                     ; dy>0
+        plx
         rts
 .dir8:  lda     #8                      ; dy<0
+        plx
         rts
                 ; dy=0
 .dy0:
         tst     #$04,<z_dir_flag        ; dx>=0 ?
         bne     .dir0
         lda     #16                     ; dx>=0
+        plx
         rts
 .dir0:  lda     #0                      ; dx<0
+        plx
         rts
 
 .dxdynot0:
@@ -125,12 +131,14 @@ getDirection:
 .f000:
         clc
         adc     #16
+        plx
         rts
 .f001:
         eor     #$ff
         inc     a
         clc
         adc     #24
+        plx
         rts
 .f010:
         eor     #$ff
@@ -138,28 +146,34 @@ getDirection:
         clc
         adc     #32
         and     #$1f    ;
+        plx
         rts
 .f011:
         clc
         adc     #24
+        plx
         rts
 .f100:
         eor     #$ff
         inc     a
         clc
         adc     #16
+        plx
         rts
 .f101:
         clc
         adc     #8
+        plx
         rts
 .f110:
+        plx
         rts
 .f111:
         eor     #$ff
         inc     a
         clc
         adc     #8
+        plx
         rts
 
 

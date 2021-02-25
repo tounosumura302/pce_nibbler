@@ -340,7 +340,7 @@ ENcreate:
         sxy
 
         stz     CH_xl,x
-        lda     #320/2
+        lda     #(336+$20)/2
         sta     CH_xh,x
         stz     CH_yl,x
         lda     <z_frame
@@ -411,6 +411,25 @@ ENmove:
         bcs     .out
         cmp     #64/2
         bcc     .out
+
+                        ; shoot
+       	tst	#$07,<z_frame
+	bne	.skipeb
+
+	ldy	PL_chr
+	lda	CH_xh,y
+	sta	<z_dir_targetx
+	lda	CH_yh,y
+	sta	<z_dir_targety
+	lda	CH_xh,x
+	sta	<z_dir_sourcex
+	lda	CH_yh,x
+	sta	<z_dir_sourcey
+
+	jsr	getDirection
+	tay
+	jsr	EB_shoot
+.skipeb:
 
         clc
         rts
