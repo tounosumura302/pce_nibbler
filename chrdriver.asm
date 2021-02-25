@@ -26,6 +26,9 @@ CH_spratrh:      .ds     CH_MAX_CHR
 CH_sprdx:       .ds     CH_MAX_CHR
 CH_sprdy:       .ds     CH_MAX_CHR
 
+CH_coldx:       .ds     CH_MAX_CHR      ;collision
+CH_coldy:       .ds     CH_MAX_CHR
+
 CH_role_class:  .ds     CH_MAX_CHR
 CH_role_next:   .ds     CH_MAX_CHR
 CH_role_prev:   .ds     CH_MAX_CHR

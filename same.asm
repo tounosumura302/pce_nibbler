@@ -13,3 +13,5 @@ MAIN_BANK       .equ    1
         .include "direction.asm"
         .include "enemy.asm"
         .include "ebullet.asm"
+        .include "collision.asm"
+        

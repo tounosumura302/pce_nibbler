@@ -176,102 +176,23 @@ mainloop:
 	set
 	adc	#0
  	
-
-;--
-; enemy's bullets
-;--
-	.if	0
-	tst	#$07,<z_frame
-	bne	.skipeb
-
-	ldx	PL_chr
-	lda	CH_xh,x
-	sta	<z_dir_targetx
-	lda	CH_yh,x
-	sta	<z_dir_targety
-	lda	#300/2
-	sta	<z_dir_sourcex
-	lda	#140/2
-	sta	<z_dir_sourcey
-
-	jsr	getDirection
-	tay
-	jsr	EB_shoot
-.skipeb:
-	.endif
 ;--
 ; enemy
 ;--
-	tst	#$0f,<z_frame
+	tst	#$03,<z_frame
 	bne	.skipen
 
 	jsr	ENcreate
 .skipen:
 
 	jsr	CDRVmove
+
+	jsr	CLtestPBullet2Enemy
+	jsr	CLtestPlayer2EBullet
+
 	jsr	CDRVallocSprite
 	jsr	CDRVsetSprite
 
-	.if	0
-;       move sprite
-	jsr	PL_move
-	jsr	PL_setSatb
-;--
-;	shoot player's bullet (experimental)
-;--
-			; shoot
-		bbr0	<z_paddelta,.pbmove
-
-		ldy	#3
-		jsr	PB_shoot
-.pbmove:
-		jsr		PB_move
-		jsr		PB_setSatb
-
-;--
-; enemy's bullets
-;--
-	tst	#$0f,<z_frame
-	bne	.skipeb
-
-	lda	PL_x+1
-	sta	<z_dir_targetx
-	lda	PL_y+1
-	sta	<z_dir_targety
-	lda	#300/2
-	sta	<z_dir_sourcex
-	lda	#140/2
-	sta	<z_dir_sourcey
-
-	jsr	getDirection
-	tay
-	jsr	EB_shoot
-.skipeb:
-	jsr	EB_move
-	jsr	EB_setSatb
-;--
-; enemy
-;--
-	tst	#$0f,<z_frame
-	bne	.skipen
-
-	lda	#0
-	sta	<z_tmp0
-	lda	#320/2
-	sta	<z_tmp1
-	lda	#0
-	sta	<z_tmp2
-	lda	<z_frame
-	lsr	a
-	sta	<z_tmp3
-	lda	#1
-	sta	<z_tmp4
-	jsr	EN_create
-.skipen:
-	jsr	EN_move
-	jsr	EN_setSatb
-
-	.endif
 ;
 ;       vsync
 ;

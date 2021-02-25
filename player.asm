@@ -96,3 +96,5 @@ PL_move:
         clc
         rts
 
+PLdead:
+        rts
