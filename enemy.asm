@@ -20,9 +20,9 @@ ENcreate:
         asl     a
         sta     CH_yh,x
 
-        lda     #$00
+        lda     #LOW(((spr_pattern_pl-spr_pattern)/2+$4000)/32)
         sta     CH_sprpatl,x
-        lda     #$03
+        lda     #HIGH(((spr_pattern_pl-spr_pattern)/2+$4000)/32)
         sta     CH_sprpath,x
 
         lda     #$80

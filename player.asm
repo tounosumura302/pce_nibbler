@@ -23,9 +23,9 @@ PL_init:
         lda     #$60
         sta     CH_yh,x
 
-        lda     #$0f
+        lda     #LOW(((spr_pattern_pl-spr_pattern)/2+$4000)/32)
         sta     CH_sprpatl,x
-        lda     #$03
+        lda     #HIGH(((spr_pattern_pl-spr_pattern)/2+$4000)/32)
         sta     CH_sprpath,x
 
         lda     #$80
@@ -54,7 +54,13 @@ PL_move:
         sta     CH_xl,x
         lda     CH_xh,x
         sbc     #0
+        cmp     #(32+16)/2
+        bcs     .leftok
+        stz     CH_xl,x
+        lda     #(32+16)/2
+.leftok:
         sta     CH_xh,x
+
 .notleft:
         bbr5    <z_pad,.notright
 .right:
@@ -64,7 +70,13 @@ PL_move:
         sta     CH_xl,x
         lda     CH_xh,x
         adc     #0
+        cmp     #(320+32-16)/2
+        bcc     .rightok
+        stz     CH_xl,x
+        lda     #(320+32-16)/2
+.rightok:
         sta     CH_xh,x
+
 .notright:
         bbr4    <z_pad,.notup
 .up:
@@ -74,7 +86,13 @@ PL_move:
         sta     CH_yl,x
         lda     CH_yh,x
         sbc     #0
+        cmp     #(64+16)/2
+        bcs     .upok
+        stz     CH_yl,x
+        lda     #(64+16)/2
+.upok:
         sta     CH_yh,x
+
 .notup:
         bbr6    <z_pad,.notdown
 .down:
@@ -84,8 +102,23 @@ PL_move:
         sta     CH_yl,x
         lda     CH_yh,x
         adc     #0
+        cmp     #(240+64-16)/2
+        bcc     .downok
+        stz     CH_yl,x
+        lda     #(240+64-16)/2
+.downok:
         sta     CH_yh,x
 .notdown:
+
+                ; scroll
+	lda	CH_yh,x
+	sec
+	sbc	#(64+16)/2
+	tay
+	lda	ScrollX,y
+	sta	scry
+	stz	scry+1
+
                 ; shoot
 	bbr0	<z_paddelta,.notshoot
 
@@ -97,4 +130,6 @@ PL_move:
         rts
 
 PLdead:
+        clc
         rts
+        

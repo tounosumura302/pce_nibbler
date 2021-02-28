@@ -25,17 +25,17 @@ EB_shoot:
         lda     CH_yh,y
         sta     CH_yh,x
 
-        lda     #$20
+        lda     #LOW(((spr_pattern_eb-spr_pattern)/2+$4000)/32)
         sta     CH_sprpatl,x
-        lda     #$03
+        lda     #HIGH(((spr_pattern_eb-spr_pattern)/2+$4000)/32)
         sta     CH_sprpath,x
 
         lda     #$80
         sta     CH_spratrl,x
-        lda     #$11
+        lda     #$00
         sta     CH_spratrh,x
 
-        lda     #8/2
+        lda     #4/2
         sta     CH_sprdx,x
         sta     CH_sprdy,x
 
@@ -51,7 +51,7 @@ EB_shoot:
         ply             ; y = direction
 
         phx
-        lda     #2
+        lda     #4
         jsr     convDirection2DxDy
         plx
 

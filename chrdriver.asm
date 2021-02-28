@@ -1,6 +1,6 @@
         .bss
 
-CH_MAX_CHR      .equ    100
+CH_MAX_CHR      .equ    128
 
 CH_xl:  .ds     CH_MAX_CHR
 CH_xh:  .ds     CH_MAX_CHR
@@ -61,7 +61,7 @@ CH_procptr_tmp: .ds     2
         .bank   MAIN_BANK
 
                 ; role class ごとの最大キャラクタ数
-CDrv_role_class_maxchr: .db     0,1,24,15,15,15,15,16
+CDrv_role_class_maxchr: .db     0,1,32,15,15,15,15,16
 
                 ; sprite class -> allocate priority (0=end)
 CDrv_spr_class_alloc_prty:

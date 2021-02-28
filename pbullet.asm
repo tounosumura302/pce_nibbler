@@ -73,7 +73,7 @@ PBshoot:
         pha
         jsr     CDRVaddChr
         plx
-        bcs     .end
+        bcs     .end2
 
         lda     PB_dxl_table,x
         sta     CH_dxl,y
@@ -93,17 +93,17 @@ PBshoot:
         lda     <z_tmp5
         sta     CH_yh,y
 
-        lda     #$20
+        lda     #LOW(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
         sta     CH_sprpatl,y
-        lda     #$03
+        lda     #HIGH(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
         sta     CH_sprpath,y
 
-        lda     #$80
+        lda     #$81
         sta     CH_spratrl,y
-        lda     #$11
+        lda     #$00
         sta     CH_spratrh,y
 
-        lda     #8/2
+        lda     #4/2
         sta     CH_sprdx,y
         sta     CH_sprdy,y
 
@@ -116,6 +116,10 @@ PBshoot:
         iny
         bra     .loop2
 
+.end2:
+        ply
+        plx
+        rts
 ;
 ;
 ;
