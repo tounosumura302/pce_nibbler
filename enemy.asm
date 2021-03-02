@@ -4,8 +4,9 @@
 
 
 ENcreate:
-        lda     #7
+        lda     #CDRV_ROLE_ENEMY_S1
         sta     <z_tmp0
+        lda     #CDRV_SPR_ENEMY_S1
         sta     <z_tmp1
         jsr     CDRVaddChr
         bcs     .ret

@@ -8,8 +8,9 @@ EB_shoot:
 
         phy
 
-        lda     #2
+        lda     #CDRV_ROLE_EBULLET
         sta     <z_tmp0
+        lda     #CDRV_SPR_EBULLET
         sta     <z_tmp1
         jsr     CDRVaddChr
         bcs     .ret

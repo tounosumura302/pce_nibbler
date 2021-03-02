@@ -36,12 +36,12 @@ PB_dyh_table:
 
 PBshoot:
         phx
-        ldx     #3
+        ldx     #CDRV_ROLE_PBULLET_M1
 .loop:
         lda     CDrv_role_class_chrnum,x
         beq     .shoot
         inx
-        cpx     #3+4
+        cpx     #CDRV_ROLE_PBULLET_M1+4
         bne     .loop
 .end:
         plx
@@ -49,7 +49,7 @@ PBshoot:
 
 .shoot:
         stx     <z_tmp0     ; role class
-        lda     #3
+        lda     #CDRV_SPR_PBULLET_M1
         sta     <z_tmp1     ; sprite class
 
         ldx     PL_chr

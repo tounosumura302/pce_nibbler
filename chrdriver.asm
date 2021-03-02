@@ -38,20 +38,63 @@ CH_spr_next:   .ds     CH_MAX_CHR
 CH_spr_prev:   .ds     CH_MAX_CHR
 
 ;
+                        
 
-CDRV_MAX_ROLE_CLASS       .equ    8
+;
+; role class
+;
+CDRV_MAX_ROLE_CLASS     .equ    17
+
+CDRV_ROLE_PLAYER        .equ    1
+CDRV_ROLE_PBULLET_M1    .equ    2
+CDRV_ROLE_PBULLET_M2    .equ    3
+CDRV_ROLE_PBULLET_M3    .equ    4
+CDRV_ROLE_PBULLET_M4    .equ    5
+CDRV_ROLE_EBULLET       .equ    6
+CDRV_ROLE_ENEMY_S1      .equ    7
+CDRV_ROLE_ENEMY_S2      .equ    8
+CDRV_ROLE_ENEMY_G1      .equ    9
+CDRV_ROLE_ENEMY_G2      .equ    10
+CDRV_ROLE_ENEMY_G3      .equ    11
+CDRV_ROLE_ENEMY_G4      .equ    12
+CDRV_ROLE_ITEM_S        .equ    13
+CDRV_ROLE_ITEM_G        .equ    14
+CDRV_ROLE_EFFECT        .equ    15
+CDRV_ROLE_BONUS         .equ    16
+
+;
+; sprite class
+;
+CDRV_MAX_SPR_CLASS:     .equ    13
+
+CDRV_SPR_PLAYER         .equ    2
+CDRV_SPR_PBULLET_M1     .equ    7
+CDRV_SPR_PBULLET_M2     .equ    7
+CDRV_SPR_PBULLET_M3     .equ    7
+CDRV_SPR_PBULLET_M4     .equ    7
+CDRV_SPR_EBULLET        .equ    3
+CDRV_SPR_ENEMY_S1       .equ    4
+CDRV_SPR_ENEMY_S2       .equ    5
+CDRV_SPR_ENEMY_G1       .equ    9
+CDRV_SPR_ENEMY_G2       .equ    8
+CDRV_SPR_ENEMY_G3       .equ    8
+CDRV_SPR_ENEMY_G4       .equ    10
+CDRV_SPR_ITEM_S         .equ    6
+CDRV_SPR_ITEM_G         .equ    11
+CDRV_SPR_EFFECT         .equ    12
+CDRV_SPR_BONUS          .equ    1
+
+CDRV_MAX_SPRITE         .equ    60      ; キャラクタドライバで割り当てる最大スプライト数
+
 CDrv_role_class_table:  .ds     CDRV_MAX_ROLE_CLASS
 CDrv_role_class_chrnum: .ds     CDRV_MAX_ROLE_CLASS
 
-CDRV_MAX_SPR_CLASS:   .equ    8
-CDrv_spr_class_table: .ds     CDRV_MAX_SPR_CLASS        ;先頭
-CDrv_spr_class_last_table: .ds     CDRV_MAX_SPR_CLASS   ;最後
-CDrv_spr_class_chrnum:    .ds     CDRV_MAX_SPR_CLASS
-CDrv_spr_class_allocnum:    .ds     CDRV_MAX_SPR_CLASS
+CDrv_spr_class_table:           .ds     CDRV_MAX_SPR_CLASS        ;先頭
+CDrv_spr_class_last_table:      .ds     CDRV_MAX_SPR_CLASS   ;最後
+CDrv_spr_class_chrnum:          .ds     CDRV_MAX_SPR_CLASS
+CDrv_spr_class_allocnum:        .ds     CDRV_MAX_SPR_CLASS
 
 CDrv_chrnum:    .ds     1
-
-;
 
 CH_procptr_tmp: .ds     2
 
@@ -61,14 +104,48 @@ CH_procptr_tmp: .ds     2
         .bank   MAIN_BANK
 
                 ; role class ごとの最大キャラクタ数
-CDrv_role_class_maxchr: .db     0,1,32,15,15,15,15,16
+CDrv_role_class_maxchr:
+        .db     0
+        .db     1               ; player
+        .db     15,15,15,15     ; player bullet
+        .db     24              ; enemy bullet
+        .db     16,16           ; enemy (sky)
+        .db     16,16,8,8       ; enemy (ground)
+        .db     4,8             ; item
+        .db     16              ; effect
+        .db     8               ; bonus display
 
-                ; sprite class -> allocate priority (0=end)
+                ; sprite classをスプライト割り当て優先順位の低い順に並べたリスト（最後は 0 ）
 CDrv_spr_class_alloc_prty:
-        .db     3,7,2,1,0,0,0,0
-                ; minimum allocate sprite per sprite class
+        .db     12, 7,11, 6,10, 8, 9, 5, 4, 3, 2, 1, 0
+
+                ; sprite classごとの最小スプライト割り当て数
 CDrv_alloc_min:
-        .db     0,1,24,7,0,0,0,16
+        .db     0
+        .db     0               ; bonus
+        .db     1               ; player
+        .db     24              ; enemy bullet
+        .db     8,4             ; enemy (sky)
+        .db     2               ; item (sky)
+        .db     7               ; player bullet
+        .db     4,8,2           ; enemy (ground)
+        .db     0               ; item (ground)
+        .db     0               ; effect
+
+                ; sprite classごとの最大スプライト割り当て数
+CDrv_alloc_max:
+        .db     0
+        .db     60              ; bonus
+        .db     60              ; player
+        .db     60              ; enemy bullet
+        .db     60,60           ; enemy (sky)
+        .db     60              ; item (sky)
+        .db     7               ; player bullet
+        .db     60,60,60        ; enemy (ground)
+        .db     60              ; item (ground)
+        .db     60              ; effect
+
+
 
 ;
 ; initialize chr driver
@@ -325,7 +402,7 @@ CDRVsetSprite:
         lda     #HIGH(satb)
         sta     <.satbptr+1
 
-        lda     #64
+        lda     #CDRV_MAX_SPRITE
         sta     <.sprnum
 
         cly
@@ -552,7 +629,7 @@ CDRVallocSprite:
 .classreduce    .equ    z_tmp1
         lda     CDrv_chrnum
         sec
-        sbc     #64             ;@todo 残りスプライト数
+        sbc     #CDRV_MAX_SPRITE             ;@todo 残りスプライト数
         bcc     .allok          ;全キャラ割り当て可能
         sta     <.totalreduce
 

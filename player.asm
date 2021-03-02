@@ -1,16 +1,20 @@
 
         .bss
-PL_x:   .ds     2
-PL_y:   .ds     2
+;PL_x:   .ds     2
+;PL_y:   .ds     2
 
 
 PL_chr: .ds     1       ;プレイヤーのキャラ番号
 
+        .zp
+PL_speed:       .ds     2       ; speed
+
         .code
         .bank   MAIN_BANK
 PL_init:
-        lda     #1
+        lda     #CDRV_ROLE_PLAYER
         sta     <z_tmp0
+        lda     #CDRV_SPR_PLAYER
         sta     <z_tmp1
         jsr     CDRVaddChr
         sty     PL_chr
@@ -42,6 +46,11 @@ PL_init:
         lda     #HIGH(PL_move)
         sta     CH_procptrh,x
 
+        lda     #$00
+        sta     PL_speed
+        lda     #$01
+        sta     PL_speed+1
+
         rts
 
 
@@ -50,10 +59,12 @@ PL_move:
 .left:
         lda     CH_xl,x
         sec
-        sbc     #$80
+;        sbc     #$80
+        sbc     <PL_speed
         sta     CH_xl,x
         lda     CH_xh,x
-        sbc     #0
+;        sbc     #0
+        sbc     <PL_speed+1
         cmp     #(32+16)/2
         bcs     .leftok
         stz     CH_xl,x
@@ -66,10 +77,12 @@ PL_move:
 .right:
         lda     CH_xl,x
         clc
-        adc     #$80
+;        adc     #$80
+        adc     <PL_speed
         sta     CH_xl,x
         lda     CH_xh,x
-        adc     #0
+;        adc     #0
+        adc     <PL_speed+1
         cmp     #(320+32-16)/2
         bcc     .rightok
         stz     CH_xl,x
@@ -82,10 +95,12 @@ PL_move:
 .up:
         lda     CH_yl,x
         sec
-        sbc     #$80
+;        sbc     #$80
+        sbc     <PL_speed
         sta     CH_yl,x
         lda     CH_yh,x
-        sbc     #0
+;        sbc     #0
+        sbc     <PL_speed+1
         cmp     #(64+16)/2
         bcs     .upok
         stz     CH_yl,x
@@ -98,10 +113,12 @@ PL_move:
 .down:
         lda     CH_yl,x
         clc
-        adc     #$80
+;        adc     #$80
+        adc     <PL_speed
         sta     CH_yl,x
         lda     CH_yh,x
-        adc     #0
+;        adc     #0
+        adc     <PL_speed+1
         cmp     #(240+64-16)/2
         bcc     .downok
         stz     CH_yl,x
@@ -132,4 +149,3 @@ PL_move:
 PLdead:
         clc
         rts
-        

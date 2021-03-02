@@ -45,7 +45,7 @@ CLtestPlayer2EBullet:
         lda     CH_yh,x
         sta     <z_tmp1
 
-        lda     CDrv_role_class_table+2
+        lda     CDrv_role_class_table+CDRV_ROLE_EBULLET
 .loop:
         beq     .end
         tax
@@ -79,7 +79,7 @@ CLtestPlayer2EBullet:
 ;
 CLtestPBullet2Enemy:
                 ;自機弾でループ
-        ldy     #3
+        ldy     #CDRV_ROLE_PBULLET_M1
 .loop:
         lda     CDrv_role_class_table,y
         beq     .next
@@ -109,7 +109,7 @@ CLtestPBullet2Enemy:
         ply
 .next:
         iny
-        cpy     #3+4
+        cpy     #CDRV_ROLE_PBULLET_M1+4
         bne     .loop
         rts
 
@@ -119,7 +119,7 @@ CLtest1PBullet2Enemy:
                 ;敵でループ
         phx
 
-        lda     CDrv_role_class_table+7
+        lda     CDrv_role_class_table+CDRV_ROLE_ENEMY_S1
 .loop:
         beq     .end
         tax
