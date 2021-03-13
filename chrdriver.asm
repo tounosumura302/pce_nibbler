@@ -29,6 +29,9 @@ CH_sprdy:       .ds     CH_MAX_CHR
 CH_coldx:       .ds     CH_MAX_CHR      ;collision
 CH_coldy:       .ds     CH_MAX_CHR
 
+CH_var0:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
+CH_var1:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
+
 CH_role_class:  .ds     CH_MAX_CHR
 CH_role_next:   .ds     CH_MAX_CHR
 CH_role_prev:   .ds     CH_MAX_CHR
@@ -193,6 +196,7 @@ CDRVinit:
 ; @param        z_tmp1  spr class
 ; @return       y       キャラ番号
 ;               c flag  1ならキャラ割り当て失敗
+; @savereg      x
 CDRVaddChr:
 .arg_role_class     .equ    z_tmp0
 .arg_spr_class  .equ    z_tmp1
@@ -655,18 +659,20 @@ CDRVallocSprite:
         bra     .next
                 ;削減可能数=<削減数
 .00:
+                                ; a=削減可能数
         eor     #$ff
         inc     a
+        pha
         clc
         adc     CDrv_spr_class_chrnum,x
         sta     CDrv_spr_class_allocnum,x
 
-        eor     #$ff
-        inc     a
+        pla                     ; a=-削減可能数
         clc
         adc     <.totalreduce
         sta     <.totalreduce
         bra     .next
+
                 ;削減可能数<0
 .02:
         lda     CDrv_spr_class_chrnum,x
