@@ -6,6 +6,7 @@
 ; @param        z_tmp0  x of collision partner
 ; @param        z_tmp1  y of collision partner
 ; @return       cc      collided
+; @save         x,y
 CLtest:
 .targetx        .equ    z_tmp0
 .targety        .equ    z_tmp1
@@ -75,8 +76,8 @@ CLtestPlayer2EBullet:
 
 
 ;
-;
-;
+;　衝突判定（自弾　敵）
+;　＠TODO  総当たり判定なので処理量が多い
 CLtestPBullet2Enemy:
                 ;自機弾でループ
         ldy     #CDRV_ROLE_PBULLET_M1
@@ -116,10 +117,12 @@ CLtestPBullet2Enemy:
 
 
 CLtest1PBullet2Enemy:
+.procptr        .equ    z_tmp2
+
                 ;敵でループ
         phx
 
-        lda     CDrv_role_class_table+CDRV_ROLE_ENEMY_S1
+        lda     CDrv_role_class_table+CDRV_ROLE_ENEMY_G1
 .loop:
         beq     .end
         tax
@@ -129,10 +132,34 @@ CLtest1PBullet2Enemy:
         bcs     .next
 
                 ; collided
-        lda     #LOW(ENdead)
-        sta     CH_procptrl,x
-        lda     #HIGH(ENdead)
-        sta     CH_procptrh,x
+;        lda     CH_flag,x
+;        ora     #CH_flag_damaged
+;        sta     CH_flag,x
+
+        lda     CH_regist,x
+        beq     .00
+        dec     a
+        sta     CH_regist,x
+.00:
+
+        ldy     CH_damaged_class,x
+        lda     EN_damaged_procl,y
+        sta     <.procptr
+        lda     EN_damaged_proch,y
+        sta     <.procptr+1
+
+        lda     #HIGH(.endmove-1)       ;要注意 pushするのは 戻りアドレス-1
+        pha
+        lda     #LOW(.endmove-1)
+        pha
+
+        jmp     [.procptr]
+.endmove:
+
+;        lda     #LOW(ENdead)
+;        sta     CH_procptrl,x
+;        lda     #HIGH(ENdead)
+;        sta     CH_procptrh,x
 
         plx
         clc

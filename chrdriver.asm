@@ -29,6 +29,13 @@ CH_sprdy:       .ds     CH_MAX_CHR
 CH_coldx:       .ds     CH_MAX_CHR      ;collision
 CH_coldy:       .ds     CH_MAX_CHR
 
+CH_regist:       .ds     CH_MAX_CHR     ;抵抗力
+
+;CH_flag:        .ds     CH_MAX_CHR      ;フラグ
+;CH_flag_damaged:        .equ    1       ;ダメージ受けたフラグ
+
+CH_damaged_class:       .ds    CH_MAX_CHR      ;ダメージを受けた時の処理
+
 CH_var0:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
 CH_var1:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
 
@@ -41,7 +48,6 @@ CH_spr_next:   .ds     CH_MAX_CHR
 CH_spr_prev:   .ds     CH_MAX_CHR
 
 ;
-                        
 
 ;
 ; role class
@@ -174,6 +180,7 @@ CDRVinit:
         sta     CH_role_next,x
         stz     CH_role_class,x
         stz     CH_spr_class,x
+        stz     CH_damaged_class,x
         inx
         cpx     #CH_MAX_CHR
         bne     .loop2
@@ -212,6 +219,8 @@ CDRVaddChr:
         phx
 
         tay     ; y = 新しいキャラ
+        cla
+        sta     CH_damaged_class,y
                 ; 未使用キャラの次のキャラを未使用リストの先頭に移動
         ldx     CH_role_next,y
         stz     CH_role_prev,x

@@ -51,6 +51,9 @@ ENcreate:
         sxy             ;x=new chrno
         tay             ;y=enemy type
 
+        ;stz     CH_flag,x
+;####        stz     CH_damaged_class,x
+
         lda     #HIGH(.end-1)       ;要注意 pushするのは 戻りアドレス-1
         pha
         lda     #LOW(.end-1)
@@ -81,66 +84,6 @@ ENSpriteClassTable:
 
 
 
-        .if     0
-ENcreate:
-        lda     #CDRV_ROLE_ENEMY_S1
-        sta     <z_tmp0
-        lda     #CDRV_SPR_ENEMY_S1
-        sta     <z_tmp1
-        jsr     CDRVaddChr
-        bcs     .ret
-
-        sxy
-
-        stz     CH_xl,x
-        lda     #(336+$20)/2
-        sta     CH_xh,x
-        stz     CH_yl,x
-        lda     <z_frame
-        asl     a
-        sta     CH_yh,x
-
-        lda     #LOW(((spr_pattern_en-spr_pattern)/2+$4000)/32)
-        sta     CH_sprpatl,x
-        lda     #HIGH(((spr_pattern_en-spr_pattern)/2+$4000)/32)
-        sta     CH_sprpath,x
-
-        lda     #$83
-        sta     CH_spratrl,x
-        lda     #$11
-        sta     CH_spratrh,x
-
-        lda     #16/2
-        sta     CH_sprdx,x
-        sta     CH_sprdy,x
-
-        lda     #8
-        sta     CH_coldx,x
-        sta     CH_coldy,x
-
-        lda     #LOW(ENmove)
-        sta     CH_procptrl,x
-        lda     #HIGH(ENmove)
-        sta     CH_procptrh,x
-
-
-        phx
-        lda     #4
-        ldy     #0
-        jsr     convDirection2DxDy
-        plx
-
-        lda     <z_dir_result_dx
-        sta     CH_dxl,x
-        lda     <z_dir_result_dx+1
-        sta     CH_dxh,x
-        lda     <z_dir_result_dy
-        sta     CH_dyl,x
-        lda     <z_dir_result_dy+1
-        sta     CH_dyh,x
-.ret:
-        rts
-        .endif
 
 ENInitProcTableLow:
         .db     LOW(ENDummy_init)
@@ -152,6 +95,7 @@ ENInitProcTableHigh:
         .db     HIGH(ENTank_init)
         .db     HIGH(ENTankTurret_init)
 
+;------------------------------------------------
 
 ENDummy_init:
         rts
@@ -182,6 +126,12 @@ ENTank_init:
         lda     #8
         sta     CH_coldx,x
         sta     CH_coldy,x
+
+        lda     #4
+        sta     CH_regist,x
+
+        lda     #1
+        sta     CH_damaged_class,x
 
         lda     #LOW(ENTank_move)
         sta     CH_procptrl,x
@@ -252,7 +202,64 @@ ENTankTurret_init:
 
 ;----------------------------------------------------------------
 
+;
+; @experimental
+;  ダメージを受けた時の処理
+;
+ENTank_damaged:
+        lda     CH_regist,x
+        cmp     #2+1
+        bcs     .ret
+                ; 砲塔を消す
+        lda     CH_var0,x
+        beq     .ret
+        phx
+        tax
+        jsr     CDRVremoveChr
+        plx
+        stz     CH_var0,x
+.ret:
+        rts
+
+EN_damaged_dummy:
+        rts
+
+EN_dead_dummy:
+ENTank_dead:
+        rts
+
+EN_damaged_procl:
+        .db     LOW(EN_damaged_dummy)
+;        .db     LOW(EN_damaged_dummy)
+        .db     LOW(ENTank_damaged)
+EN_damaged_proch:
+        .db     HIGH(EN_damaged_dummy)
+;        .db     HIGH(EN_damaged_dummy)
+        .db     HIGH(ENTank_damaged)
+
+EN_dead_procl:
+        .db     LOW(EN_dead_dummy)
+        .db     LOW(ENTank_dead)
+EN_dead_proch:
+        .db     HIGH(EN_dead_dummy)
+        .db     HIGH(ENTank_dead)
+
+
+
+
 ENTank_move:
+        .if     0
+        tst     #CH_flag_damaged,CH_flag,x
+        beq     .move
+        lda     CH_regist,x
+        cmp     #2+1
+        bcs     .move
+        jsr     .destroy
+        stz     CH_var0,x
+
+.move:
+        .endif
+
         lda     CH_xl,x
         clc
         adc     CH_dxl,x
@@ -279,31 +286,15 @@ ENTank_move:
         cmp     #64/2
         bcc     .out
 
-        .if     0
-                        ; shoot
-       	tst	#$07,<z_frame
-	bne	.skipeb
-
-	ldy	PL_chr
-	lda	CH_xh,y
-	sta	<z_dir_targetx
-	lda	CH_yh,y
-	sta	<z_dir_targety
-	lda	CH_xh,x
-	sta	<z_dir_sourcex
-	lda	CH_yh,x
-	sta	<z_dir_sourcey
-
-	jsr	getDirection
-	tay
-	jsr	EB_shoot
-.skipeb:
-        .endif
-
         clc
         rts
                 ; out of screen
 .out:
+        jsr     .destroy
+        sec
+        rts
+
+.destroy:
                 ; 砲塔を消す
         lda     CH_var0,x
         beq     .00
@@ -312,7 +303,6 @@ ENTank_move:
         jsr     CDRVremoveChr
         plx
 .00:
-        sec
         rts
 
 

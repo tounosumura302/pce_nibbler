@@ -34,6 +34,45 @@ PB_dyl_table:
 PB_dyh_table:
     .db $fd,$fd,$fe,$fe,$fe,$ff,$ff,$00,$00,$00,$01,$01,$01,$02,$02
 
+        ; 方向別スプライトパターン
+PB_sprpatl_table:
+    .db LOW(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db LOW(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+
+PB_sprpath_table:
+    .db HIGH(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+    .db HIGH(((spr_pattern_pb2-spr_pattern)/2+$4000)/32)
+
+            ; 方向別スプライトアトリビュート（フリップ用）
+PB_spratrh_table:
+    .db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$90,$90,$90,$90
+
 PBshoot:
         phx
         ldx     #CDRV_ROLE_PBULLET_M1
@@ -93,14 +132,17 @@ PBshoot:
         lda     <z_tmp5
         sta     CH_yh,y
 
-        lda     #LOW(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+        lda     PB_sprpatl_table,x
+;        lda     #LOW(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
         sta     CH_sprpatl,y
-        lda     #HIGH(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
+        lda     PB_sprpath_table,x
+;        lda     #HIGH(((spr_pattern_pb-spr_pattern)/2+$4000)/32)
         sta     CH_sprpath,y
 
         lda     #$81
         sta     CH_spratrl,y
-        lda     #$00
+        lda     PB_spratrh_table,x
+;        lda     #$00
         sta     CH_spratrh,y
 
         lda     #4/2
