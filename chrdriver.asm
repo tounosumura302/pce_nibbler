@@ -38,6 +38,8 @@ CH_damaged_class:       .ds    CH_MAX_CHR      ;ダメージを受けた時の�
 
 CH_var0:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
 CH_var1:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
+CH_var2:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
+CH_var3:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
 
 CH_role_class:  .ds     CH_MAX_CHR
 CH_role_next:   .ds     CH_MAX_CHR
@@ -95,15 +97,16 @@ CDRV_SPR_BONUS          .equ    1
 
 CDRV_MAX_SPRITE         .equ    60      ; キャラクタドライバで割り当てる最大スプライト数
 
-CDrv_role_class_table:  .ds     CDRV_MAX_ROLE_CLASS
-CDrv_role_class_chrnum: .ds     CDRV_MAX_ROLE_CLASS
+CDrv_role_class_table:  .ds     CDRV_MAX_ROLE_CLASS     ; クラスごとの先頭キャラ
+CDrv_role_class_chrnum: .ds     CDRV_MAX_ROLE_CLASS     ; クラスごとのキャラ数
+CDrv_role_class_unusedchrnum: .ds     CDRV_MAX_ROLE_CLASS     ; クラスごとの未使用キャラ数
 
-CDrv_spr_class_table:           .ds     CDRV_MAX_SPR_CLASS        ;先頭
-CDrv_spr_class_last_table:      .ds     CDRV_MAX_SPR_CLASS   ;最後
-CDrv_spr_class_chrnum:          .ds     CDRV_MAX_SPR_CLASS
-CDrv_spr_class_allocnum:        .ds     CDRV_MAX_SPR_CLASS
+CDrv_spr_class_table:           .ds     CDRV_MAX_SPR_CLASS      ; スプライトクラスの先頭キャラ
+CDrv_spr_class_last_table:      .ds     CDRV_MAX_SPR_CLASS      ; スプライトクラスの最後キャラ
+CDrv_spr_class_chrnum:          .ds     CDRV_MAX_SPR_CLASS      ; スプライトクラスごとのキャラ数
+CDrv_spr_class_allocnum:        .ds     CDRV_MAX_SPR_CLASS      ; スプライトクラスごとのスプライト割り当て数
 
-CDrv_chrnum:    .ds     1
+CDrv_chrnum:    .ds     1       ; 全キャラ数
 
 CH_procptr_tmp: .ds     2
 
@@ -166,6 +169,8 @@ CDRVinit:
 .loop1:
         stz     CDrv_role_class_table,x
         stz     CDrv_role_class_chrnum,x
+        lda     CDrv_role_class_maxchr,x
+        sta     CDrv_role_class_unusedchrnum,x
         dex
         bne     .loop1
                 ; set chrs to unused role link
@@ -209,8 +214,12 @@ CDRVaddChr:
 .arg_spr_class  .equ    z_tmp1
 
         ldy     <.arg_role_class
+        .if     1
+        lda     CDrv_role_class_unusedchrnum,y
+        .else
         lda     CDrv_role_class_chrnum,y
         cmp     CDrv_role_class_maxchr,y
+        .endif
         beq     .nochr
 
         lda     CDrv_role_class_table
@@ -229,6 +238,7 @@ CDRVaddChr:
                 ; 新しいキャラをrole classリストの先頭に挿入
         ldx     <.arg_role_class
         inc     CDrv_role_class_chrnum,x
+        dec     CDrv_role_class_unusedchrnum,x
         txa
         sta     CH_role_class,y
 
@@ -290,6 +300,7 @@ CDRVremoveChr:
         ldy     CH_role_class,x
         sxy
         dec     CDrv_role_class_chrnum,x
+        inc     CDrv_role_class_unusedchrnum,x
         sxy
 
         lda     CH_role_next,x

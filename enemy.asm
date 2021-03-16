@@ -5,6 +5,10 @@ z_last_new_chr  .ds     1       ;直前に生成されたキャラクタ番号�
         .code
         .bank   MAIN_BANK
 
+;------------------------------
+; @experimental
+;  複数キャラの組み合わせ
+
 ENcreate_Tank:
         ldy     #1
         jsr     ENcreate
@@ -28,6 +32,70 @@ ENcreate_Tank:
         stz     CH_var0,x       ;砲塔のキャラクタ番号を戦車にセット
         rts
 
+
+
+
+ENcreate_Big:
+        stz     <z_tmp11
+        stz     <z_tmp12
+        stz     <z_tmp13
+        stz     <z_tmp14
+        stz     <z_tmp15
+
+        ldy     #3
+        jsr     ENcreate
+
+        bcs     .ret
+        sty     <z_tmp11
+
+        ldy     #4
+        jsr     ENcreate
+        bcs     .ret2
+        sty     <z_tmp12
+
+        ldy     #5
+        jsr     ENcreate
+        bcs     .ret2
+        sty     <z_tmp13
+
+        ldy     #6
+        jsr     ENcreate
+        bcs     .ret2
+        sty     <z_tmp14
+
+        ldy     #7
+        jsr     ENcreate
+        bcs     .ret2
+        sty     <z_tmp15
+
+
+.ret2:
+                ;本体にパーツをセット
+        ldx     <z_tmp11
+        lda     <z_tmp12
+        sta     CH_var0,x
+        lda     <z_tmp13
+        sta     CH_var1,x
+        lda     <z_tmp14
+        sta     CH_var2,x
+        lda     <z_tmp15
+        sta     CH_var3,x
+
+                ;パーツに本体をセット
+        lda     <z_tmp11
+        ldx     <z_tmp12
+        sta     CH_var0,x
+        ldx     <z_tmp13
+        sta     CH_var0,x
+        ldx     <z_tmp14
+        sta     CH_var0,x
+        ldx     <z_tmp15
+        sta     CH_var0,x
+.ret:
+        rts
+
+
+;------------------------------
 
 ; @return       y       キャラ番号
 ;               c flag  1ならキャラ割り当て失敗
@@ -74,26 +142,54 @@ ENcreate:
 
 ENRoleClassTable:
         .db     0
+                ;戦車
         .db     CDRV_ROLE_ENEMY_G1
         .db     CDRV_ROLE_ENEMY_G2
+                ;大型機
+        .db     CDRV_ROLE_ENEMY_S1
+        .db     CDRV_ROLE_ENEMY_S2
+        .db     CDRV_ROLE_ENEMY_S2
+        .db     CDRV_ROLE_ENEMY_S2
+        .db     CDRV_ROLE_ENEMY_S2
 
 ENSpriteClassTable:
         .db     0
+                ;戦車
         .db     CDRV_SPR_ENEMY_G1
         .db     CDRV_SPR_ENEMY_G2
+                ;大型機
+        .db     CDRV_SPR_ENEMY_S1
+        .db     CDRV_SPR_ENEMY_S2
+        .db     CDRV_SPR_ENEMY_S2
+        .db     CDRV_SPR_ENEMY_S2
+        .db     CDRV_SPR_ENEMY_S2
 
 
 
 
 ENInitProcTableLow:
         .db     LOW(ENDummy_init)
+
         .db     LOW(ENTank_init)
         .db     LOW(ENTankTurret_init)
 
+        .db     LOW(ENBig_main_init)
+        .db     LOW(ENBig_sub0_init)
+        .db     LOW(ENBig_sub1_init)
+        .db     LOW(ENBig_sub2_init)
+        .db     LOW(ENBig_sub3_init)
+
 ENInitProcTableHigh:
         .db     HIGH(ENDummy_init)
+
         .db     HIGH(ENTank_init)
         .db     HIGH(ENTankTurret_init)
+
+        .db     HIGH(ENBig_main_init)
+        .db     HIGH(ENBig_sub0_init)
+        .db     HIGH(ENBig_sub1_init)
+        .db     HIGH(ENBig_sub2_init)
+        .db     HIGH(ENBig_sub3_init)
 
 ;------------------------------------------------
 
@@ -200,6 +296,209 @@ ENTankTurret_init:
 
         rts
 
+
+
+ENBig_main_init:
+        stz     CH_xl,x
+        lda     #(336+$20)/2
+        sta     CH_xh,x
+        stz     CH_yl,x
+;        lda     <z_frame
+;        asl     a
+        lda     #(64+128)/2
+        sta     CH_yh,x
+
+        lda     #LOW(((spr_pattern2_big_02-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpatl,x
+        lda     #HIGH(((spr_pattern2_big_02-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpath,x
+
+        lda     #$83
+        sta     CH_spratrl,x
+        lda     #$11
+        sta     CH_spratrh,x
+
+        lda     #16/2
+        sta     CH_sprdx,x
+        sta     CH_sprdy,x
+
+        lda     #16/2
+        sta     CH_coldx,x
+        lda     #40/2
+        sta     CH_coldy,x
+
+        lda     #16
+        sta     CH_regist,x
+
+        lda     #2
+        sta     CH_damaged_class,x
+
+        lda     #LOW(ENBig_main_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(ENBig_main_move)
+        sta     CH_procptrh,x
+
+        lda     #0
+        sta     CH_dir,x
+
+        lda     #0
+        sta     CH_dxl,x
+        lda     #$ff
+        sta     CH_dxh,x
+        lda     #0
+        sta     CH_dyl,x
+        sta     CH_dyh,x
+
+        rts
+
+ENBig_sub0_init:
+        stz     CH_xl,x
+        lda     #(336+$20)/2
+        sta     CH_xh,x
+        stz     CH_yl,x
+        lda     <z_frame
+        asl     a
+        sta     CH_yh,x
+
+        lda     #LOW(((spr_pattern2_big_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpatl,x
+        lda     #HIGH(((spr_pattern2_big_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpath,x
+
+        lda     #$83
+        sta     CH_spratrl,x
+        lda     #$11
+        sta     CH_spratrh,x
+
+        lda     #16/2
+        sta     CH_sprdx,x
+        sta     CH_sprdy,x
+
+        lda     #0
+        sta     CH_coldx,x
+        sta     CH_coldy,x
+
+        lda     #LOW(ENBig_sub0_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(ENBig_sub0_move)
+        sta     CH_procptrh,x
+
+        lda     #0
+        sta     CH_dir,x
+
+        rts
+
+ENBig_sub1_init:
+        stz     CH_xl,x
+        lda     #(336+$20)/2
+        sta     CH_xh,x
+        stz     CH_yl,x
+        lda     <z_frame
+        asl     a
+        sta     CH_yh,x
+
+        lda     #LOW(((spr_pattern2_big_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpatl,x
+        lda     #HIGH(((spr_pattern2_big_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpath,x
+
+        lda     #$83
+        sta     CH_spratrl,x
+        lda     #$91
+        sta     CH_spratrh,x
+
+        lda     #16/2
+        sta     CH_sprdx,x
+        sta     CH_sprdy,x
+
+        lda     #0
+        sta     CH_coldx,x
+        sta     CH_coldy,x
+
+        lda     #LOW(ENBig_sub1_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(ENBig_sub1_move)
+        sta     CH_procptrh,x
+
+        lda     #0
+        sta     CH_dir,x
+
+        rts
+
+ENBig_sub2_init:
+        stz     CH_xl,x
+        lda     #(336+$20)/2
+        sta     CH_xh,x
+        stz     CH_yl,x
+        lda     <z_frame
+        asl     a
+        sta     CH_yh,x
+
+        lda     #LOW(((spr_pattern2_big_01-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpatl,x
+        lda     #HIGH(((spr_pattern2_big_01-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpath,x
+
+        lda     #$83
+        sta     CH_spratrl,x
+        lda     #$11
+        sta     CH_spratrh,x
+
+        lda     #16/2
+        sta     CH_sprdx,x
+        sta     CH_sprdy,x
+
+        lda     #0
+        sta     CH_coldx,x
+        sta     CH_coldy,x
+
+        lda     #LOW(ENBig_sub2_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(ENBig_sub2_move)
+        sta     CH_procptrh,x
+
+        lda     #0
+        sta     CH_dir,x
+
+        rts
+
+ENBig_sub3_init:
+        stz     CH_xl,x
+        lda     #(336+$20)/2
+        sta     CH_xh,x
+        stz     CH_yl,x
+        lda     <z_frame
+        asl     a
+        sta     CH_yh,x
+
+        lda     #LOW(((spr_pattern2_big_01-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpatl,x
+        lda     #HIGH(((spr_pattern2_big_01-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpath,x
+
+        lda     #$83
+        sta     CH_spratrl,x
+        lda     #$91
+        sta     CH_spratrh,x
+
+        lda     #16/2
+        sta     CH_sprdx,x
+        sta     CH_sprdy,x
+
+        lda     #0
+        sta     CH_coldx,x
+        sta     CH_coldy,x
+
+        lda     #LOW(ENBig_sub3_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(ENBig_sub3_move)
+        sta     CH_procptrh,x
+
+        lda     #0
+        sta     CH_dir,x
+
+        rts
+
 ;----------------------------------------------------------------
 
 ;
@@ -222,44 +521,74 @@ ENTank_damaged:
         rts
 
 EN_damaged_dummy:
+ENBig_damaged:
         rts
 
 EN_dead_dummy:
 ENTank_dead:
+        jsr     EFcreateExplosion
+        jsr     CDRVremoveChr
         rts
+
+ENBig_dead:
+        phx
+
+        lda     CH_var0,x
+        sta     <z_tmp12
+        lda     CH_var1,x
+        sta     <z_tmp13
+        lda     CH_var2,x
+        sta     <z_tmp14
+        lda     CH_var3,x
+        sta     <z_tmp15
+
+        ldx     <z_tmp12
+        beq     .01
+        jsr     CDRVremoveChr
+.01:
+        ldx     <z_tmp13
+        beq     .02
+        jsr     CDRVremoveChr
+.02:
+        ldx     <z_tmp14
+        beq     .03
+        jsr     CDRVremoveChr
+.03:
+        ldx     <z_tmp15
+        beq     .04
+        jsr     CDRVremoveChr
+.04:
+        plx
+        jsr     CDRVremoveChr
+
+        rts
+
+
 
 EN_damaged_procl:
         .db     LOW(EN_damaged_dummy)
 ;        .db     LOW(EN_damaged_dummy)
         .db     LOW(ENTank_damaged)
+        .db     LOW(ENBig_damaged)
 EN_damaged_proch:
         .db     HIGH(EN_damaged_dummy)
 ;        .db     HIGH(EN_damaged_dummy)
         .db     HIGH(ENTank_damaged)
+        .db     HIGH(ENBig_damaged)
 
 EN_dead_procl:
         .db     LOW(EN_dead_dummy)
         .db     LOW(ENTank_dead)
+        .db     LOW(ENBig_dead)
 EN_dead_proch:
         .db     HIGH(EN_dead_dummy)
         .db     HIGH(ENTank_dead)
+        .db     HIGH(ENBig_dead)
 
 
 
 
 ENTank_move:
-        .if     0
-        tst     #CH_flag_damaged,CH_flag,x
-        beq     .move
-        lda     CH_regist,x
-        cmp     #2+1
-        bcs     .move
-        jsr     .destroy
-        stz     CH_var0,x
-
-.move:
-        .endif
-
         lda     CH_xl,x
         clc
         adc     CH_dxl,x
@@ -441,3 +770,149 @@ ENTankTurretAttributeHigh:
         .db     $11,$11,$11,$11,$11,$19,$19,$19,$19,$99,$99,$99,$91,$91,$91,$91
 
 
+
+
+ENBig_main_move:
+        lda     CH_xl,x
+        clc
+        adc     CH_dxl,x
+        sta     CH_xl,x
+        lda     CH_xh,x
+        adc     CH_dxh,x
+        sta     CH_xh,x
+
+        cmp     #(336+32)/2
+        bcs     .out
+        cmp     #32/2
+        bcc     .out
+
+        lda     CH_yl,x
+        clc
+        adc     CH_dyl,x
+        sta     CH_yl,x
+        lda     CH_yh,x
+        adc     CH_dyh,x
+        sta     CH_yh,x
+
+        cmp     #(240+64)/2
+        bcs     .out
+        cmp     #64/2
+        bcc     .out
+
+        clc
+        rts
+                ; out of screen
+.out:
+        phx
+
+        lda     CH_var0,x
+        sta     <z_tmp12
+        lda     CH_var1,x
+        sta     <z_tmp13
+        lda     CH_var2,x
+        sta     <z_tmp14
+        lda     CH_var3,x
+        sta     <z_tmp15
+
+        ldx     <z_tmp12
+        beq     .01
+        jsr     CDRVremoveChr
+.01:
+        ldx     <z_tmp13
+        beq     .02
+        jsr     CDRVremoveChr
+.02:
+        ldx     <z_tmp14
+        beq     .03
+        jsr     CDRVremoveChr
+.03:
+        ldx     <z_tmp15
+        beq     .04
+        jsr     CDRVremoveChr
+.04:
+        plx
+
+
+        sec
+        rts
+
+
+ENBig_sub0_move:
+        lda     CH_var0,x
+        tay
+
+        lda     CH_xl,y
+        sta     CH_xl,x
+        lda     CH_xh,y
+        sec
+        sbc     #32/2
+        sta     CH_xh,x
+        lda     CH_yl,y
+        sta     CH_yl,x
+        lda     CH_yh,y
+        sec
+        sbc     #24/2
+        sta     CH_yh,x
+
+        clc
+        rts
+
+ENBig_sub1_move:
+        lda     CH_var0,x
+        tay
+
+        lda     CH_xl,y
+        sta     CH_xl,x
+        lda     CH_xh,y
+        sec
+        sbc     #32/2
+        sta     CH_xh,x
+        lda     CH_yl,y
+        sta     CH_yl,x
+        lda     CH_yh,y
+        clc
+        adc     #8/2
+        sta     CH_yh,x
+
+        clc
+        rts
+
+ENBig_sub2_move:
+        lda     CH_var0,x
+        tay
+
+        lda     CH_xl,y
+        sta     CH_xl,x
+        lda     CH_xh,y
+        sec
+        sbc     #8/2
+        sta     CH_xh,x
+        lda     CH_yl,y
+        sta     CH_yl,x
+        lda     CH_yh,y
+        sec
+        sbc     #32/2
+        sta     CH_yh,x
+
+        clc
+        rts
+
+ENBig_sub3_move:
+        lda     CH_var0,x
+        tay
+
+        lda     CH_xl,y
+        sta     CH_xl,x
+        lda     CH_xh,y
+        sec
+        sbc     #8/2
+        sta     CH_xh,x
+        lda     CH_yl,y
+        sta     CH_yl,x
+        lda     CH_yh,y
+        clc
+        adc     #16/2
+        sta     CH_yh,x
+
+        clc
+        rts

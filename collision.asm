@@ -118,11 +118,12 @@ CLtestPBullet2Enemy:
 
 CLtest1PBullet2Enemy:
 .procptr        .equ    z_tmp2
+.regist         .equ    z_tmp4
 
                 ;敵でループ
         phx
 
-        lda     CDrv_role_class_table+CDRV_ROLE_ENEMY_G1
+        lda     CDrv_role_class_table+CDRV_ROLE_ENEMY_S1
 .loop:
         beq     .end
         tax
@@ -131,36 +132,34 @@ CLtest1PBullet2Enemy:
 
         bcs     .next
 
-                ; collided
-;        lda     CH_flag,x
-;        ora     #CH_flag_damaged
-;        sta     CH_flag,x
+                ; 衝突
+        lda     #HIGH(.enddamaged-1)       ;要注意 pushするのは 戻りアドレス-1
+        pha
+        lda     #LOW(.enddamaged-1)
+        pha
 
         lda     CH_regist,x
-        beq     .00
+        beq     .dead
         dec     a
         sta     CH_regist,x
-.00:
+        beq     .dead
 
         ldy     CH_damaged_class,x
         lda     EN_damaged_procl,y
         sta     <.procptr
         lda     EN_damaged_proch,y
         sta     <.procptr+1
-
-        lda     #HIGH(.endmove-1)       ;要注意 pushするのは 戻りアドレス-1
-        pha
-        lda     #LOW(.endmove-1)
-        pha
-
         jmp     [.procptr]
-.endmove:
 
-;        lda     #LOW(ENdead)
-;        sta     CH_procptrl,x
-;        lda     #HIGH(ENdead)
-;        sta     CH_procptrh,x
+.dead:
+        ldy     CH_damaged_class,x
+        lda     EN_dead_procl,y
+        sta     <.procptr
+        lda     EN_dead_proch,y
+        sta     <.procptr+1
+        jmp     [.procptr]
 
+.enddamaged:
         plx
         clc
         rts

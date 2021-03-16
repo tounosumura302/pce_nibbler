@@ -14,4 +14,6 @@ MAIN_BANK       .equ    1
         .include "enemy.asm"
         .include "ebullet.asm"
         .include "collision.asm"
+        .include "effect.asm"
+        .include        "sprpattern.asm"
         
