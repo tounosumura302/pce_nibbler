@@ -123,7 +123,7 @@ CLtest1PBullet2Enemy:
                 ;敵でループ
         phx
 
-        lda     CDrv_role_class_table+CDRV_ROLE_ENEMY_S1
+        lda     CDrv_role_class_table+CDRV_ROLE_ENEMY_G1
 .loop:
         beq     .end
         tax

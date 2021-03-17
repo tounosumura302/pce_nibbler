@@ -1,6 +1,6 @@
         .zp
-z_last_new_chr  .ds     1       ;直前に生成されたキャラクタ番号（複数キャラが連携している場合に使う）
-
+;z_last_new_chr  .ds     1       ;直前に生成されたキャラクタ番号（複数キャラが連携している場合に使う）
+z_eni_ptr       .ds     2       ;生成時の初期化スクリプトのポインタ
 
         .code
         .bank   MAIN_BANK
@@ -10,93 +10,142 @@ z_last_new_chr  .ds     1       ;直前に生成されたキャラクタ番号�
 ;  複数キャラの組み合わせ
 
 ENcreate_Tank:
-        ldy     #1
-        jsr     ENcreate
-
-        bcs     .ret
-        phy
-
-        ldy     #2
-        jsr     ENcreate
-        bcs     .ret2
-
-        pla             ;tank
-        sta     CH_var0,y       ;戦車のキャラクタ番号を砲塔にセット
-        tax
-        tya
-        sta     CH_var0,x       ;砲塔のキャラクタ番号を戦車にセット
-.ret:
-        rts
-.ret2:
-        plx
-        stz     CH_var0,x       ;砲塔のキャラクタ番号を戦車にセット
+        ldy     #0
+        jsr     ENcreate_Ex
         rts
 
 
 
 
 ENcreate_Big:
-        stz     <z_tmp11
-        stz     <z_tmp12
-        stz     <z_tmp13
-        stz     <z_tmp14
-        stz     <z_tmp15
-
-        ldy     #3
-        jsr     ENcreate
-
-        bcs     .ret
-        sty     <z_tmp11
-
-        ldy     #4
-        jsr     ENcreate
-        bcs     .ret2
-        sty     <z_tmp12
-
-        ldy     #5
-        jsr     ENcreate
-        bcs     .ret2
-        sty     <z_tmp13
-
-        ldy     #6
-        jsr     ENcreate
-        bcs     .ret2
-        sty     <z_tmp14
-
-        ldy     #7
-        jsr     ENcreate
-        bcs     .ret2
-        sty     <z_tmp15
-
-
-.ret2:
-                ;本体にパーツをセット
-        ldx     <z_tmp11
-        lda     <z_tmp12
-        sta     CH_var0,x
-        lda     <z_tmp13
-        sta     CH_var1,x
-        lda     <z_tmp14
-        sta     CH_var2,x
-        lda     <z_tmp15
-        sta     CH_var3,x
-
-                ;パーツに本体をセット
-        lda     <z_tmp11
-        ldx     <z_tmp12
-        sta     CH_var0,x
-        ldx     <z_tmp13
-        sta     CH_var0,x
-        ldx     <z_tmp14
-        sta     CH_var0,x
-        ldx     <z_tmp15
-        sta     CH_var0,x
-.ret:
+        ldy     #1
+        jsr     ENcreate_Ex
         rts
 
 
 ;------------------------------
+; 敵キャラクターを生成
+;
+; @param        y       敵タイプ番号
+; @return       c=0     成功
+; @save         -
 
+ENcreate_Ex:
+                ;敵タイプに対応する初期化スクリプトのポインタ
+.tmp_eni_ptr    .equ    z_eni_ptr
+        lda     ENinitPtrTable_l,y
+        sta     <.tmp_eni_ptr
+        lda     ENinitPtrTable_h,y
+        sta     <.tmp_eni_ptr+1
+
+                ;初期化スクリプト処理
+                ;ロールクラスごとにキャラの空きがあるか調べる
+                ;必要なロールクラスに1つでも空きがなければキャラを生成しない
+        cly
+.chkloop:
+        lda     [.tmp_eni_ptr],y                ;ロールクラス
+        beq     .chkok                          ;ロールクラスが0なら次へ
+        tax
+        iny
+        lda     [.tmp_eni_ptr],y                ;生成予定のキャラ数
+        iny
+        cmp     CDrv_role_class_unusedchrnum,x
+        bcc     .chkloop
+        beq     .chkloop
+                ;空きがなかったので、生成せずに終了
+        sec
+        rts
+.chkok:
+
+                ;キャラクターを1つずつ生成
+        iny
+        stz     <z_tmp2                         ;最初は親キャラなので0
+.addloop:
+        lda     [.tmp_eni_ptr],y                ;ロールクラス
+        beq     .addend                         ;ロールクラスが0なら終わり
+        sta     <z_tmp0
+        iny
+        lda     [.tmp_eni_ptr],y                ;スプライトクラス
+        sta     <z_tmp1
+        iny
+        phy
+        jsr     CDRVaddChr
+        sxy                                     ;x=生成したキャラ
+        ply
+                ;キャラ初期化
+        lda     [.tmp_eni_ptr],y                ;初期化ルーチンアドレス
+        sta     <z_tmp0
+        iny
+        lda     [.tmp_eni_ptr],y                ;初期化ルーチンアドレス
+        sta     <z_tmp1
+        iny
+        phy
+
+        lda     #HIGH(.end-1)                   ;要注意 pushするのは 戻りアドレス-1
+        pha
+        lda     #LOW(.end-1)
+        pha
+
+        jmp     [z_tmp0]                        ;初期化ルーチン
+.end:
+        ply
+                ;生成するキャラが2つ以上ある場合、最初は親、2つ目以降は子供として扱う
+        tst     #$ff,<z_tmp2                    ;親キャラ=0 の時だけ、親キャラ番号を保存
+        bne     .addloop
+        stx     <z_tmp2
+        bra     .addloop
+
+.addend:
+        clc
+        rts
+        
+
+;敵キャラの初期化スクリプトのポインタテーブル
+
+ENinitPtrTable_l:
+        .db  LOW(ENI_tank)
+        .db  LOW(ENI_big)
+
+ENinitPtrTable_h:
+        .db  HIGH(ENI_tank)
+        .db  HIGH(ENI_big)
+
+
+;初期化スクリプト
+
+
+ENI_tank:
+        .db     CDRV_ROLE_ENEMY_G1,1
+        .db     CDRV_ROLE_ENEMY_G2,1
+        .db     0
+        .db     CDRV_ROLE_ENEMY_G1,CDRV_SPR_ENEMY_G1
+        .dw     ENTank_init
+        .db     CDRV_ROLE_ENEMY_G2,CDRV_SPR_ENEMY_G2
+        .dw     ENTankTurret_init
+        .db     0
+
+ENI_big:
+        .db     CDRV_ROLE_ENEMY_S1,1
+        .db     CDRV_ROLE_ENEMY_S2,4
+        .db     0
+        .db     CDRV_ROLE_ENEMY_S1,CDRV_SPR_ENEMY_S1
+        .dw     ENBig_main_init
+        .db     CDRV_ROLE_ENEMY_S2,CDRV_SPR_ENEMY_S2
+        .dw     ENBig_sub0_init
+        .db     CDRV_ROLE_ENEMY_S2,CDRV_SPR_ENEMY_S2
+        .dw     ENBig_sub1_init
+        .db     CDRV_ROLE_ENEMY_S2,CDRV_SPR_ENEMY_S2
+        .dw     ENBig_sub2_init
+        .db     CDRV_ROLE_ENEMY_S2,CDRV_SPR_ENEMY_S2
+        .dw     ENBig_sub3_init
+        .db     0
+
+
+
+
+
+        .if     0
+; @param        x       親のキャラ番号（0なら親なし）
 ; @return       y       キャラ番号
 ;               c flag  1ならキャラ割り当て失敗
 ; @savereg      x
@@ -106,10 +155,11 @@ ENcreate:
         sta     <z_tmp0
         lda     ENSpriteClassTable,y
         sta     <z_tmp1
+        stx     <z_tmp2
         jsr     CDRVaddChr
         bcc     .init
 
-        stz     <z_last_new_chr
+;        stz     <z_last_new_chr
         ply
         cly
         rts
@@ -134,7 +184,7 @@ ENcreate:
 
         jmp     [z_tmp0]
 .end:
-        stx     <z_last_new_chr
+;        stx     <z_last_new_chr
         sxy
         plx             ;restore chrno
         clc
@@ -190,6 +240,9 @@ ENInitProcTableHigh:
         .db     HIGH(ENBig_sub1_init)
         .db     HIGH(ENBig_sub2_init)
         .db     HIGH(ENBig_sub3_init)
+
+
+        .endif
 
 ;------------------------------------------------
 
@@ -254,7 +307,8 @@ ENTank_init:
 
 
 ENTankTurret_init:
-        ldy     <z_last_new_chr
+;        ldy     <z_last_new_chr
+        ldy     CH_grp_parent,x
 
         lda     CH_xl,y
         sta     CH_xl,x
@@ -341,7 +395,7 @@ ENBig_main_init:
         lda     #0
         sta     CH_dir,x
 
-        lda     #0
+        lda     #$80
         sta     CH_dxl,x
         lda     #$ff
         sta     CH_dxh,x
@@ -510,13 +564,14 @@ ENTank_damaged:
         cmp     #2+1
         bcs     .ret
                 ; 砲塔を消す
-        lda     CH_var0,x
+        lda     CH_grp_child,x
+;        lda     CH_var0,x
         beq     .ret
         phx
         tax
         jsr     CDRVremoveChr
         plx
-        stz     CH_var0,x
+;        stz     CH_var0,x
 .ret:
         rts
 
@@ -531,6 +586,7 @@ ENTank_dead:
         rts
 
 ENBig_dead:
+        .if     0
         phx
 
         lda     CH_var0,x
@@ -559,6 +615,9 @@ ENBig_dead:
         jsr     CDRVremoveChr
 .04:
         plx
+        .endif
+
+        jsr     EFcreateExplosion
         jsr     CDRVremoveChr
 
         rts
@@ -619,13 +678,15 @@ ENTank_move:
         rts
                 ; out of screen
 .out:
-        jsr     .destroy
+        ;jsr     .destroy
         sec
         rts
 
+        .if     0
 .destroy:
                 ; 砲塔を消す
-        lda     CH_var0,x
+        lda     CH_grp_child,x
+;        lda     CH_var0,x
         beq     .00
         phx
         tax
@@ -633,7 +694,7 @@ ENTank_move:
         plx
 .00:
         rts
-
+        .endif
 
 ENdead:
         sec
@@ -641,7 +702,9 @@ ENdead:
 
 
 ENTankTurret_move:
-        lda     CH_var0,x
+        lda     CH_grp_parent,x
+
+;        lda     CH_var0,x
         tay
 
         lda     CH_xl,y
@@ -803,6 +866,7 @@ ENBig_main_move:
         rts
                 ; out of screen
 .out:
+        .if     0
         phx
 
         lda     CH_var0,x
@@ -831,14 +895,15 @@ ENBig_main_move:
         jsr     CDRVremoveChr
 .04:
         plx
-
+        .endif
 
         sec
         rts
 
 
 ENBig_sub0_move:
-        lda     CH_var0,x
+;        lda     CH_var0,x
+        lda     CH_grp_parent,x
         tay
 
         lda     CH_xl,y
@@ -858,7 +923,8 @@ ENBig_sub0_move:
         rts
 
 ENBig_sub1_move:
-        lda     CH_var0,x
+;        lda     CH_var0,x
+        lda     CH_grp_parent,x
         tay
 
         lda     CH_xl,y
@@ -878,7 +944,8 @@ ENBig_sub1_move:
         rts
 
 ENBig_sub2_move:
-        lda     CH_var0,x
+ ;       lda     CH_var0,x
+        lda     CH_grp_parent,x
         tay
 
         lda     CH_xl,y
@@ -898,7 +965,8 @@ ENBig_sub2_move:
         rts
 
 ENBig_sub3_move:
-        lda     CH_var0,x
+;        lda     CH_var0,x
+        lda     CH_grp_parent,x
         tay
 
         lda     CH_xl,y

@@ -90,16 +90,17 @@ PBshoot:
         stx     <z_tmp0     ; role class
         lda     #CDRV_SPR_PBULLET_M1
         sta     <z_tmp1     ; sprite class
+        stz     <z_tmp2
 
         ldx     PL_chr
         lda     CH_xl,x
-        sta     <z_tmp2
-        lda     CH_xh,x
         sta     <z_tmp3
-        lda     CH_yl,x
+        lda     CH_xh,x
         sta     <z_tmp4
-        lda     CH_yh,x
+        lda     CH_yl,x
         sta     <z_tmp5
+        lda     CH_yh,x
+        sta     <z_tmp6
 
         lda     PB_level_table,y
         tay
@@ -123,13 +124,13 @@ PBshoot:
         lda     PB_dyh_table,x
         sta     CH_dyh,y
 
-        lda     <z_tmp2
-        sta     CH_xl,y
         lda     <z_tmp3
-        sta     CH_xh,y
+        sta     CH_xl,y
         lda     <z_tmp4
-        sta     CH_yl,y
+        sta     CH_xh,y
         lda     <z_tmp5
+        sta     CH_yl,y
+        lda     <z_tmp6
         sta     CH_yh,y
 
         lda     PB_sprpatl_table,x

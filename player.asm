@@ -16,6 +16,7 @@ PL_init:
         sta     <z_tmp0
         lda     #CDRV_SPR_PLAYER
         sta     <z_tmp1
+        stz     <z_tmp2
         jsr     CDRVaddChr
         sty     PL_chr
 

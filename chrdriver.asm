@@ -38,8 +38,11 @@ CH_damaged_class:       .ds    CH_MAX_CHR      ;ダメージを受けた時の�
 
 CH_var0:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
 CH_var1:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
-CH_var2:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
-CH_var3:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
+;CH_var2:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
+;CH_var3:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
+
+CH_grp_child:   .ds     CH_MAX_CHR      ; 子供
+CH_grp_parent:  .ds     CH_MAX_CHR      ; 親
 
 CH_role_class:  .ds     CH_MAX_CHR
 CH_role_next:   .ds     CH_MAX_CHR
@@ -186,6 +189,8 @@ CDRVinit:
         stz     CH_role_class,x
         stz     CH_spr_class,x
         stz     CH_damaged_class,x
+        stz     CH_grp_parent,x
+        stz     CH_grp_child,x
         inx
         cpx     #CH_MAX_CHR
         bne     .loop2
@@ -206,12 +211,14 @@ CDRVinit:
 ;
 ; @param        z_tmp0  role class
 ; @param        z_tmp1  spr class
+; @param        z_tmp2  親キャラ
 ; @return       y       キャラ番号
 ;               c flag  1ならキャラ割り当て失敗
 ; @savereg      x
 CDRVaddChr:
-.arg_role_class     .equ    z_tmp0
+.arg_role_class .equ    z_tmp0
 .arg_spr_class  .equ    z_tmp1
+.arg_grp_parent .equ    z_tmp2
 
         ldy     <.arg_role_class
         .if     1
@@ -278,6 +285,25 @@ CDRVaddChr:
         cla
         sta     CH_spr_prev,y
 
+
+                ; グループのリンクの末尾に新しいキャラを連結する
+        lda     .arg_grp_parent
+        sta     CH_grp_parent,y
+        beq     .endgrp
+
+.findchild:
+        tax
+        lda     CH_grp_child,x  ;グループの最後を探す
+        bne     .findchild
+
+        tya
+        sta     CH_grp_child,x  ;最後のキャラの子供に新しいキャラをセット
+        cla
+.endgrp:
+        sta     CH_grp_child,y  ;a=0 新しいキャラの子供は 0
+
+
+
         inc     CDrv_chrnum
 
         plx
@@ -290,11 +316,41 @@ CDRVaddChr:
         rts
 ;
 ; @param        x       キャラ番号
+; @save         x
 ;
 ; ※注意
 ;  キャラクタをトラバースしている最中に実行すると、次のキャラクタが未使用のものになってしまい、無限ループなど誤動作が起きる。
 ;  あらかじめ次のキャラクタを保管しておいてからこれを実行すること。
 CDRVremoveChr:
+        lda     CH_grp_parent,x
+        bne     .child
+        lda     CH_grp_child,x
+        bne     .all
+                ;自分がグループに属してないか、子供の場合は、自分だけ消す
+.child:
+        clc
+        jmp     CDRVremove1Chr
+
+                ;自分が親の場合は、子供もまとめて消す
+.all:
+        phx
+.allloop:
+        pha                             ;a=child
+        sec
+        jsr     CDRVremove1Chr
+        plx                             ;x=child
+        beq     .allend
+        lda     CH_grp_child,x
+        bra     .allloop
+.allend:
+        plx
+        rts
+
+
+; @param        c=1     グループのリンク付け替えをしない（グループのキャラをまとめて削除する場合）
+
+CDRVremove1Chr:
+        php
                 ; キャラをrole classリストから除去
                 ; role class のキャラ数を減らす
         ldy     CH_role_class,x
@@ -344,6 +400,29 @@ CDRVremoveChr:
         cla
         sta     CH_spr_prev,y
 .j2:
+
+                ;グループに属している場合、グループリンクから自分を外す
+                ;グループのリンクリストは一方向なので、先頭から順に探す必要がある
+.tmp_chrno      .equ    z_tmp15
+        plp
+        bcs     .addunusedlist          ;c=1 （グループを全部削除）の場合はスキップ
+
+        lda     CH_grp_parent,x
+        beq     .addunusedlist
+
+        stx     <.tmp_chrno
+.find:
+        tay
+        lda     CH_grp_child,y
+        cmp     <.tmp_chrno
+        bne     .find
+
+        lda     CH_grp_child,x
+        sta     CH_grp_child,y
+
+
+
+.addunusedlist:
                 ; キャラを未使用リストに挿入
         ldy     CDrv_role_class_table
         stx     CDrv_role_class_table

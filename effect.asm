@@ -7,6 +7,7 @@ EFcreateExplosion:
         sta     <z_tmp0
         lda     #CDRV_SPR_EFFECT
         sta     <z_tmp1
+        stz     <z_tmp2
         jsr     CDRVaddChr
         bcc     .init
         rts
