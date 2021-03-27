@@ -93,8 +93,23 @@ CLtestPBullet2Enemy:
         lda     CH_yh,x
         sta     <z_tmp1
 
+.hit    .equ    z_tmp15
+        stz     <.hit
+
+        lda     CDrv_role_class_table+CDRV_ROLE_ENEMY_G1
+        beq     .sky
         jsr     CLtest1PBullet2Enemy
-        bcs     .next2
+        ror     <.hit
+.sky:
+        lda     CDrv_role_class_table+CDRV_ROLE_ENEMY_S1
+        beq     .hitchk
+        jsr     CLtest1PBullet2Enemy
+        ror     <.hit
+
+.hitchk:
+        lda     <.hit
+        beq     .next2
+;        bcs     .next2
 
         lda     CH_role_next,x
         pha
@@ -123,7 +138,7 @@ CLtest1PBullet2Enemy:
                 ;敵でループ
         phx
 
-        lda     CDrv_role_class_table+CDRV_ROLE_ENEMY_G1
+        ;lda     CDrv_role_class_table+CDRV_ROLE_ENEMY_G1
 .loop:
         beq     .end
         tax
@@ -161,7 +176,7 @@ CLtest1PBullet2Enemy:
 
 .enddamaged:
         plx
-        clc
+        sec
         rts
 
 .next:
@@ -169,6 +184,6 @@ CLtest1PBullet2Enemy:
         bra     .loop
 .end:
         plx
-        sec
+        clc
         rts
 

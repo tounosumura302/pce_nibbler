@@ -2,6 +2,10 @@
 ;z_last_new_chr  .ds     1       ;直前に生成されたキャラクタ番号（複数キャラが連携している場合に使う）
 z_eni_ptr       .ds     2       ;生成時の初期化スクリプトのポインタ
 
+z_en_init_x:      .ds     1
+z_en_init_y:      .ds     1
+
+
         .code
         .bank   MAIN_BANK
 
@@ -105,10 +109,12 @@ ENcreate_Ex:
 ENinitPtrTable_l:
         .db  LOW(ENI_tank)
         .db  LOW(ENI_big)
+        .db  LOW(ENI_bigexp)
 
 ENinitPtrTable_h:
         .db  HIGH(ENI_tank)
         .db  HIGH(ENI_big)
+        .db  HIGH(ENI_bigexp)
 
 
 ;初期化スクリプト
@@ -140,6 +146,18 @@ ENI_big:
         .dw     ENBig_sub3_init
         .db     0
 
+ENI_bigexp:
+        .db     CDRV_ROLE_EFFECT,4
+        .db     0
+        .db     CDRV_ROLE_EFFECT,CDRV_SPR_EFFECT
+        .dw     ENBigExp_0_init
+        .db     CDRV_ROLE_EFFECT,CDRV_SPR_EFFECT
+        .dw     ENBigExp_1_init
+        .db     CDRV_ROLE_EFFECT,CDRV_SPR_EFFECT
+        .dw     ENBigExp_2_init
+        .db     CDRV_ROLE_EFFECT,CDRV_SPR_EFFECT
+        .dw     ENBigExp_3_init
+        .db     0
 
 
 
@@ -381,7 +399,7 @@ ENBig_main_init:
         lda     #40/2
         sta     CH_coldy,x
 
-        lda     #16
+        lda     #80
         sta     CH_regist,x
 
         lda     #2
@@ -586,38 +604,16 @@ ENTank_dead:
         rts
 
 ENBig_dead:
-        .if     0
+
         phx
-
-        lda     CH_var0,x
-        sta     <z_tmp12
-        lda     CH_var1,x
-        sta     <z_tmp13
-        lda     CH_var2,x
-        sta     <z_tmp14
-        lda     CH_var3,x
-        sta     <z_tmp15
-
-        ldx     <z_tmp12
-        beq     .01
-        jsr     CDRVremoveChr
-.01:
-        ldx     <z_tmp13
-        beq     .02
-        jsr     CDRVremoveChr
-.02:
-        ldx     <z_tmp14
-        beq     .03
-        jsr     CDRVremoveChr
-.03:
-        ldx     <z_tmp15
-        beq     .04
-        jsr     CDRVremoveChr
-.04:
+        lda     CH_xh,x
+        sta     <z_en_init_x
+        lda     CH_yh,x
+        sta     <z_en_init_y
+        ldy     #2
+        jsr     ENcreate_Ex
         plx
-        .endif
-
-        jsr     EFcreateExplosion
+;        jsr     EFcreateExplosion
         jsr     CDRVremoveChr
 
         rts
@@ -669,10 +665,18 @@ ENTank_move:
         adc     CH_dyh,x
         sta     CH_yh,x
 
-        cmp     #(240+64)/2
-        bcs     .out
-        cmp     #64/2
-        bcc     .out
+        lda     CH_yl,x
+        clc
+        adc     <z_d_scryl
+        sta     CH_yl,x
+        lda     CH_yh,x
+        adc     <z_d_scryh
+        sta     CH_yh,x
+
+;        cmp     #(240+64)/2
+;        bcs     .out
+;        cmp     #64/2
+;        bcc     .out
 
         clc
         rts
@@ -783,6 +787,8 @@ ENTankTurret_move:
         inc     a
         cmp     #3
         bcs     .skipeb
+        stz     <z_tmp3
+        stz     <z_tmp4
         ldy     CH_dir,x
 	jsr	EB_shoot
 .skipeb:
@@ -833,7 +839,7 @@ ENTankTurretAttributeHigh:
         .db     $11,$11,$11,$11,$11,$19,$19,$19,$19,$99,$99,$99,$91,$91,$91,$91
 
 
-
+;-----------------------------
 
 ENBig_main_move:
         lda     CH_xl,x
@@ -849,54 +855,51 @@ ENBig_main_move:
         cmp     #32/2
         bcc     .out
 
+        bbr6    <z_frame,.right
         lda     CH_yl,x
-        clc
-        adc     CH_dyl,x
+        sec
+        sbc     #$40
         sta     CH_yl,x
         lda     CH_yh,x
-        adc     CH_dyh,x
+        sbc     #0
+        sta     CH_yh,x
+        bra     .end
+.right:
+        lda     CH_yl,x
+        clc
+        adc     #$40
+        sta     CH_yl,x
+        lda     CH_yh,x
+        adc     #0
         sta     CH_yh,x
 
-        cmp     #(240+64)/2
-        bcs     .out
-        cmp     #64/2
-        bcc     .out
+;        cmp     #(240+64)/2
+;        bcs     .out
+;        cmp     #64/2
+;        bcc     .out
+.end
+                        ; shoot
+       	tst	#$1f,<z_frame
+	bne	.skipeb
 
+        lda     #-8
+        sta     <z_tmp3
+        lda     #-20
+        sta     <z_tmp4
+        cly
+	jsr	EB_shoot
+
+        lda     #-8
+        sta     <z_tmp3
+        lda     #8
+        sta     <z_tmp4
+        cly
+	jsr	EB_shoot
+.skipeb:
         clc
         rts
                 ; out of screen
 .out:
-        .if     0
-        phx
-
-        lda     CH_var0,x
-        sta     <z_tmp12
-        lda     CH_var1,x
-        sta     <z_tmp13
-        lda     CH_var2,x
-        sta     <z_tmp14
-        lda     CH_var3,x
-        sta     <z_tmp15
-
-        ldx     <z_tmp12
-        beq     .01
-        jsr     CDRVremoveChr
-.01:
-        ldx     <z_tmp13
-        beq     .02
-        jsr     CDRVremoveChr
-.02:
-        ldx     <z_tmp14
-        beq     .03
-        jsr     CDRVremoveChr
-.03:
-        ldx     <z_tmp15
-        beq     .04
-        jsr     CDRVremoveChr
-.04:
-        plx
-        .endif
-
         sec
         rts
 
@@ -984,3 +987,170 @@ ENBig_sub3_move:
 
         clc
         rts
+
+
+;-----------------------------
+
+
+ENBigExp_0_init:
+        stz     CH_xl,x
+        lda     <z_en_init_x
+        sec
+        sbc     #8
+        sta     CH_xh,x
+        stz     CH_yl,x
+        lda     <z_en_init_y
+        sec
+        sbc     #8
+        sta     CH_yh,x
+
+        lda     #LOW(((spr_pattern2_bigexp_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpatl,x
+        lda     #HIGH(((spr_pattern2_bigexp_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpath,x
+
+        lda     #$84
+        sta     CH_spratrl,x
+        lda     #$11
+        sta     CH_spratrh,x
+
+        lda     #LOW(EFBigExp_0_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(EFBigExp_0_move)
+        sta     CH_procptrh,x
+
+        cla
+        sta     CH_var0,x
+
+        rts
+
+ENBigExp_1_init:
+        stz     CH_xl,x
+        lda     <z_en_init_x
+        clc
+        adc     #8
+        sta     CH_xh,x
+        stz     CH_yl,x
+        lda     <z_en_init_y
+        sec
+        sbc     #8
+        sta     CH_yh,x
+
+        lda     #LOW(((spr_pattern2_bigexp_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpatl,x
+        lda     #HIGH(((spr_pattern2_bigexp_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpath,x
+
+        lda     #$84
+        sta     CH_spratrl,x
+        lda     #$19
+        sta     CH_spratrh,x
+
+        lda     #LOW(EFBigExp_0_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(EFBigExp_0_move)
+        sta     CH_procptrh,x
+
+        cla
+        sta     CH_var0,x
+
+        rts
+
+ENBigExp_2_init:
+        stz     CH_xl,x
+        lda     <z_en_init_x
+        sec
+        sbc     #8
+        sta     CH_xh,x
+        stz     CH_yl,x
+        lda     <z_en_init_y
+        clc
+        adc     #8
+        sta     CH_yh,x
+
+        lda     #LOW(((spr_pattern2_bigexp_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpatl,x
+        lda     #HIGH(((spr_pattern2_bigexp_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpath,x
+
+        lda     #$84
+        sta     CH_spratrl,x
+        lda     #$91
+        sta     CH_spratrh,x
+
+        lda     #LOW(EFBigExp_0_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(EFBigExp_0_move)
+        sta     CH_procptrh,x
+
+        cla
+        sta     CH_var0,x
+
+        rts
+
+ENBigExp_3_init:
+        stz     CH_xl,x
+        lda     <z_en_init_x
+        clc
+        adc     #8
+        sta     CH_xh,x
+        stz     CH_yl,x
+        lda     <z_en_init_y
+        clc
+        adc     #8
+        sta     CH_yh,x
+
+        lda     #LOW(((spr_pattern2_bigexp_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpatl,x
+        lda     #HIGH(((spr_pattern2_bigexp_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpath,x
+
+        lda     #$84
+        sta     CH_spratrl,x
+        lda     #$99
+        sta     CH_spratrh,x
+
+        lda     #LOW(EFBigExp_0_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(EFBigExp_0_move)
+        sta     CH_procptrh,x
+
+        cla
+        sta     CH_var0,x
+
+        rts
+
+EFBigExp_0_move:
+        tst	#$07,<z_frame
+	bne	.skip
+
+        lda     CH_var0,x
+        inc     a
+        cmp     #5
+        bcs     .end
+        sta     CH_var0,x
+
+        tay
+        lda     .pattern_l,y
+        sta     CH_sprpatl,x
+        lda     .pattern_h,y
+        sta     CH_sprpath,x
+
+.skip:
+        clc
+.end:
+        rts
+.pattern_l:
+        .db     LOW(((spr_pattern2_bigexp_00-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_bigexp_01-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_bigexp_02-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_bigexp_01-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_bigexp_00-spr_pattern2)/2+$5000)/32)
+.pattern_h:
+        .db     HIGH(((spr_pattern2_bigexp_00-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_bigexp_01-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_bigexp_02-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_bigexp_01-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_bigexp_00-spr_pattern2)/2+$5000)/32)
+
+

@@ -10,6 +10,12 @@ x_cnt:	.ds   1
 	;; scroll counter
 scrx:	.ds	2
 scry:	.ds	2
+
+prevscrx:	.ds	2
+prevscry:	.ds	2
+
+z_d_scryl:	.ds	1
+z_d_scryh:	.ds	1
 	;...
 
 ;z_sprx: .ds     2
@@ -168,8 +174,29 @@ main:
 				;
 	stz	<scrx
 	stz	<scrx+1
-	stz	<scry
-	stz	<scry+1
+;	stz	<scry
+;	stz	<scry+1
+
+	stz	<prevscrx
+	stz	<prevscrx+1
+	stz	<prevscry
+	stz	<prevscry+1
+
+	stz	<z_d_scryl
+	stz	<z_d_scryh
+
+	ldx	PL_chr
+	lda	CH_yh,x
+	sec
+	sbc	#(64+16)/2
+	tay
+	lda	PLScrollY,y
+	sta	scry
+	sta	prevscry
+	stz	scry+1
+	stz	prevscry+1
+
+
 
 	jsr	initPsgTest
 
@@ -181,7 +208,7 @@ mainloop:
 ;--
 ; enemy
 ;--
-	tst	#$03,<z_frame
+	tst	#$07,<z_frame
 	bne	.skipen
 
 ;	ldy	#1
@@ -189,7 +216,7 @@ mainloop:
 	jsr	ENcreate_Tank
 .skipen:
 
-	tst	#$3f,<z_frame
+	tst	#$ff,<z_frame
 	bne	.skipbig
 
 	jsr	ENcreate_Big
@@ -245,6 +272,16 @@ mainloop:
         jsr     readPad
 
 	inc	<z_frame
+
+	lda	<scrx
+	sta	<prevscrx
+	lda	<scrx+1
+	sta	<prevscrx+1
+	lda	<scry
+	sta	<prevscry
+	lda	<scry+1
+	sta	<prevscry+1
+
 	jmp	mainloop
 
 	
@@ -416,112 +453,6 @@ spr_update:
 	tia	satb,VdcDataL,512
 	rts
 
-ScrollX:
-        .db 0
-        .db 0
-        .db 1
-        .db 2
-        .db 3
-        .db 3
-        .db 4
-        .db 5
-        .db 6
-        .db 6
-        .db 7
-        .db 8
-        .db 9
-        .db 10
-        .db 10
-        .db 11
-        .db 12
-        .db 13
-        .db 13
-        .db 14
-        .db 15
-        .db 16
-        .db 16
-        .db 17
-        .db 18
-        .db 19
-        .db 20
-        .db 20
-        .db 21
-        .db 22
-        .db 23
-        .db 23
-        .db 24
-        .db 25
-        .db 26
-        .db 26
-        .db 27
-        .db 28
-        .db 29
-        .db 30
-        .db 30
-        .db 31
-        .db 32
-        .db 33
-        .db 33
-        .db 34
-        .db 35
-        .db 36
-        .db 36
-        .db 37
-        .db 38
-        .db 39
-        .db 40
-        .db 40
-        .db 41
-        .db 42
-        .db 43
-        .db 43
-        .db 44
-        .db 45
-        .db 46
-        .db 46
-        .db 47
-        .db 48
-        .db 49
-        .db 50
-        .db 50
-        .db 51
-        .db 52
-        .db 53
-        .db 53
-        .db 54
-        .db 55
-        .db 56
-        .db 56
-        .db 57
-        .db 58
-        .db 59
-        .db 60
-        .db 60
-        .db 61
-        .db 62
-        .db 63
-        .db 63
-        .db 64
-        .db 65
-        .db 66
-        .db 66
-        .db 67
-        .db 68
-        .db 69
-        .db 70
-        .db 70
-        .db 71
-        .db 72
-        .db 73
-        .db 73
-        .db 74
-        .db 75
-        .db 76
-        .db 76
-        .db 77
-        .db 78
-        .db 79
-        .db 80
 
 
 	;...
@@ -579,7 +510,8 @@ spr_palette:
  ;       dw $0000,$0078,$016d,$0000,$0000,$0000,$0000,$0020,$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000	;eb
         dw $0004,$00da,$00da,$0091,$0091,$0048,$0048,$0048,$00e0,$0098,$0098,$0050,$0050,$0124,$0020,$0000	;en
         dw $0000,$01ba,$017a,$013a,$00f2,$00b1,$0069,$0029,$0020,$0020,$0018,$0018,$01ff,$01b6,$0124,$0000	;explosion
-        dw $0000,$0078,$016d,$0000,$0000,$0000,$0000,$0020,$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+        dw $0002,$01fe,$01b5,$0124,$00da,$0091,$0020,$00e8,$00dc,$00dc,$0093,$004a,$01b6,$016d,$0124,$0049      ;en(boat)
+;        dw $0000,$0078,$016d,$0000,$0000,$0000,$0000,$0020,$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
         dw $0000,$0078,$016d,$0000,$0000,$0000,$0000,$0020,$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
         dw $0000,$0078,$016d,$0000,$0000,$0000,$0000,$0020,$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
         dw $0000,$0078,$016d,$0000,$0000,$0000,$0000,$0020,$0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000

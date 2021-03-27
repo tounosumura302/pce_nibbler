@@ -91,3 +91,6 @@ EFExplosion_move:
         .db     HIGH(((spr_pattern_exp02-spr_pattern)/2+$4000)/32)
         .db     HIGH(((spr_pattern_exp01-spr_pattern)/2+$4000)/32)
         .db     HIGH(((spr_pattern_exp00-spr_pattern)/2+$4000)/32)
+
+;-----------------------------
+

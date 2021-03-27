@@ -2,7 +2,8 @@
     .code
     .bank   MAIN_BANK
 
-
+; @parm z_tmp3  弾の初期座標の差分
+; @parm z_tmp4  弾の初期座標の差分
 EB_shoot:
         phx
 
@@ -16,15 +17,21 @@ EB_shoot:
         jsr     CDRVaddChr
         bcs     .ret
 
+.dx     .equ    z_tmp3
+.dy     .equ    z_tmp4
         sxy
                     ;y = source chr  x = new chr
         lda     CH_xl,y
         sta     CH_xl,x
         lda     CH_xh,y
+        clc
+        adc     <.dx
         sta     CH_xh,x
         lda     CH_yl,y
         sta     CH_yl,x
         lda     CH_yh,y
+        clc
+        adc     <.dy
         sta     CH_yh,x
 
         lda     #LOW(((spr_pattern_eb-spr_pattern)/2+$4000)/32)
@@ -106,7 +113,6 @@ EB_move:
         rts
                 ; out of screen
 .out:
-;        jsr     CDRVremoveChr
         sec
         rts
 

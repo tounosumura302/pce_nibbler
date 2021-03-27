@@ -128,15 +128,6 @@ PL_move:
         sta     CH_yh,x
 .notdown:
 
-                ; scroll
-	lda	CH_yh,x
-	sec
-	sbc	#(64+16)/2
-	tay
-	lda	ScrollX,y
-	sta	scry
-	stz	scry+1
-
                 ; shoot
 	bbr0	<z_paddelta,.notshoot
 
@@ -144,9 +135,145 @@ PL_move:
 	jsr	PBshoot
 .notshoot:
 
+                ; 左右スクロール
+	lda	CH_yh,x
+	sec
+	sbc	#(64+16)/2
+	tay
+	lda	PLScrollY,y
+	sta	scry
+	stz	scry+1
+
+                ; スクロールの差分から地上敵の座標補正値を求める
+                ; 差分を1/2してゲーム座標に変換する
+        lda     prevscry
+        sec
+        sbc     scry
+        bcc     .scrminus
+        clc
+        bra     .scradd
+.scrminus:
+        sec
+.scradd:
+        ror     a
+        sta     <z_d_scryh
+        cla
+        ror     a
+        sta     <z_d_scryl
+
+
+
         clc
         rts
 
 PLdead:
         clc
         rts
+
+                ;自機の左右の動きに合わせたスクロール位置
+PLScrollY:
+        .db 0
+        .db 0
+        .db 1
+        .db 2
+        .db 3
+        .db 3
+        .db 4
+        .db 5
+        .db 6
+        .db 6
+        .db 7
+        .db 8
+        .db 9
+        .db 10
+        .db 10
+        .db 11
+        .db 12
+        .db 13
+        .db 13
+        .db 14
+        .db 15
+        .db 16
+        .db 16
+        .db 17
+        .db 18
+        .db 19
+        .db 20
+        .db 20
+        .db 21
+        .db 22
+        .db 23
+        .db 23
+        .db 24
+        .db 25
+        .db 26
+        .db 26
+        .db 27
+        .db 28
+        .db 29
+        .db 30
+        .db 30
+        .db 31
+        .db 32
+        .db 33
+        .db 33
+        .db 34
+        .db 35
+        .db 36
+        .db 36
+        .db 37
+        .db 38
+        .db 39
+        .db 40
+        .db 40
+        .db 41
+        .db 42
+        .db 43
+        .db 43
+        .db 44
+        .db 45
+        .db 46
+        .db 46
+        .db 47
+        .db 48
+        .db 49
+        .db 50
+        .db 50
+        .db 51
+        .db 52
+        .db 53
+        .db 53
+        .db 54
+        .db 55
+        .db 56
+        .db 56
+        .db 57
+        .db 58
+        .db 59
+        .db 60
+        .db 60
+        .db 61
+        .db 62
+        .db 63
+        .db 63
+        .db 64
+        .db 65
+        .db 66
+        .db 66
+        .db 67
+        .db 68
+        .db 69
+        .db 70
+        .db 70
+        .db 71
+        .db 72
+        .db 73
+        .db 73
+        .db 74
+        .db 75
+        .db 76
+        .db 76
+        .db 77
+        .db 78
+        .db 79
+        .db 80
