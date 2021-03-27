@@ -211,8 +211,11 @@ mainloop:
 	tst	#$07,<z_frame
 	bne	.skipen
 
-;	ldy	#1
-;	jsr	ENcreate
+        lda     <z_frame
+        bmi     .entank
+	jsr	ENcreate_Boat_v
+        bra     .skipen
+.entank:
 	jsr	ENcreate_Tank
 .skipen:
 

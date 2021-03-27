@@ -96,6 +96,9 @@ CDRV_SPR_ENEMY_G4       .equ    10
 CDRV_SPR_ITEM_S         .equ    6
 CDRV_SPR_ITEM_G         .equ    11
 CDRV_SPR_EFFECT         .equ    12
+CDRV_SPR_EFFECT_G       .equ    8
+CDRV_SPR_EFFECT_S       .equ    5
+CDRV_SPR_EFFECT_DAMAGE  .equ    4
 CDRV_SPR_BONUS          .equ    1
 
 CDRV_MAX_SPRITE         .equ    60      ; キャラクタドライバで割り当てる最大スプライト数

@@ -2,8 +2,10 @@
 ;z_last_new_chr  .ds     1       ;直前に生成されたキャラクタ番号（複数キャラが連携している場合に使う）
 z_eni_ptr       .ds     2       ;生成時の初期化スクリプトのポインタ
 
-z_en_init_x:      .ds     1
-z_en_init_y:      .ds     1
+z_en_init_xl:   .ds     1
+z_en_init_xh:   .ds     1
+z_en_init_yl:   .ds     1
+z_en_init_yh:   .ds     1
 
 
         .code
@@ -18,6 +20,10 @@ ENcreate_Tank:
         jsr     ENcreate_Ex
         rts
 
+ENcreate_Boat_v:
+        ldy     #3
+        jsr     ENcreate_Ex
+        rts
 
 
 
@@ -110,11 +116,13 @@ ENinitPtrTable_l:
         .db  LOW(ENI_tank)
         .db  LOW(ENI_big)
         .db  LOW(ENI_bigexp)
+        .db     LOW(ENI_boat_v)
 
 ENinitPtrTable_h:
         .db  HIGH(ENI_tank)
         .db  HIGH(ENI_big)
         .db  HIGH(ENI_bigexp)
+        .db     HIGH(ENI_boat_v)
 
 
 ;初期化スクリプト
@@ -128,6 +136,18 @@ ENI_tank:
         .dw     ENTank_init
         .db     CDRV_ROLE_ENEMY_G2,CDRV_SPR_ENEMY_G2
         .dw     ENTankTurret_init
+        .db     0
+
+ENI_boat_v:
+        .db     CDRV_ROLE_ENEMY_G1,2
+        .db     CDRV_ROLE_ENEMY_G2,1
+        .db     0
+        .db     CDRV_ROLE_ENEMY_G1,CDRV_SPR_ENEMY_G1
+        .dw     ENBoat_v_init
+        .db     CDRV_ROLE_ENEMY_G2,CDRV_SPR_ENEMY_G2    ;砲塔は本体の次！
+        .dw     ENBoat_v_Turret_init
+        .db     CDRV_ROLE_ENEMY_G1,CDRV_SPR_ENEMY_G2
+        .dw     ENBoat_v_sub_init
         .db     0
 
 ENI_big:
@@ -149,118 +169,19 @@ ENI_big:
 ENI_bigexp:
         .db     CDRV_ROLE_EFFECT,4
         .db     0
-        .db     CDRV_ROLE_EFFECT,CDRV_SPR_EFFECT
+        .db     CDRV_ROLE_EFFECT,CDRV_SPR_EFFECT_S
         .dw     ENBigExp_0_init
-        .db     CDRV_ROLE_EFFECT,CDRV_SPR_EFFECT
+        .db     CDRV_ROLE_EFFECT,CDRV_SPR_EFFECT_S
         .dw     ENBigExp_1_init
-        .db     CDRV_ROLE_EFFECT,CDRV_SPR_EFFECT
+        .db     CDRV_ROLE_EFFECT,CDRV_SPR_EFFECT_S
         .dw     ENBigExp_2_init
-        .db     CDRV_ROLE_EFFECT,CDRV_SPR_EFFECT
+        .db     CDRV_ROLE_EFFECT,CDRV_SPR_EFFECT_S
         .dw     ENBigExp_3_init
         .db     0
 
 
 
 
-        .if     0
-; @param        x       親のキャラ番号（0なら親なし）
-; @return       y       キャラ番号
-;               c flag  1ならキャラ割り当て失敗
-; @savereg      x
-ENcreate:
-        phy
-        lda     ENRoleClassTable,y
-        sta     <z_tmp0
-        lda     ENSpriteClassTable,y
-        sta     <z_tmp1
-        stx     <z_tmp2
-        jsr     CDRVaddChr
-        bcc     .init
-
-;        stz     <z_last_new_chr
-        ply
-        cly
-        rts
-.init:
-        pla             ;a=enemy type
-        phx             ;save current chrno
-        sxy             ;x=new chrno
-        tay             ;y=enemy type
-
-        ;stz     CH_flag,x
-;####        stz     CH_damaged_class,x
-
-        lda     #HIGH(.end-1)       ;要注意 pushするのは 戻りアドレス-1
-        pha
-        lda     #LOW(.end-1)
-        pha
-
-        lda     ENInitProcTableLow,y
-        sta     <z_tmp0
-        lda     ENInitProcTableHigh,y
-        sta     <z_tmp1
-
-        jmp     [z_tmp0]
-.end:
-;        stx     <z_last_new_chr
-        sxy
-        plx             ;restore chrno
-        clc
-        rts
-
-ENRoleClassTable:
-        .db     0
-                ;戦車
-        .db     CDRV_ROLE_ENEMY_G1
-        .db     CDRV_ROLE_ENEMY_G2
-                ;大型機
-        .db     CDRV_ROLE_ENEMY_S1
-        .db     CDRV_ROLE_ENEMY_S2
-        .db     CDRV_ROLE_ENEMY_S2
-        .db     CDRV_ROLE_ENEMY_S2
-        .db     CDRV_ROLE_ENEMY_S2
-
-ENSpriteClassTable:
-        .db     0
-                ;戦車
-        .db     CDRV_SPR_ENEMY_G1
-        .db     CDRV_SPR_ENEMY_G2
-                ;大型機
-        .db     CDRV_SPR_ENEMY_S1
-        .db     CDRV_SPR_ENEMY_S2
-        .db     CDRV_SPR_ENEMY_S2
-        .db     CDRV_SPR_ENEMY_S2
-        .db     CDRV_SPR_ENEMY_S2
-
-
-
-
-ENInitProcTableLow:
-        .db     LOW(ENDummy_init)
-
-        .db     LOW(ENTank_init)
-        .db     LOW(ENTankTurret_init)
-
-        .db     LOW(ENBig_main_init)
-        .db     LOW(ENBig_sub0_init)
-        .db     LOW(ENBig_sub1_init)
-        .db     LOW(ENBig_sub2_init)
-        .db     LOW(ENBig_sub3_init)
-
-ENInitProcTableHigh:
-        .db     HIGH(ENDummy_init)
-
-        .db     HIGH(ENTank_init)
-        .db     HIGH(ENTankTurret_init)
-
-        .db     HIGH(ENBig_main_init)
-        .db     HIGH(ENBig_sub0_init)
-        .db     HIGH(ENBig_sub1_init)
-        .db     HIGH(ENBig_sub2_init)
-        .db     HIGH(ENBig_sub3_init)
-
-
-        .endif
 
 ;------------------------------------------------
 
@@ -368,7 +289,149 @@ ENTankTurret_init:
 
         rts
 
+;-----
+ENBoat_v_init:
+        stz     CH_xl,x
+        lda     #(336+$20)/2
+        sta     CH_xh,x
+        stz     CH_yl,x
+        lda     <z_frame
+        asl     a
+        sta     CH_yh,x
 
+        lda     #LOW(((spr_pattern2_boatv_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpatl,x
+        lda     #HIGH(((spr_pattern2_boatv_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpath,x
+
+        lda     #$85
+        sta     CH_spratrl,x
+        lda     #$11
+        sta     CH_spratrh,x
+
+        lda     #16/2
+        sta     CH_sprdx,x
+        sta     CH_sprdy,x
+
+        lda     #8
+        sta     CH_coldx,x
+        sta     CH_coldy,x
+
+        lda     #4
+        sta     CH_regist,x
+
+        lda     #1
+        sta     CH_damaged_class,x
+
+        lda     #LOW(ENTank_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(ENTank_move)
+        sta     CH_procptrh,x
+
+
+        phx
+        lda     #2
+        ldy     #0
+        jsr     convDirection2DxDy
+        plx
+
+        lda     <z_dir_result_dx
+        sta     CH_dxl,x
+        lda     <z_dir_result_dx+1
+        sta     CH_dxh,x
+        lda     <z_dir_result_dy
+        sta     CH_dyl,x
+        lda     <z_dir_result_dy+1
+        sta     CH_dyh,x
+
+        rts
+
+ENBoat_v_sub_init:
+;        stz     CH_xl,x
+;        lda     #(336+$20)/2
+;        sta     CH_xh,x
+;        stz     CH_yl,x
+;        lda     <z_frame
+;        asl     a
+;        sta     CH_yh,x
+
+        lda     #LOW(((spr_pattern2_boatv_01-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpatl,x
+        lda     #HIGH(((spr_pattern2_boatv_01-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpath,x
+
+        lda     #$85
+        sta     CH_spratrl,x
+        lda     #$10
+        sta     CH_spratrh,x
+
+        lda     #8/2
+        sta     CH_sprdx,x
+        lda     #16/2
+        sta     CH_sprdy,x
+
+;        lda     #8
+;        sta     CH_coldx,x
+;        sta     CH_coldy,x
+
+ ;       lda     #4
+ ;       sta     CH_regist,x
+
+ ;       lda     #1
+ ;       sta     CH_damaged_class,x
+
+        lda     #LOW(ENBoat_v_sub_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(ENBoat_v_sub_move)
+        sta     CH_procptrh,x
+
+        rts
+
+
+ENBoat_v_Turret_init:
+        ldy     CH_grp_parent,x
+
+        lda     CH_xl,y
+        sta     CH_xl,x
+        lda     CH_xh,y
+        sta     CH_xh,x
+        lda     CH_yl,y
+        sta     CH_yl,x
+        lda     CH_yh,y
+        sta     CH_yh,x
+
+        lda     #LOW(((spr_pattern2_boatturret_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpatl,x
+        lda     #HIGH(((spr_pattern2_boatturret_00-spr_pattern2)/2+$5000)/32)
+        sta     CH_sprpath,x
+
+        lda     #$85
+        sta     CH_spratrl,x
+        lda     #$11
+        sta     CH_spratrh,x
+
+        lda     #16/2
+        sta     CH_sprdx,x
+        sta     CH_sprdy,x
+
+;        lda     #0
+;        sta     CH_coldx,x
+;        sta     CH_coldy,x
+
+        lda     #LOW(ENBoatTurret_move)
+        sta     CH_procptrl,x
+        lda     #HIGH(ENBoatTurret_move)
+        sta     CH_procptrh,x
+
+        lda     #0
+        sta     CH_dir,x
+
+        tya
+        sta     CH_var0,x               ;戦車本体のキャラクタ番号
+
+        rts
+
+;-----
 
 ENBig_main_init:
         stz     CH_xl,x
@@ -399,7 +462,7 @@ ENBig_main_init:
         lda     #40/2
         sta     CH_coldy,x
 
-        lda     #80
+        lda     #100
         sta     CH_regist,x
 
         lda     #2
@@ -580,7 +643,7 @@ ENBig_sub3_init:
 ENTank_damaged:
         lda     CH_regist,x
         cmp     #2+1
-        bcs     .ret
+        bne     .ret
                 ; 砲塔を消す
         lda     CH_grp_child,x
 ;        lda     CH_var0,x
@@ -593,8 +656,26 @@ ENTank_damaged:
 .ret:
         rts
 
-EN_damaged_dummy:
+
+
 ENBig_damaged:
+        lda     CH_regist,x
+        cmp     #64
+        beq     .fire1
+        cmp     #32
+        beq     .fire2
+        rts
+.fire1:
+        lda     #-8
+        bra     .fire
+.fire2:
+        lda     #8
+.fire:
+        sta     <z_tmp3
+        jsr     EFcreateDamagedFire
+        rts
+
+EN_damaged_dummy:
         rts
 
 EN_dead_dummy:
@@ -607,9 +688,9 @@ ENBig_dead:
 
         phx
         lda     CH_xh,x
-        sta     <z_en_init_x
+        sta     <z_en_init_xh
         lda     CH_yh,x
-        sta     <z_en_init_y
+        sta     <z_en_init_yh
         ldy     #2
         jsr     ENcreate_Ex
         plx
@@ -838,6 +919,157 @@ ENTankTurretAttributeLow:
 ENTankTurretAttributeHigh:
         .db     $11,$11,$11,$11,$11,$19,$19,$19,$19,$99,$99,$99,$91,$91,$91,$91
 
+;----
+
+ENBoatTurret_move:
+        lda     CH_grp_parent,x
+        tay
+
+        lda     CH_xl,y
+        sta     CH_xl,x
+        lda     CH_xh,y
+        sta     CH_xh,x
+        lda     CH_yl,y
+        sta     CH_yl,x
+        lda     CH_yh,y
+        sta     CH_yh,x
+
+                        ; rotate
+       	tst	#$07,<z_frame
+	bne	.skip
+
+	ldy	PL_chr
+	lda	CH_xh,y
+	sta	<z_dir_targetx
+	lda	CH_yh,y
+	sta	<z_dir_targety
+	lda	CH_xh,x
+	sta	<z_dir_sourcex
+	lda	CH_yh,x
+	sta	<z_dir_sourcey
+
+	jsr	getDirection
+
+        sec
+        sbc     CH_dir,x
+        beq     .skip
+        and     #$1f
+        cmp     #$10
+        bcc     .inc
+        lda     CH_dir,x
+        dec     a
+        bra     .00
+.inc:   lda     CH_dir,x
+        inc     a
+.00:
+        and     #$1f
+        sta     CH_dir,x
+
+        lsr     a
+        tay
+
+        lda     ENBoatTurretPatternLow,y
+        sta     CH_sprpatl,x
+        lda     ENBoatTurretPatternHigh,y
+        sta     CH_sprpath,x
+
+        lda     ENBoatTurretAttributeLow,y
+        sta     CH_spratrl,x
+        lda     ENBoatTurretAttributeHigh,y
+        sta     CH_spratrh,x
+
+.skip:
+
+                        ; shoot
+       	tst	#$0f,<z_frame
+	bne	.skipeb
+
+	ldy	PL_chr
+	lda	CH_xh,y
+	sta	<z_dir_targetx
+	lda	CH_yh,y
+	sta	<z_dir_targety
+	lda	CH_xh,x
+	sta	<z_dir_sourcex
+	lda	CH_yh,x
+	sta	<z_dir_sourcey
+
+	jsr	getDirection
+
+        sec
+        sbc     CH_dir,x
+        inc     a
+        cmp     #3
+        bcs     .skipeb
+        stz     <z_tmp3
+        stz     <z_tmp4
+        ldy     CH_dir,x
+	jsr	EB_shoot
+.skipeb:
+
+        clc
+        rts
+
+
+
+; 戦車の砲塔のスプライトテーブル
+ENBoatTurretPatternLow:
+        .db     LOW(((spr_pattern2_boatturret_00-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_01-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_02-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_03-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_04-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_03-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_02-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_01-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_00-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_01-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_02-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_03-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_04-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_03-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_02-spr_pattern2)/2+$5000)/32)
+        .db     LOW(((spr_pattern2_boatturret_01-spr_pattern2)/2+$5000)/32)
+ENBoatTurretPatternHigh:
+        .db     HIGH(((spr_pattern2_boatturret_00-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_01-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_02-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_03-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_04-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_03-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_02-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_01-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_00-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_01-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_02-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_03-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_04-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_03-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_02-spr_pattern2)/2+$5000)/32)
+        .db     HIGH(((spr_pattern2_boatturret_01-spr_pattern2)/2+$5000)/32)
+ENBoatTurretAttributeLow:
+        .db     $85,$85,$85,$85,$85,$85,$85,$85,$85,$85,$85,$85,$85,$85,$85,$85
+ENBoatTurretAttributeHigh:
+        .db     $11,$11,$11,$11,$11,$19,$19,$19,$19,$99,$99,$99,$91,$91,$91,$91
+
+
+ENBoat_v_sub_move:
+        lda     CH_grp_parent,x
+        tay
+
+        lda     CH_xl,y
+        sta     CH_xl,x
+        lda     CH_xh,y
+        clc
+        adc     #10
+        sta     CH_xh,x
+        lda     CH_yl,y
+        sta     CH_yl,x
+        lda     CH_yh,y
+        sta     CH_yh,x
+
+        clc
+        rts
 
 ;-----------------------------
 
@@ -994,12 +1226,12 @@ ENBig_sub3_move:
 
 ENBigExp_0_init:
         stz     CH_xl,x
-        lda     <z_en_init_x
+        lda     <z_en_init_xh
         sec
         sbc     #8
         sta     CH_xh,x
         stz     CH_yl,x
-        lda     <z_en_init_y
+        lda     <z_en_init_yh
         sec
         sbc     #8
         sta     CH_yh,x
@@ -1019,6 +1251,10 @@ ENBigExp_0_init:
         lda     #HIGH(EFBigExp_0_move)
         sta     CH_procptrh,x
 
+        lda     #32/2
+        sta     CH_sprdx,x
+        sta     CH_sprdy,x
+
         cla
         sta     CH_var0,x
 
@@ -1026,12 +1262,12 @@ ENBigExp_0_init:
 
 ENBigExp_1_init:
         stz     CH_xl,x
-        lda     <z_en_init_x
+        lda     <z_en_init_xh
         clc
         adc     #8
         sta     CH_xh,x
         stz     CH_yl,x
-        lda     <z_en_init_y
+        lda     <z_en_init_yh
         sec
         sbc     #8
         sta     CH_yh,x
@@ -1051,6 +1287,10 @@ ENBigExp_1_init:
         lda     #HIGH(EFBigExp_0_move)
         sta     CH_procptrh,x
 
+        lda     #32/2
+        sta     CH_sprdx,x
+        sta     CH_sprdy,x
+
         cla
         sta     CH_var0,x
 
@@ -1058,12 +1298,12 @@ ENBigExp_1_init:
 
 ENBigExp_2_init:
         stz     CH_xl,x
-        lda     <z_en_init_x
+        lda     <z_en_init_xh
         sec
         sbc     #8
         sta     CH_xh,x
         stz     CH_yl,x
-        lda     <z_en_init_y
+        lda     <z_en_init_yh
         clc
         adc     #8
         sta     CH_yh,x
@@ -1083,6 +1323,10 @@ ENBigExp_2_init:
         lda     #HIGH(EFBigExp_0_move)
         sta     CH_procptrh,x
 
+        lda     #32/2
+        sta     CH_sprdx,x
+        sta     CH_sprdy,x
+
         cla
         sta     CH_var0,x
 
@@ -1090,12 +1334,12 @@ ENBigExp_2_init:
 
 ENBigExp_3_init:
         stz     CH_xl,x
-        lda     <z_en_init_x
+        lda     <z_en_init_xh
         clc
         adc     #8
         sta     CH_xh,x
         stz     CH_yl,x
-        lda     <z_en_init_y
+        lda     <z_en_init_yh
         clc
         adc     #8
         sta     CH_yh,x
@@ -1114,6 +1358,10 @@ ENBigExp_3_init:
         sta     CH_procptrl,x
         lda     #HIGH(EFBigExp_0_move)
         sta     CH_procptrh,x
+
+        lda     #32/2
+        sta     CH_sprdx,x
+        sta     CH_sprdy,x
 
         cla
         sta     CH_var0,x
