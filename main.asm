@@ -108,6 +108,18 @@ main:
 	st0	#2
 	tia	spr_pattern2,VdcData,spr_pattern2_size
 
+	; set sprite pattern 3
+	lda	#BANK(spr_pattern3)
+	tam	#PAGE(spr_pattern3)
+
+	st0	#0
+        lda     #$00
+        sta     VdcDataL
+        lda     #$60
+        sta     VdcDataH
+	st0	#2
+	tia	spr_pattern3,VdcData,spr_pattern3_size
+
 	;vsync			; vsync to avoid snow
         jsr     waitVsync
 
@@ -200,6 +212,8 @@ main:
 
 	jsr	initPsgTest
 
+        jsr     PB_fire_init
+
 	;jsr PB_init		; player's bullet
 	;jsr	EB_init
 	;jsr	EN_init
@@ -211,8 +225,9 @@ mainloop:
 	tst	#$07,<z_frame
 	bne	.skipen
 
-        lda     <z_frame
-        bmi     .entank
+;        lda     <z_frame
+;        bmi     .entank
+        bbs5    <z_frame,.entank
 	jsr	ENcreate_Boat_v
         bra     .skipen
 .entank:

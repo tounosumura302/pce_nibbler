@@ -111,6 +111,9 @@ CLtestPBullet2Enemy:
         beq     .next2
 ;        bcs     .next2
 
+        lda     <z_pl_arm       ;自弾がワイドの場合は消す
+        bne     .next2
+
         lda     CH_role_next,x
         pha
         jsr     CDRVremoveChr
@@ -125,7 +128,7 @@ CLtestPBullet2Enemy:
         ply
 .next:
         iny
-        cpy     #CDRV_ROLE_PBULLET_M1+4
+        cpy     #CDRV_ROLE_PBULLET_M1+6
         bne     .loop
         rts
 

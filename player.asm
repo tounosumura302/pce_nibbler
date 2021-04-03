@@ -9,6 +9,8 @@ PL_chr: .ds     1       ;プレイヤーのキャラ番号
         .zp
 PL_speed:       .ds     2       ; speed
 
+z_pl_arm:       .ds     1       ; 武器
+
         .code
         .bank   MAIN_BANK
 PL_init:
@@ -51,6 +53,9 @@ PL_init:
         sta     PL_speed
         lda     #$01
         sta     PL_speed+1
+
+        lda     #1
+        sta     <z_pl_arm
 
         rts
 
@@ -128,11 +133,28 @@ PL_move:
         sta     CH_yh,x
 .notdown:
 
+        lda     <z_pl_arm
+        beq     .arm_wide
+        dec     a
+        beq     .arm_fire
+.arm_beam:
+        bra     .notshoot
+
+.arm_wide:
                 ; shoot
 	bbr0	<z_paddelta,.notshoot
 
 	ldy	#3
 	jsr	PBshoot
+        bra     .notshoot
+
+.arm_fire:
+	bbr0	<z_pad,.arm_fire_notshoot
+        jsr     PB_fire_shoot
+        bra     .notshoot
+.arm_fire_notshoot:
+        jsr     PB_fire_noshoot
+
 .notshoot:
 
                 ; 左右スクロール

@@ -200,4 +200,324 @@ PBmove:
         sec
         rts
 
+;-----------------
+; fire
+        .zp
+z_fire_count    .ds     1       ;ファイアーの伸び
 
+    .code
+    .bank   MAIN_BANK
+
+PB_fire_init:
+        stz     <z_fire_count
+        rts
+
+PB_fire_noshoot:
+        lda     <z_fire_count
+        cmp     #1
+        bne     .down
+        rts
+.down:
+        dec     a
+        sta     <z_fire_count
+        rts
+
+
+PB_fire_shoot:
+        lda     <z_fire_count
+        beq     .create
+
+        cmp     #10
+        beq     .ret
+        inc     a
+        sta     <z_fire_count
+.ret:
+        rts
+
+.create:
+        ldy     #CDRV_ROLE_PBULLET_M1
+        lda     CDrv_role_class_chrnum,y
+        bne     .ret
+        iny
+        lda     CDrv_role_class_chrnum,y
+        bne     .ret
+        iny
+        lda     CDrv_role_class_chrnum,y
+        bne     .ret
+        iny
+        lda     CDrv_role_class_chrnum,y
+        bne     .ret
+
+                ;前
+        lda     #CDRV_ROLE_PBULLET_M1
+        sta     <z_tmp11
+        lda     #16
+        sta     <z_tmp12
+        lda     #14
+        sta     <z_tmp13
+        lda     #LOW(PB_fire_0_move)
+        sta     <z_tmp14
+        lda     #HIGH(PB_fire_0_move)
+        sta     <z_tmp15
+        jsr     PB_fire_1_shoot
+
+                ;前
+        lda     #CDRV_ROLE_PBULLET_M2
+        sta     <z_tmp11
+        lda     #16
+        sta     <z_tmp12
+        lda     #18
+        sta     <z_tmp13
+        lda     #LOW(PB_fire_0_move)
+        sta     <z_tmp14
+        lda     #HIGH(PB_fire_0_move)
+        sta     <z_tmp15
+        jsr     PB_fire_1_shoot
+
+                ;左
+        lda     #CDRV_ROLE_PBULLET_M3
+        sta     <z_tmp11
+        lda     #15
+        sta     <z_tmp12
+        lda     #12
+        sta     <z_tmp13
+        lda     #LOW(PB_fire_1_move)
+        sta     <z_tmp14
+        lda     #HIGH(PB_fire_1_move)
+        sta     <z_tmp15
+        jsr     PB_fire_1_shoot
+
+                ;右
+        lda     #CDRV_ROLE_PBULLET_M4
+        sta     <z_tmp11
+        lda     #17
+        sta     <z_tmp12
+        lda     #20
+        sta     <z_tmp13
+        lda     #LOW(PB_fire_0_move)
+        sta     <z_tmp14
+        lda     #HIGH(PB_fire_0_move)
+        sta     <z_tmp15
+        jsr     PB_fire_1_shoot
+
+        lda     #CDRV_ROLE_PBULLET_M5
+        sta     <z_tmp11
+        lda     #13
+        sta     <z_tmp12
+        lda     #12
+        sta     <z_tmp13
+        lda     #LOW(PB_fire_0_move)
+        sta     <z_tmp14
+        lda     #HIGH(PB_fire_0_move)
+        sta     <z_tmp15
+        jsr     PB_fire_1_shoot
+
+        lda     #CDRV_ROLE_PBULLET_M6
+        sta     <z_tmp11
+        lda     #19
+        sta     <z_tmp12
+        lda     #20
+        sta     <z_tmp13
+        lda     #LOW(PB_fire_0_move)
+        sta     <z_tmp14
+        lda     #HIGH(PB_fire_0_move)
+        sta     <z_tmp15
+        jsr     PB_fire_1_shoot
+
+.end
+        rts
+
+
+
+
+PB_fire_1_shoot:
+.arg_role_class .equ    z_tmp11
+.arg_dir        .equ    z_tmp12
+.arg_rootdir    .equ    z_tmp13
+.arg_procptrl   .equ    z_tmp14
+.arg_procptrh   .equ    z_tmp15
+
+        phx
+
+        lda     #1
+        sta     <z_fire_count
+
+        ldx     #9
+.shootloop:
+        lda     <.arg_role_class
+        sta     <z_tmp0     ; role class
+        lda     #CDRV_SPR_PBULLET_M1
+        sta     <z_tmp1     ; sprite class
+        stz     <z_tmp2         ; parent
+        jsr     CDRVaddChr
+        bcs     .end
+
+        lda     #LOW(((spr_pattern3_fire-spr_pattern3)/2+$6000)/32)
+        sta     CH_sprpatl,y
+        lda     #HIGH(((spr_pattern3_fire-spr_pattern3)/2+$6000)/32)
+        sta     CH_sprpath,y
+
+        lda     #$84
+        sta     CH_spratrl,y
+        lda     #$11
+        sta     CH_spratrh,y
+
+        lda     #16/2
+        sta     CH_sprdx,y
+        sta     CH_sprdy,y
+
+        lda     <.arg_procptrl
+        sta     CH_procptrl,y
+        lda     <.arg_procptrh
+        sta     CH_procptrh,y
+
+        lda     <.arg_dir
+        sta     CH_dir,y        ; 関連キャラから見た方向
+        sta     CH_var1,y       ; 1つ前の方向（初期値は同じ）
+
+        cla
+        sta     CH_var2,y
+
+        txa
+        sta     CH_var0,y       ; 通し番号（自機に近い方から 1,2,3..）
+        dex
+        bne     .shootloop
+
+        lda     <.arg_rootdir
+        sta     CH_dir,y
+.end:
+        plx
+        rts
+;
+;
+;
+PB_fire_0_move:
+        lda     CH_var0,x
+        cmp     <z_fire_count
+        bcs     .hide
+
+        ldy     CH_dir,x
+        lda     PB_fire_dxl_table,y
+        sta     CH_xl,x
+        lda     PB_fire_dxh_table,y
+        sta     CH_xh,x
+        lda     PB_fire_dyl_table,y
+        sta     CH_yl,x
+        lda     PB_fire_dyh_table,y
+        sta     CH_yh,x
+
+        lda     CH_role_prev,x
+        bne     .setpos
+        lda     PL_chr
+.setpos:
+        tay
+
+        lda     CH_xl,y
+        clc
+        adc     CH_xl,x
+        sta     CH_xl,x
+        lda     CH_xh,y
+        adc     CH_xh,x
+        sta     CH_xh,x
+
+        lda     CH_yl,y
+        clc
+        adc     CH_yl,x
+        sta     CH_yl,x
+        lda     CH_yh,y
+        adc     CH_yh,x
+        sta     CH_yh,x
+
+        clc
+        rts
+.hide:
+        cla
+        sta     CH_xh,x
+        sta     CH_yh,x
+
+        clc
+        rts
+
+
+PB_fire_1_move:
+        lda     CH_var0,x
+        cmp     <z_fire_count
+        bcs     .hide
+
+        lda     CH_var2,x
+        and     #$03
+        bne     .next
+        lda     CH_var2,x
+        lsr     a
+        lsr     a
+        tay
+        lda     CH_dir,x
+        sta     CH_var1,x
+        lda     .dirtbl,y
+        sta     CH_dir,x
+.next:
+        lda     CH_var2,x
+        inc     a
+        cmp     #128
+        bcc     .set
+        cla
+.set:
+        sta     CH_var2,x
+
+        ldy     CH_dir,x
+        lda     PB_fire_dxl_table,y
+        sta     CH_xl,x
+        lda     PB_fire_dxh_table,y
+        sta     CH_xh,x
+        lda     PB_fire_dyl_table,y
+        sta     CH_yl,x
+        lda     PB_fire_dyh_table,y
+        sta     CH_yh,x
+
+        lda     CH_role_prev,x
+        bne     .setpos
+        lda     PL_chr
+.setpos:
+        tay
+
+        lda     CH_xl,y
+        clc
+        adc     CH_xl,x
+        sta     CH_xl,x
+        lda     CH_xh,y
+        adc     CH_xh,x
+        sta     CH_xh,x
+
+        lda     CH_yl,y
+        clc
+        adc     CH_yl,x
+        sta     CH_yl,x
+        lda     CH_yh,y
+        adc     CH_yh,x
+        sta     CH_yh,x
+
+        clc
+        rts
+.hide:
+        cla
+        sta     CH_xh,x
+        sta     CH_yh,x
+
+        clc
+        rts
+.dirtbl:
+        .db     15,15,14,14,13,13,12,12,11,11,10,10, 9, 9, 8, 8
+        .db      8, 8, 9, 9,10,10,11,11,12,12,13,13,14,14,15,15
+
+PB_fire_dxl_table:
+    .db $00,$4f,$38,$b3,$b0,$1d,$e1,$e1,$00,$1f,$1f,$e3,$50,$4d,$c8,$b1
+    .db $00,$b1,$c8,$4d,$50,$e3,$1f,$1f,$00,$e1,$e1,$1d,$b0,$b3,$38,$4f
+PB_fire_dxh_table:
+    .db $f0,$f0,$f1,$f2,$f4,$f7,$f9,$fc,$00,$03,$06,$08,$0b,$0d,$0e,$0f
+    .db $10,$0f,$0e,$0d,$0b,$08,$06,$03,$00,$fc,$f9,$f7,$f4,$f2,$f1,$f0
+PB_fire_dyl_table:
+    .db $00,$e1,$e1,$1d,$b0,$b3,$38,$4f,$00,$4f,$38,$b3,$b0,$1d,$e1,$e1
+    .db $00,$1f,$1f,$e3,$50,$4d,$c8,$b1,$00,$b1,$c8,$4d,$50,$e3,$1f,$1f
+PB_fire_dyh_table:
+    .db $00,$fc,$f9,$f7,$f4,$f2,$f1,$f0,$f0,$f0,$f1,$f2,$f4,$f7,$f9,$fc
+    .db $00,$03,$06,$08,$0b,$0d,$0e,$0f,$10,$0f,$0e,$0d,$0b,$08,$06,$03

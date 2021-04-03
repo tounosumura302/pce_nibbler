@@ -38,7 +38,7 @@ CH_damaged_class:       .ds    CH_MAX_CHR      ;ダメージを受けた時の�
 
 CH_var0:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
 CH_var1:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
-;CH_var2:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
+CH_var2:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
 ;CH_var3:        .ds     CH_MAX_CHR      ;汎用（用途はキャラクタによって異なる）
 
 CH_grp_child:   .ds     CH_MAX_CHR      ; 子供
@@ -57,24 +57,26 @@ CH_spr_prev:   .ds     CH_MAX_CHR
 ;
 ; role class
 ;
-CDRV_MAX_ROLE_CLASS     .equ    17
+CDRV_MAX_ROLE_CLASS     .equ    19
 
 CDRV_ROLE_PLAYER        .equ    1
 CDRV_ROLE_PBULLET_M1    .equ    2
 CDRV_ROLE_PBULLET_M2    .equ    3
 CDRV_ROLE_PBULLET_M3    .equ    4
 CDRV_ROLE_PBULLET_M4    .equ    5
-CDRV_ROLE_EBULLET       .equ    6
-CDRV_ROLE_ENEMY_S1      .equ    7
-CDRV_ROLE_ENEMY_S2      .equ    8
-CDRV_ROLE_ENEMY_G1      .equ    9
-CDRV_ROLE_ENEMY_G2      .equ    10
-CDRV_ROLE_ENEMY_G3      .equ    11
-CDRV_ROLE_ENEMY_G4      .equ    12
-CDRV_ROLE_ITEM_S        .equ    13
-CDRV_ROLE_ITEM_G        .equ    14
-CDRV_ROLE_EFFECT        .equ    15
-CDRV_ROLE_BONUS         .equ    16
+CDRV_ROLE_PBULLET_M5    .equ    6
+CDRV_ROLE_PBULLET_M6    .equ    7
+CDRV_ROLE_EBULLET       .equ    8
+CDRV_ROLE_ENEMY_S1      .equ    9
+CDRV_ROLE_ENEMY_S2      .equ    10
+CDRV_ROLE_ENEMY_G1      .equ    11
+CDRV_ROLE_ENEMY_G2      .equ    12
+CDRV_ROLE_ENEMY_G3      .equ    13
+CDRV_ROLE_ENEMY_G4      .equ    14
+CDRV_ROLE_ITEM_S        .equ    15
+CDRV_ROLE_ITEM_G        .equ    16
+CDRV_ROLE_EFFECT        .equ    17
+CDRV_ROLE_BONUS         .equ    18
 
 ;
 ; sprite class
@@ -125,7 +127,7 @@ CH_procptr_tmp: .ds     2
 CDrv_role_class_maxchr:
         .db     0
         .db     1               ; player
-        .db     15,15,15,15     ; player bullet
+        .db     15,15,15,15,9,9 ; player bullet
         .db     24              ; enemy bullet
         .db     16,16           ; enemy (sky)
         .db     16,16,8,8       ; enemy (ground)

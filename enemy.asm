@@ -16,11 +16,41 @@ z_en_init_yh:   .ds     1
 ;  複数キャラの組み合わせ
 
 ENcreate_Tank:
+        stz     <z_en_init_xl
+        lda     #(336+$20)/2
+        sta     <z_en_init_xh
+        stz     <z_en_init_yl
+        lda     scry
+        lsr     a
+        sta     <z_tmp15
+        lda     <z_frame
+        asl     a
+        and     #$3c
+        adc     #30*8/2
+        sbc     <z_tmp15
+        sta     <z_en_init_yh
+        
+
         ldy     #0
         jsr     ENcreate_Ex
         rts
 
 ENcreate_Boat_v:
+        stz     <z_en_init_xl
+        lda     #(336+$20)/2
+        sta     <z_en_init_xh
+        stz     <z_en_init_yl
+        lda     scry
+        lsr     a
+        sta     <z_tmp15
+        lda     <z_frame
+        asl     a
+        and     #$3c
+        adc     #12*8/2
+        sbc     <z_tmp15
+        sta     <z_en_init_yh
+
+
         ldy     #3
         jsr     ENcreate_Ex
         rts
@@ -139,14 +169,14 @@ ENI_tank:
         .db     0
 
 ENI_boat_v:
-        .db     CDRV_ROLE_ENEMY_G1,2
-        .db     CDRV_ROLE_ENEMY_G2,1
+        .db     CDRV_ROLE_ENEMY_G1,1
+        .db     CDRV_ROLE_ENEMY_G2,2
         .db     0
         .db     CDRV_ROLE_ENEMY_G1,CDRV_SPR_ENEMY_G1
         .dw     ENBoat_v_init
         .db     CDRV_ROLE_ENEMY_G2,CDRV_SPR_ENEMY_G2    ;砲塔は本体の次！
         .dw     ENBoat_v_Turret_init
-        .db     CDRV_ROLE_ENEMY_G1,CDRV_SPR_ENEMY_G2
+        .db     CDRV_ROLE_ENEMY_G2,CDRV_SPR_ENEMY_G3
         .dw     ENBoat_v_sub_init
         .db     0
 
@@ -189,12 +219,20 @@ ENDummy_init:
         rts
 
 ENTank_init:
-        stz     CH_xl,x
-        lda     #(336+$20)/2
+;        stz     CH_xl,x
+;        lda     #(336+$20)/2
+;        sta     CH_xh,x
+;        stz     CH_yl,x
+;        lda     <z_frame
+;        asl     a
+;        sta     CH_yh,x
+        lda     <z_en_init_xl
+        sta     CH_xl,x
+        lda     <z_en_init_xh
         sta     CH_xh,x
-        stz     CH_yl,x
-        lda     <z_frame
-        asl     a
+        lda     <z_en_init_yl
+        sta     CH_yl,x
+        lda     <z_en_init_yh
         sta     CH_yh,x
 
         lda     #LOW(((spr_pattern_en-spr_pattern)/2+$4000)/32)
@@ -215,7 +253,7 @@ ENTank_init:
         sta     CH_coldx,x
         sta     CH_coldy,x
 
-        lda     #4
+        lda     #3
         sta     CH_regist,x
 
         lda     #1
@@ -228,7 +266,7 @@ ENTank_init:
 
 
         phx
-        lda     #2
+        lda     #1
         ldy     #0
         jsr     convDirection2DxDy
         plx
@@ -291,12 +329,20 @@ ENTankTurret_init:
 
 ;-----
 ENBoat_v_init:
-        stz     CH_xl,x
-        lda     #(336+$20)/2
+;        stz     CH_xl,x
+;        lda     #(336+$20)/2
+;        sta     CH_xh,x
+;        stz     CH_yl,x
+;        lda     <z_frame
+;        asl     a
+;        sta     CH_yh,x
+        lda     <z_en_init_xl
+        sta     CH_xl,x
+        lda     <z_en_init_xh
         sta     CH_xh,x
-        stz     CH_yl,x
-        lda     <z_frame
-        asl     a
+        lda     <z_en_init_yl
+        sta     CH_yl,x
+        lda     <z_en_init_yh
         sta     CH_yh,x
 
         lda     #LOW(((spr_pattern2_boatv_00-spr_pattern2)/2+$5000)/32)
@@ -317,7 +363,7 @@ ENBoat_v_init:
         sta     CH_coldx,x
         sta     CH_coldy,x
 
-        lda     #4
+        lda     #3
         sta     CH_regist,x
 
         lda     #1
@@ -435,7 +481,7 @@ ENBoat_v_Turret_init:
 
 ENBig_main_init:
         stz     CH_xl,x
-        lda     #(336+$20)/2
+        lda     #(336+$48)/2
         sta     CH_xh,x
         stz     CH_yl,x
 ;        lda     <z_frame
@@ -462,7 +508,7 @@ ENBig_main_init:
         lda     #40/2
         sta     CH_coldy,x
 
-        lda     #100
+        lda     #80
         sta     CH_regist,x
 
         lda     #2
@@ -648,6 +694,14 @@ ENTank_damaged:
         lda     CH_grp_child,x
 ;        lda     CH_var0,x
         beq     .ret
+
+        pha
+        phx
+        tax
+        jsr     EFcreateExplosion
+        plx
+        pla
+
         phx
         tax
         jsr     CDRVremoveChr
@@ -735,7 +789,7 @@ ENTank_move:
 
         cmp     #(336+32)/2
         bcs     .out
-        cmp     #32/2
+        cmp     #16/2
         bcc     .out
 
         lda     CH_yl,x
@@ -935,7 +989,7 @@ ENBoatTurret_move:
         sta     CH_yh,x
 
                         ; rotate
-       	tst	#$07,<z_frame
+       	tst	#$0f,<z_frame
 	bne	.skip
 
 	ldy	PL_chr
@@ -1082,9 +1136,9 @@ ENBig_main_move:
         adc     CH_dxh,x
         sta     CH_xh,x
 
-        cmp     #(336+32)/2
-        bcs     .out
-        cmp     #32/2
+;        cmp     #(336+32)/2
+;        bcs     .out
+        cmp     #4/2
         bcc     .out
 
         bbr6    <z_frame,.right
