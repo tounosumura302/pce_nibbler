@@ -218,6 +218,16 @@ main:
 	;jsr	EB_init
 	;jsr	EN_init
 
+
+;        st0     #$0d
+;        st1     #150
+;        st2     #0
+;        st0     #$0e
+;        st1     #4+39+50
+;        st2     #0
+; dc eb
+; ef fe
+; cb d7
 mainloop:
 ;--
 ; enemy
@@ -299,6 +309,19 @@ mainloop:
 	sta	<prevscry
 	lda	<scry+1
 	sta	<prevscry+1
+
+
+	st0	#0
+        lda     #$00
+        sta     VdcDataL
+        lda     #$40
+        sta     VdcDataH
+	st0	#2
+	tia	spr_pattern,VdcData,1736        ;3000=29  2000=1a  1000=0a  1736=15
+;	tia	spr_pattern,VdcData,spr_pattern_size
+
+
+
 
 	jmp	mainloop
 

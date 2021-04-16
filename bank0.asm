@@ -186,7 +186,7 @@ initVdc:
         HDR     336
         .db     $0c,$02,$0c     ;vertical synchro register
         .db     $0d,$ef,$00     ;vertical display register
-        .db     $0e,$04,$00     ;vertical display end position register
+        .db     $0e,$03,$00     ;vertical display end position register
         .db     $0f,$10,$00     ;dma control register
         .db     $13,$00,$7f     ;vram-satb source address register
         .db     $00             ;end of table
