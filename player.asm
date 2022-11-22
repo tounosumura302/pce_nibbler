@@ -4,298 +4,175 @@
 ;PL_y:   .ds     2
 
 
-PL_chr: .ds     1       ;プレイヤーのキャラ番号
+;PL_chr: .ds     1       ;プレイヤーのキャラ番号
 
         .zp
-PL_speed:       .ds     2       ; speed
+zplx:       ds      1
+zply:       ds      1
 
-z_pl_arm:       .ds     1       ; 武器
+zpldir:         ds      1
+zpldirr:        ds      1
+
+zplspeed:       ds      1
 
         .code
         .bank   MAIN_BANK
-PL_init:
-        lda     #CDRV_ROLE_PLAYER
-        sta     <z_tmp0
-        lda     #CDRV_SPR_PLAYER
-        sta     <z_tmp1
-        stz     <z_tmp2
-        jsr     CDRVaddChr
-        sty     PL_chr
 
-        sxy
-        stz     CH_xl,x
-        lda     #$40
-        sta     CH_xh,x
-        stz     CH_yl,x
-        lda     #$60
-        sta     CH_yh,x
 
-        lda     #LOW(((spr_pattern_pl-spr_pattern)/2+$4000)/32)
-        sta     CH_sprpatl,x
-        lda     #HIGH(((spr_pattern_pl-spr_pattern)/2+$4000)/32)
-        sta     CH_sprpath,x
+;       ldru----
+plInit:
+        lda     #13*8
+        sta     <zplx
+        lda     #25*8
+        sta     <zply
 
-        lda     #$80
-        sta     CH_spratrl,x
-        lda     #$11
-        sta     CH_spratrh,x
+        lda     #2
+        sta     <zplspeed
 
-        lda     #16/2
-        sta     CH_sprdx,x
-        sta     CH_sprdy,x
+        lda     #%00100000
+        jsr     plSetDir
+        rts
 
-        lda     #LOW(PL_move)
-        sta     CH_procptrl,x
-        lda     #HIGH(PL_move)
-        sta     CH_procptrh,x
+;
+;       移動方向をセット
+;
+plSetDir:
+        sta     <zpldir
 
-        lda     #$00
-        sta     PL_speed
-        lda     #$01
-        sta     PL_speed+1
+        bit     #%10100000
+        beq     .du
+        eor     #%10100000
+        bra     .set
+.du:    eor     #%01010000
+.set:   sta     <zpldirr
+        rts
 
-        lda     #1
-        sta     <z_pl_arm
+;
+;       移動
+;
+plMove:
+.tmp_vadr_l     equ     ztmp0       ;仮想VRAMアドレス
+.tmp_vadr_h     equ     ztmp1
+.tmp_p          equ     ztmp2       ;仮想VRAM上の値
+.tmp_pad        equ     ztmp3       ;コントローラーの値
+
+        lda     <zplx
+        ora     <zply
+        and     #$07
+        bne     .notchanged
+                        ;仮想VRAMアドレス計算
+        stz     <.tmp_vadr_h
+        lda     <zply
+        and     #$f8
+        asl     a
+        rol     <.tmp_vadr_h
+        asl     a
+        rol     <.tmp_vadr_h
+        sta     <.tmp_vadr_l
+        lda     <zplx
+        lsr     a
+        lsr     a
+        lsr     a
+        ora     <.tmp_vadr_l
+        clc
+        adc     #LOW(VMap)
+        sta     <.tmp_vadr_l
+        lda     <.tmp_vadr_h
+        adc     #HIGH(VMap)
+        sta     <.tmp_vadr_h
+                        ;現在位置の仮想VRAMの値
+        lda     [.tmp_vadr_l]
+        sta     <.tmp_p
+                        ;コントローラーが押されている場合の方向転換判定 ldru
+        lda     <zpad
+        and     #$f0
+        beq     .notpushed
+        sta     <.tmp_pad
+        lda     <zpldir
+        ora     <zpldirr
+        trb     <.tmp_pad
+        beq     .notpushed
+        lda     <.tmp_pad
+        bit     <.tmp_p
+        bne     .changed
+                        ;コントローラーが押されていない場合の方向転換判定
+.notpushed:
+        lda     <.tmp_p
+        bit     <zpldir
+        bne     .notchanged
+
+        lsr     a
+        lsr     a
+        lsr     a
+        lsr     a
+        tax
+        lda     DirCountTbl,x
+        cmp     #2
+        beq     .dc2
+        cmp     #3
+        bne     .notchanged
+        bra     .notmove
+.dc2:
+        lda     <.tmp_p
+        eor     <zpldirr
+.changed:
+        jsr     plSetDir
+.notchanged:
+                        ;ldru
+        lda     <zpldir
+        asl     a
+        bcs     .moveleft
+        asl     a
+        bcs     .movedown
+        asl     a
+        bcs     .moveright
+        bpl     .notmove
+.moveup:
+        lda     <zply
+        sec
+        sbc     <zplspeed
+        sta     <zply
+        bra     .moved
+.moveleft:
+        lda     <zplx
+        sec
+        sbc     <zplspeed
+        sta     <zplx
+        bra     .moved
+.movedown:
+        lda     <zply
+        clc
+        adc     <zplspeed
+        sta     <zply
+        bra     .moved
+.moveright:
+        lda     <zplx
+        clc
+        adc     <zplspeed
+        sta     <zplx
+.notmove:
+.moved:
+                        ;（実験）スプライト座標設定
+        lda     <zplx
+        clc
+        adc     #$20-4
+        sta     satb+2
+        stz     satb+3
+
+        lda     <zply
+        clc
+        adc     #$40-4+8
+        sta     satb+0
+        lda     #0
+        adc     #0
+        sta     satb+1
 
         rts
 
-
-PL_move:
-        bbr7    <z_pad,.notleft
-.left:
-        lda     CH_xl,x
-        sec
-;        sbc     #$80
-        sbc     <PL_speed
-        sta     CH_xl,x
-        lda     CH_xh,x
-;        sbc     #0
-        sbc     <PL_speed+1
-        cmp     #(32+16)/2
-        bcs     .leftok
-        stz     CH_xl,x
-        lda     #(32+16)/2
-.leftok:
-        sta     CH_xh,x
-
-.notleft:
-        bbr5    <z_pad,.notright
-.right:
-        lda     CH_xl,x
-        clc
-;        adc     #$80
-        adc     <PL_speed
-        sta     CH_xl,x
-        lda     CH_xh,x
-;        adc     #0
-        adc     <PL_speed+1
-        cmp     #(320+32-16)/2
-        bcc     .rightok
-        stz     CH_xl,x
-        lda     #(320+32-16)/2
-.rightok:
-        sta     CH_xh,x
-
-.notright:
-        bbr4    <z_pad,.notup
-.up:
-        lda     CH_yl,x
-        sec
-;        sbc     #$80
-        sbc     <PL_speed
-        sta     CH_yl,x
-        lda     CH_yh,x
-;        sbc     #0
-        sbc     <PL_speed+1
-        cmp     #(64+16)/2
-        bcs     .upok
-        stz     CH_yl,x
-        lda     #(64+16)/2
-.upok:
-        sta     CH_yh,x
-
-.notup:
-        bbr6    <z_pad,.notdown
-.down:
-        lda     CH_yl,x
-        clc
-;        adc     #$80
-        adc     <PL_speed
-        sta     CH_yl,x
-        lda     CH_yh,x
-;        adc     #0
-        adc     <PL_speed+1
-        cmp     #(240+64-16)/2
-        bcc     .downok
-        stz     CH_yl,x
-        lda     #(240+64-16)/2
-.downok:
-        sta     CH_yh,x
-.notdown:
-
-        lda     <z_pl_arm
-        beq     .arm_wide
-        dec     a
-        beq     .arm_fire
-.arm_beam:
-        bra     .notshoot
-
-.arm_wide:
-                ; shoot
-	bbr0	<z_paddelta,.notshoot
-
-	ldy	#3
-	jsr	PBshoot
-        bra     .notshoot
-
-.arm_fire:
-	bbr0	<z_pad,.arm_fire_notshoot
-        jsr     PB_fire_shoot
-        bra     .notshoot
-.arm_fire_notshoot:
-        jsr     PB_fire_noshoot
-
-.notshoot:
-
-                ; 左右スクロール
-	lda	CH_yh,x
-	sec
-	sbc	#(64+16)/2
-	tay
-	lda	PLScrollY,y
-	sta	scry
-	stz	scry+1
-
-                ; スクロールの差分から地上敵の座標補正値を求める
-                ; 差分を1/2してゲーム座標に変換する
-        lda     prevscry
-        sec
-        sbc     scry
-        bcc     .scrminus
-        clc
-        bra     .scradd
-.scrminus:
-        sec
-.scradd:
-        ror     a
-        sta     <z_d_scryh
-        cla
-        ror     a
-        sta     <z_d_scryl
+;
+;       移動可能方向の数（インデックス値のセットされたビットの数）
+;
+DirCountTbl:
+        db      0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4
 
 
-
-        clc
-        rts
-
-PLdead:
-        clc
-        rts
-
-                ;自機の左右の動きに合わせたスクロール位置
-PLScrollY:
-        .db 0
-        .db 0
-        .db 1
-        .db 2
-        .db 3
-        .db 3
-        .db 4
-        .db 5
-        .db 6
-        .db 6
-        .db 7
-        .db 8
-        .db 9
-        .db 10
-        .db 10
-        .db 11
-        .db 12
-        .db 13
-        .db 13
-        .db 14
-        .db 15
-        .db 16
-        .db 16
-        .db 17
-        .db 18
-        .db 19
-        .db 20
-        .db 20
-        .db 21
-        .db 22
-        .db 23
-        .db 23
-        .db 24
-        .db 25
-        .db 26
-        .db 26
-        .db 27
-        .db 28
-        .db 29
-        .db 30
-        .db 30
-        .db 31
-        .db 32
-        .db 33
-        .db 33
-        .db 34
-        .db 35
-        .db 36
-        .db 36
-        .db 37
-        .db 38
-        .db 39
-        .db 40
-        .db 40
-        .db 41
-        .db 42
-        .db 43
-        .db 43
-        .db 44
-        .db 45
-        .db 46
-        .db 46
-        .db 47
-        .db 48
-        .db 49
-        .db 50
-        .db 50
-        .db 51
-        .db 52
-        .db 53
-        .db 53
-        .db 54
-        .db 55
-        .db 56
-        .db 56
-        .db 57
-        .db 58
-        .db 59
-        .db 60
-        .db 60
-        .db 61
-        .db 62
-        .db 63
-        .db 63
-        .db 64
-        .db 65
-        .db 66
-        .db 66
-        .db 67
-        .db 68
-        .db 69
-        .db 70
-        .db 70
-        .db 71
-        .db 72
-        .db 73
-        .db 73
-        .db 74
-        .db 75
-        .db 76
-        .db 76
-        .db 77
-        .db 78
-        .db 79
-        .db 80

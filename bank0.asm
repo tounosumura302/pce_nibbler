@@ -151,8 +151,9 @@ initVdc:
 .endloop:
 
 ;       init vce
-        lda     #1              ;horizontal resolution >272!!!!!!
-        sta     VceCtrl
+;        lda     #1              ;horizontal resolution >272!!!!!!
+;        sta     VceCtrl
+        stz     VceCtrl
 
 ;       clear vram
         st0     #0
@@ -171,20 +172,20 @@ initVdc:
 
         rts
 
-;       resolution      336x240
-;       bat size        64x64
+;       resolution      256x240
+;       bat size        32x32
 ;       satb copy       $7f00
 .table:
         .db     $05,$00,$00     ;control register
         .db     $06,$00,$00     ;raster counter register
         .db     $07,$00,$00     ;x scroll register
         .db     $08,$00,$00     ;y scroll register
-        .db     $09,$50,$00     ;memory access width register
+        .db     $09,$00,$00     ;memory access width register
         .db     $0a             ;horizontal synchro register
-        HSR     336
+        HSR     256
         .db     $0b             ;horizontal display register
-        HDR     336
-        .db     $0c,$02,$0c     ;vertical synchro register
+        HDR     256
+        .db     $0c,$02,$0f     ;vertical synchro register
         .db     $0d,$ef,$00     ;vertical display register
         .db     $0e,$03,$00     ;vertical display end position register
         .db     $0f,$10,$00     ;dma control register
@@ -194,9 +195,9 @@ initVdc:
 ;       initialize pad
 ;
 initPad:
-        stz     <z_pad
-        stz     <z_padold
-        stz     <z_paddelta
+        stz     <zpad
+        stz     <zpadold
+        stz     <zpaddelta
         rts
 ;
 ;       read pad
@@ -207,9 +208,9 @@ readPad:
         lda     #3
         sta     PadPort
 
-        lda     <z_pad
+        lda     <zpad
         eor     #$ff
-        sta     <z_padold
+        sta     <zpadold
 
         lda     #1
         sta     PadPort
@@ -222,7 +223,7 @@ readPad:
         asl     a
         asl     a
         asl     a
-        sta     <z_pad
+        sta     <zpad
 
         stz     PadPort
         sax                     ;wait 10 cycles
@@ -231,17 +232,17 @@ readPad:
         nop
         lda     PadPort
         and     #$0f
-        ora     <z_pad
+        ora     <zpad
         eor     #$ff
-        sta     <z_pad
+        sta     <zpad
 
-        and     <z_padold
-        sta     <z_paddelta
+        and     <zpadold
+        sta     <zpaddelta
 
         rts
 ;
         .zp
-z_pad:          .ds 1   ;pad status
-z_paddelta      .ds 1   ;pad status(delta)
-z_padold        .ds 1   ;pad status(previous)
+zpad:          .ds 1   ;pad status
+zpaddelta      .ds 1   ;pad status(delta)
+zpadold        .ds 1   ;pad status(previous)
 
