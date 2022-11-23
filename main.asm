@@ -146,7 +146,10 @@ main:
 ; ef fe
 ; cb d7
 mainloop:
+	jsr	plChangeDir
+	bcs	.skipmove
 	jsr	plMove
+.skipmove:
 ;
 ;       vsync
 ;

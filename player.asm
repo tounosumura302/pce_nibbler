@@ -48,19 +48,31 @@ plSetDir:
         rts
 
 ;
-;       移動
+;       方向転換
 ;
-plMove:
+;       @args           なし
+;       @saveregs       なし
+;       @return         その場で停止すべき時は cf=1
+plChangeDir:
 .tmp_vadr_l     equ     ztmp0       ;仮想VRAMアドレス
 .tmp_vadr_h     equ     ztmp1
 .tmp_p          equ     ztmp2       ;仮想VRAM上の値
 .tmp_pad        equ     ztmp3       ;コントローラーの値
 
+                        ;フィールドのグリッドの中間にいる場合は方向転換しない
         lda     <zplx
         ora     <zply
         and     #$07
-        bne     .notchanged
+        beq     .trychange
+        clc
+        rts
+.trychange:
                         ;仮想VRAMアドレス計算
+        lda     <zplx
+        lsr     a
+        lsr     a
+        lsr     a
+        sta     <.tmp_vadr_l
         stz     <.tmp_vadr_h
         lda     <zply
         and     #$f8
@@ -68,11 +80,6 @@ plMove:
         rol     <.tmp_vadr_h
         asl     a
         rol     <.tmp_vadr_h
-        sta     <.tmp_vadr_l
-        lda     <zplx
-        lsr     a
-        lsr     a
-        lsr     a
         ora     <.tmp_vadr_l
         clc
         adc     #LOW(VMap)
@@ -80,46 +87,66 @@ plMove:
         lda     <.tmp_vadr_h
         adc     #HIGH(VMap)
         sta     <.tmp_vadr_h
+                        ;
                         ;現在位置の仮想VRAMの値
         lda     [.tmp_vadr_l]
         sta     <.tmp_p
+                        ;
                         ;コントローラーが押されている場合の方向転換判定 ldru
         lda     <zpad
         and     #$f0
-        beq     .notpushed
+        beq     .notpushed      ;押されていない
         sta     <.tmp_pad
         lda     <zpldir
         ora     <zpldirr
         trb     <.tmp_pad
-        beq     .notpushed
+        beq     .notpushed      ;移動方向および逆方向が押されていても押されていないとみなす
+
         lda     <.tmp_pad
         bit     <.tmp_p
-        bne     .changed
+        bne     .changed        ;移動方向以外かつ逆方向以外が押されていて、そっちに移動可能なら変更
+
                         ;コントローラーが押されていない場合の方向転換判定
 .notpushed:
         lda     <.tmp_p
         bit     <zpldir
-        bne     .notchanged
+        bne     .notchanged     ;直進可能ならそのまま
 
         lsr     a
         lsr     a
         lsr     a
         lsr     a
         tax
-        lda     DirCountTbl,x
+        lda     .DirCountTbl,x
         cmp     #2
-        beq     .dc2
+        beq     .dc2            ;直角なら自動的に曲がる
         cmp     #3
-        bne     .notchanged
-        bra     .notmove
+        bne     .notchanged     ;通常ここでブランチするのはありえない
+                        ;丁字路なので方向転換はしないが動かない
+        sec
+        rts
+                        ;直角に曲がる
 .dc2:
         lda     <.tmp_p
         eor     <zpldirr
 .changed:
         jsr     plSetDir
 .notchanged:
-                        ;ldru
-        lda     <zpldir
+        clc
+        rts
+;
+;       移動可能方向の数（インデックス値のセットされたビットの数）
+;
+.DirCountTbl:
+        db      0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4
+
+;
+;       移動
+;       @args           なし
+;       @saveregs       なし
+;       @return         なし
+plMove:
+        lda     <zpldir         ;bits of zpldir = LDRU----
         asl     a
         bcs     .moveleft
         asl     a
@@ -152,7 +179,7 @@ plMove:
         sta     <zplx
 .notmove:
 .moved:
-                        ;（実験）スプライト座標設定
+                        ;スプライト座標設定
         lda     <zplx
         clc
         adc     #$20-4
@@ -169,10 +196,5 @@ plMove:
 
         rts
 
-;
-;       移動可能方向の数（インデックス値のセットされたビットの数）
-;
-DirCountTbl:
-        db      0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4
 
 
