@@ -14,9 +14,9 @@ BANK0_BANK .equ 0
 ;
         .org $fff6
         .dw     interrupt_dummy         ;$fff6 IRQ2/BRK
-        .dw     interrupt_dummy         ;$fff8 IRQ1
-        .dw     interrupt_dummy         ;$fffa timer
-        .dw     interrupt_dummy         ;$fffc NMI
+        .dw     interrupt_dummy2         ;$fff8 IRQ1
+        .dw     interrupt_dummy3         ;$fffa timer
+        .dw     interrupt_dummy4         ;$fffc NMI
         .dw     interrupt_reset         ;$fffe RESET
 ;
 ;       interrupt handlers
@@ -26,6 +26,15 @@ BANK0_BANK .equ 0
 ;       dummy handler
 ;
 interrupt_dummy:
+        rti
+
+interrupt_dummy2:
+        rti
+
+interrupt_dummy3:
+        rti
+
+interrupt_dummy4:
         rti
 ;
 ;       RESET interrupt handler

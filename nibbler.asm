@@ -21,5 +21,9 @@ MAIN_BANK       .equ    1
         .include "sprpattern.asm"
         .include "map.asm"
         .include "mapdata.asm"
+        .include "vqueue.asm"
+        .include "task.asm"
+        
+        
         
         

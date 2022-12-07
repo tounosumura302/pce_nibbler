@@ -26,36 +26,6 @@ zarg5:	ds	1
 scrx:	.ds	2
 scry:	.ds	2
 
-;prevscrx:	.ds	2
-;prevscry:	.ds	2
-
-;z_d_scryl:	.ds	1
-;z_d_scryh:	.ds	1
-	;...
-
-;z_sprx: .ds     2
-;z_spry: .ds     2
-
-;z_tmp0:	.ds	1
-;z_tmp1:	.ds	1
-;z_tmp2:	.ds	1
-;z_tmp3:	.ds	1
-;z_tmp4:	.ds	1
-;z_tmp5:	.ds	1
-;z_tmp6:	.ds	1
-;z_tmp7:	.ds	1
-;z_tmp8:	.ds	1
-;z_tmp9:	.ds	1
-;z_tmp10:	.ds	1
-;z_tmp11:	.ds	1
-;z_tmp12:	.ds	1
-;z_tmp13:	.ds	1
-;z_tmp14:	.ds	1
-;z_tmp15:	.ds	1
-
-;z_curchr_x:	.ds	3
-;z_curchr_y:	.ds	3
-
 z_frame:	.ds	1
 
 ;--- CODE area ----------
@@ -66,9 +36,10 @@ z_frame:	.ds	1
 
 ;       wait VSync (polling)
 waitVsync:
-.wait:  tst     #$20,VdcStatus
-        beq     .wait
-        rts
+.wait:
+	tst     #$20,VdcStatus
+    beq     .wait
+    rts
 
 
 
@@ -134,8 +105,11 @@ main:
 
 	jsr	initPsgTest
 
+	jsr	tkInit
+
 	jsr	plInit
 
+	jsr	vqInit
 ;        st0     #$0d
 ;        st1     #150
 ;        st2     #0
@@ -146,15 +120,46 @@ main:
 ; ef fe
 ; cb d7
 mainloop:
-	jsr	plChangeDir
+
+	.if	0
+	clx
+	jsr	plHeadAction
 	bcs	.skipmove
 	jsr	plMove
 .skipmove:
+
+	.else
+
+	jsr	tkDispatch
+	.endif
+
+				;test vqPush
+	.if	0
+	lda	#32
+	sta	<zarg0
+	lda	#0
+	sta	<zarg1
+	lda	#LOW(.testdata)
+	sta	<zarg2
+	lda	#HIGH(.testdata)
+	sta	<zarg3
+	lda	#4
+	sta	<zarg4
+	jsr	vqPush
+	bra	.endtest
+.testdata:
+	dw	$010d,$010e,$010d,$010e
+.endtest:
+	.endif
 ;
 ;       vsync
 ;
-        jsr     spr_update
-        jsr     waitVsync
+	.if	0
+
+    jsr	spr_update
+    jsr	waitVsync
+
+	jsr	vqDraw
 
 ;       scroll
 	st0	#7
@@ -203,11 +208,41 @@ mainloop:
 ;	tia	spr_pattern,VdcData,spr_pattern_size
 
 
-
+	.endif
 
 	jmp	mainloop
 
+
+
+
+;
+;       vsync
+;
+VSyncTask:
+    jsr	spr_update
+    jsr	waitVsync
+
+	jsr	vqDraw
+
+;       scroll
+	st0	#7
+	stz	VdcDataL
+	stz	VdcDataH
+
+	st0	#8
+	stz	VdcDataL
+	stz	VdcDataH
+
+    jsr	readPad
+
+	inc	<z_frame
 	
+	jsr	tkYield
+	bra	VSyncTask
+
+
+
+
 
 ;.loop:	bra	.loop
 
@@ -288,6 +323,24 @@ spr_init:
 	lda	#$80		;priority  & color=0
 	sta	satb+6
 	stz	satb+7
+
+
+	;; set satb 1
+	lda	#$40
+	sta	satb+8
+	stz	satb+9
+
+	lda	#$20
+	sta	satb+10
+	stz	satb+11
+
+	stz	satb+12
+	lda	#$2		;vram address = $4000 -> $200
+	sta	satb+13
+
+	lda	#$80		;priority  & color=0
+	sta	satb+14
+	stz	satb+15
 
 	rts
 

@@ -12,8 +12,8 @@ DrawWave:
 .tmp_vmap_ptr_l equ zarg4   ;仮想vramアドレス
 .tmp_vmap_ptr_h equ zarg5
 
-    lda #32
-    sta <.tmp_vram_l
+;    lda #32
+    stz <.tmp_vram_l
     stz <.tmp_vram_h
 
     lda #LOW(VMap)
@@ -150,8 +150,10 @@ DrawMapGrid:
     bne .setchar
                             ;空白かつドットが配置されているならドットのタイルをセット
     bbr7    <.tmp_dotcombi,.setchar
-    smb0    <.tmp_vmap_value    ;仮想vramにドットのフラグをセット
-    lda #$0d*2                  ;ドットのタイル番号
+;    smb0    <.tmp_vmap_value    ;仮想vramにドットのフラグをセット
+    lda #$0f
+    tsb <.tmp_vmap_value
+    lda #$0d*2                  ;TODO: ドットのタイル番号
 .setchar
                         ;タイルをvram(BAT)に書き込み
     phy

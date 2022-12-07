@@ -48,6 +48,10 @@ bp_dot:
         dw $00,$7e,$7e,$7e,$7e,$7e,$7e,$00
         dw $00,$00,$00,$00,$00,$00,$00,$00
 
+bp_body_l:
+        dw $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
+        dw $00,$00,$00,$00,$00,$00,$00,$00
+
 BgPattern_end:
 BgPattern_size  equ BgPattern_end-BgPattern
 ; ┌─┐
