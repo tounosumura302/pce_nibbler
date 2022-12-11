@@ -95,6 +95,28 @@ main:
 	jsr	DrawWave
 
 
+	st0	#0
+	lda #LOW(0+30*32)
+    sta VdcDataL
+    lda #HIGH(0+30*32)
+    sta VdcDataH
+	st0	#2
+	lda	#LOW(($1000+52*16)/16)
+	sta	VdcDataL
+	lda	#HIGH(($1000+52*16)/16)
+	sta	VdcDataH
+	lda	#LOW(($1000+53*16)/16)
+	sta	VdcDataL
+	lda	#HIGH(($1000+53*16)/16)
+	sta	VdcDataH
+	lda	#LOW(($1000+54*16)/16)
+	sta	VdcDataL
+	lda	#HIGH(($1000+54*16)/16)
+	sta	VdcDataH
+	lda	#LOW(($1000+55*16)/16)
+	sta	VdcDataL
+	lda	#HIGH(($1000+55*16)/16)
+	sta	VdcDataH
 
 	;; initialize sprite
 
@@ -110,106 +132,9 @@ main:
 	jsr	plInit
 
 	jsr	vqInit
-;        st0     #$0d
-;        st1     #150
-;        st2     #0
-;        st0     #$0e
-;        st1     #4+39+50
-;        st2     #0
-; dc eb
-; ef fe
-; cb d7
+
 mainloop:
-
-	.if	0
-	clx
-	jsr	plHeadAction
-	bcs	.skipmove
-	jsr	plMove
-.skipmove:
-
-	.else
-
 	jsr	tkDispatch
-	.endif
-
-				;test vqPush
-	.if	0
-	lda	#32
-	sta	<zarg0
-	lda	#0
-	sta	<zarg1
-	lda	#LOW(.testdata)
-	sta	<zarg2
-	lda	#HIGH(.testdata)
-	sta	<zarg3
-	lda	#4
-	sta	<zarg4
-	jsr	vqPush
-	bra	.endtest
-.testdata:
-	dw	$010d,$010e,$010d,$010e
-.endtest:
-	.endif
-;
-;       vsync
-;
-	.if	0
-
-    jsr	spr_update
-    jsr	waitVsync
-
-	jsr	vqDraw
-
-;       scroll
-	st0	#7
-	stz	VdcDataL
-	stz	VdcDataH
-
-	st0	#8
-	stz	VdcDataL
-	stz	VdcDataH
-
-
-;	st0	#7
-;	lda	<scrx
-;	sta	VdcDataL
-;	lda	<scrx+1
-;	sta	VdcDataH
-
-;	st0	#8
-;	lda	<scry
-;	sta	VdcDataL
-;	lda	<scry+1
-;	sta	VdcDataH
-
-;       pad
-        jsr     readPad
-
-	inc	<z_frame
-
-;	lda	<scrx
-;	sta	<prevscrx
-;	lda	<scrx+1
-;	sta	<prevscrx+1
-;	lda	<scry
-;	sta	<prevscry
-;	lda	<scry+1
-;	sta	<prevscry+1
-
-
-;	st0	#0
-;        lda     #$00
-;        sta     VdcDataL
-;        lda     #$40
-;        sta     VdcDataH
-;	st0	#2
-;	tia	spr_pattern,VdcData,1736        ;3000=29  2000=1a  1000=0a  1736=15
-;	tia	spr_pattern,VdcData,spr_pattern_size
-
-
-	.endif
-
 	jmp	mainloop
 
 
@@ -230,8 +155,10 @@ VSyncTask:
 	stz	VdcDataH
 
 	st0	#8
-	stz	VdcDataL
-	stz	VdcDataH
+	lda	#$ef
+	sta	VdcDataL
+	lda	#$ff
+	sta	VdcDataH
 
     jsr	readPad
 
@@ -242,9 +169,6 @@ VSyncTask:
 
 
 
-
-
-;.loop:	bra	.loop
 
 ;	psg test	
 initPsgTest:
@@ -356,22 +280,6 @@ spr_update:
 
 
 	;...
-
-;ｱｱｱ[ USER DATA ]ｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱ
-
-
-	.bank  MAIN_BANK+1
-	.org   $6000
-
-
-;--------
-;--------
-
-
-;--------
-;--------
-
-
 	;; satb
 	.bss
 satb	.ds 512	; the local SATB

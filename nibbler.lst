@@ -384,15 +384,15 @@
    58  01:C014  8D 03 00          sta     VdcDataH
    59  01:C017  03 02             st0     #2
    60  01:C019  E3 00 40          tia     BgPattern,VdcData,BgPattern_size
-       01:C01C  02 00 E0  
-       01:C01F  01        
+       01:C01C  02 00 C0  
+       01:C01F  07        
    61                     
    62                             ; set bg palette
    63  01:C020  A9 00             lda     #LOW(0*16)
    64  01:C022  8D 02 04          sta     VceIndexL
    65  01:C025  A9 00             lda     #HIGH(0*16)
    66  01:C027  8D 03 04          sta     VceIndexH
-   67  01:C02A  E3 E0 41          tia     BgPalette,VceData,16*16*2
+   67  01:C02A  E3 C0 47          tia     BgPalette,VceData,16*16*2
        01:C02D  04 04 00  
        01:C030  02        
    68                     
@@ -404,7 +404,7 @@
    74  01:C038  A9 40             lda     #$40
    75  01:C03A  8D 03 00          sta     VdcDataH
    76  01:C03D  03 02             st0     #2
-   77  01:C03F  E3 E0 43          tia     SpPattern,VdcData,SpPattern_size
+   77  01:C03F  E3 C0 49          tia     SpPattern,VdcData,SpPattern_size
        01:C042  02 00 80  
        01:C045  00        
    78                     
@@ -413,7 +413,7 @@
    81  01:C048  8D 02 04          sta     VceIndexL
    82  01:C04B  A9 01             lda     #HIGH(16*16)
    83  01:C04D  8D 03 04          sta     VceIndexH
-   84  01:C050  E3 60 44          tia     SpPalette,VceData,16*16*2
+   84  01:C050  E3 40 4A          tia     SpPalette,VceData,16*16*2
        01:C053  04 04 00  
        01:C056  02        
    85                     
@@ -422,247 +422,229 @@
    88                     
    89                             ; draw background (test)
    90                     
-   91  01:C05A  A9 A4             lda     #LOW(WaveMap_01)
+   91  01:C05A  A9 84             lda     #LOW(WaveMap_01)
    92  01:C05C  85 0A             sta     <zarg0
-   93  01:C05E  A9 47             lda     #HIGH(WaveMap_01)
+   93  01:C05E  A9 4D             lda     #HIGH(WaveMap_01)
    94  01:C060  85 0B             sta     <zarg1
-   95  01:C062  20 55 C3          jsr     DrawWave
+   95  01:C062  20 8F C3          jsr     DrawWave
    96                     
    97                     
-   98                     
-   99                             ;; initialize sprite
-  100                     
-  101  01:C065  20 33 C1          jsr     spr_init
-  102  01:C068  20 7E C1          jsr     spr_update
-  103                     
-  104                     
-  105                     
-  106  01:C06B  20 A0 C0          jsr     initPsgTest
-  107                     
-  108  01:C06E  20 94 C4          jsr     tkInit
-  109                     
-  110  01:C071  20 8E C1          jsr     plInit
-  111                     
-  112  01:C074  20 2A C4          jsr     vqInit
-  113                     ;        st0     #$0d
-  114                     ;        st1     #150
-  115                     ;        st2     #0
-  116                     ;        st0     #$0e
-  117                     ;        st1     #4+39+50
-  118                     ;        st2     #0
-  119                     ; dc eb
-  120                     ; ef fe
-  121                     ; cb d7
-  122  01:C077            mainloop:
-  123                     
-  124           0000              .if     0
-  131                             .else
-  132                     
-  133  01:C077  20 D5 C4          jsr     tkDispatch
-  134                             .endif
+   98  01:C065  03 00             st0     #0
+   99  01:C067  A9 C0             lda #LOW(0+30*32)
+  100  01:C069  8D 02 00      sta VdcDataL
+  101  01:C06C  A9 03         lda #HIGH(0+30*32)
+  102  01:C06E  8D 03 00      sta VdcDataH
+  103  01:C071  03 02             st0     #2
+  104  01:C073  A9 34             lda     #LOW(($1000+52*16)/16)
+  105  01:C075  8D 02 00          sta     VdcDataL
+  106  01:C078  A9 01             lda     #HIGH(($1000+52*16)/16)
+  107  01:C07A  8D 03 00          sta     VdcDataH
+  108  01:C07D  A9 35             lda     #LOW(($1000+53*16)/16)
+  109  01:C07F  8D 02 00          sta     VdcDataL
+  110  01:C082  A9 01             lda     #HIGH(($1000+53*16)/16)
+  111  01:C084  8D 03 00          sta     VdcDataH
+  112  01:C087  A9 36             lda     #LOW(($1000+54*16)/16)
+  113  01:C089  8D 02 00          sta     VdcDataL
+  114  01:C08C  A9 01             lda     #HIGH(($1000+54*16)/16)
+  115  01:C08E  8D 03 00          sta     VdcDataH
+  116  01:C091  A9 37             lda     #LOW(($1000+55*16)/16)
+  117  01:C093  8D 02 00          sta     VdcDataL
+  118  01:C096  A9 01             lda     #HIGH(($1000+55*16)/16)
+  119  01:C098  8D 03 00          sta     VdcDataH
+  120                     
+  121                             ;; initialize sprite
+  122                     
+  123  01:C09B  20 6D C1          jsr     spr_init
+  124  01:C09E  20 B8 C1          jsr     spr_update
+  125                     
+  126                     
+  127                     
+  128  01:C0A1  20 DA C0          jsr     initPsgTest
+  129                     
+  130  01:C0A4  20 CE C4          jsr     tkInit
+  131                     
+  132  01:C0A7  20 C8 C1          jsr     plInit
+  133                     
+  134  01:C0AA  20 64 C4          jsr     vqInit
   135                     
-  136                                                     ;test vqPush
-  137           0000              .if     0
-  153                             .endif
-  154                     ;
-  155                     ;       vsync
-  156                     ;
-  157           0000              .if     0
-  211                             .endif
-  212                     
-  213  01:C07A  4C 77 C0          jmp     mainloop
+  136  01:C0AD            mainloop:
+  137  01:C0AD  20 0F C5          jsr     tkDispatch
+  138  01:C0B0  4C AD C0          jmp     mainloop
+  139                     
+  140                     
+  141                     
+  142                     
+  143                     ;
+  144                     ;       vsync
+  145                     ;
+  146  01:C0B3            VSyncTask:
+  147  01:C0B3  20 B8 C1      jsr spr_update
+  148  01:C0B6  20 00 C0      jsr waitVsync
+  149                     
+  150  01:C0B9  20 95 C4          jsr     vqDraw
+  151                     
+  152                     ;       scroll
+  153  01:C0BC  03 07             st0     #7
+  154  01:C0BE  9C 02 00          stz     VdcDataL
+  155  01:C0C1  9C 03 00          stz     VdcDataH
+  156                     
+  157  01:C0C4  03 08             st0     #8
+  158  01:C0C6  A9 EF             lda     #$ef
+  159  01:C0C8  8D 02 00          sta     VdcDataL
+  160  01:C0CB  A9 FF             lda     #$ff
+  161  01:C0CD  8D 03 00          sta     VdcDataH
+  162                     
+  163  01:C0D0  20 C1 E0      jsr readPad
+  164                     
+  165  01:C0D3  E6 14             inc     <z_frame
+  166                             
+  167  01:C0D5  20 1D C5          jsr     tkYield
+  168  01:C0D8  80 D9             bra     VSyncTask
+  169                     
+  170                     
+  171                     
+  172                     
+  173                     ;       psg test        
+  174  01:C0DA            initPsgTest:
+  175  01:C0DA  A9 00             lda     #0
+  176  01:C0DC  8D 00 08          sta     PsgChannel
+  177                     
+  178                     ;       write wave data
+  179  01:C0DF  A9 40             lda     #$40
+  180  01:C0E1  8D 04 08          sta     PsgCtrl
+  181  01:C0E4  9C 04 08          stz     PsgCtrl
+  182                     
+  183  01:C0E7  82                clx
+  184  01:C0E8  BD 0A C1  .loop:  lda     .wave,x
+  185  01:C0EB  C9 FF             cmp     #$ff
+  186  01:C0ED  F0 06             beq     .loopend
+  187  01:C0EF  8D 06 08          sta     PsgWave
+  188  01:C0F2  E8                inx
+  189  01:C0F3  80 F3             bra     .loop
+  190                     
+  191  01:C0F5            .loopend:
+  192                     ;       set frequency
+  193  01:C0F5  A9 FE             lda     #$fe
+  194  01:C0F7  8D 02 08          sta     PsgFreqL
+  195  01:C0FA  9C 03 08          stz     PsgFreqH
+  196                     
+  197                     ;       set volume
+  198                             ;lda    #$ff
+  199  01:C0FD  62                cla
+  200  01:C0FE  8D 05 08          sta     PsgChVol
+  201  01:C101  8D 01 08          sta     PsgMainVol
+  202                     
+  203  01:C104  A9 8F             lda     #$8f
+  204  01:C106  8D 04 08          sta     PsgCtrl
+  205                     
+  206  01:C109  60                rts
+  207                     
+  208  01:C10A            .wave:
+  209  01:C10A  1F 1D 1B          .db     $1f,$1d,$1b,$19,$17,$15,$13,$11
+       01:C10D  19 17 15  
+       01:C110  13 11     
+  210  01:C112  0F 0D 0B          .db     $0f,$0d,$0b,$09,$07,$05,$03,$01
+       01:C115  09 07 05  
+       01:C118  03 01     
+  211  01:C11A  1F 1D 1B          .db     $1f,$1d,$1b,$19,$17,$15,$13,$11
+       01:C11D  19 17 15  
+       01:C120  13 11     
+  212  01:C122  0F 0D 0B          .db     $0f,$0d,$0b,$09,$07,$05,$03,$01
+       01:C125  09 07 05  
+       01:C128  03 01     
+  213  01:C12A  FF                .db     $ff     
   214                     
-  215                     
-  216                     
-  217                     
-  218                     ;
-  219                     ;       vsync
-  220                     ;
-  221  01:C07D            VSyncTask:
-  222  01:C07D  20 7E C1      jsr spr_update
-  223  01:C080  20 00 C0      jsr waitVsync
-  224                     
-  225  01:C083  20 5B C4          jsr     vqDraw
+  215  01:C12B  1F 1F 1F          .db     $1f,$1f,$1f,$1f,$1f,$1f,$1f,$1f
+       01:C12E  1F 1F 1F  
+       01:C131  1F 1F     
+  216  01:C133  00 00 00          .db     $00,$00,$00,$00,$00,$00,$00,$00
+       01:C136  00 00 00  
+       01:C139  00 00     
+  217  01:C13B  00 00 00          .db     $00,$00,$00,$00,$00,$00,$00,$00
+       01:C13E  00 00 00  
+       01:C141  00 00     
+  218  01:C143  00 00 00          .db     $00,$00,$00,$00,$00,$00,$00,$00
+       01:C146  00 00 00  
+       01:C149  00 00     
+  219  01:C14B  FF                .db     $ff
+  220                     
+  221  01:C14C  0F 12 15          .db     $0f,$12,$15,$17,$19,$1b,$1d,$1E
+       01:C14F  17 19 1B  
+       01:C152  1D 1E     
+  222  01:C154  1E 1E 1D          .db     $1e,$1e,$1d,$1b,$19,$17,$15,$12
+       01:C157  1B 19 17  
+       01:C15A  15 12     
+  223  01:C15C  0F 0C 09          .db     $0f,$0c,$09,$07,$05,$03,$01,$00
+       01:C15F  07 05 03  
+       01:C162  01 00     
+  224  01:C164  00 00 01          .db     $00,$00,$01,$03,$05,$07,$09,$0c
+       01:C167  03 05 07  
+       01:C16A  09 0C     
+  225  01:C16C  FF                .db     $ff     
   226                     
-  227                     ;       scroll
-  228  01:C086  03 07             st0     #7
-  229  01:C088  9C 02 00          stz     VdcDataL
-  230  01:C08B  9C 03 00          stz     VdcDataH
-  231                     
-  232  01:C08E  03 08             st0     #8
-  233  01:C090  9C 02 00          stz     VdcDataL
-  234  01:C093  9C 03 00          stz     VdcDataH
-  235                     
-  236  01:C096  20 C1 E0      jsr readPad
-  237                     
-  238  01:C099  E6 14             inc     <z_frame
-  239                             
-  240  01:C09B  20 E3 C4          jsr     tkYield
-  241  01:C09E  80 DD             bra     VSyncTask
+  227                     
+  228  01:C16D            spr_init:
+  229                     
+  230                             ;; clear satb
+  231  01:C16D  9C 00 22          stz     satb
+  232  01:C170  73 00 22          tii     satb,satb+1,512-1
+       01:C173  01 22 FF  
+       01:C176  01        
+  233                     
+  234                             ;; set satb 0
+  235  01:C177  A9 40             lda     #$40
+  236  01:C179  8D 00 22          sta     satb+0
+  237  01:C17C  9C 01 22          stz     satb+1
+  238                     
+  239  01:C17F  A9 20             lda     #$20
+  240  01:C181  8D 02 22          sta     satb+2
+  241  01:C184  9C 03 22          stz     satb+3
   242                     
-  243                     
-  244                     
-  245                     
+  243  01:C187  9C 04 22          stz     satb+4
+  244  01:C18A  A9 02             lda     #$2             ;vram address = $4000 -> $200
+  245  01:C18C  8D 05 22          sta     satb+5
   246                     
-  247                     ;.loop: bra     .loop
-  248                     
-  249                     ;       psg test        
-  250  01:C0A0            initPsgTest:
-  251  01:C0A0  A9 00             lda     #0
-  252  01:C0A2  8D 00 08          sta     PsgChannel
-  253                     
-  254                     ;       write wave data
-  255  01:C0A5  A9 40             lda     #$40
-  256  01:C0A7  8D 04 08          sta     PsgCtrl
-  257  01:C0AA  9C 04 08          stz     PsgCtrl
-  258                     
-  259  01:C0AD  82                clx
-  260  01:C0AE  BD D0 C0  .loop:  lda     .wave,x
-  261  01:C0B1  C9 FF             cmp     #$ff
-  262  01:C0B3  F0 06             beq     .loopend
-  263  01:C0B5  8D 06 08          sta     PsgWave
-  264  01:C0B8  E8                inx
-  265  01:C0B9  80 F3             bra     .loop
-  266                     
-  267  01:C0BB            .loopend:
-  268                     ;       set frequency
-  269  01:C0BB  A9 FE             lda     #$fe
-  270  01:C0BD  8D 02 08          sta     PsgFreqL
-  271  01:C0C0  9C 03 08          stz     PsgFreqH
-  272                     
-  273                     ;       set volume
-  274                             ;lda    #$ff
-  275  01:C0C3  62                cla
-  276  01:C0C4  8D 05 08          sta     PsgChVol
-  277  01:C0C7  8D 01 08          sta     PsgMainVol
-  278                     
-  279  01:C0CA  A9 8F             lda     #$8f
-  280  01:C0CC  8D 04 08          sta     PsgCtrl
+  247  01:C18F  A9 80             lda     #$80            ;priority  & color=0
+  248  01:C191  8D 06 22          sta     satb+6
+  249  01:C194  9C 07 22          stz     satb+7
+  250                     
+  251                     
+  252                             ;; set satb 1
+  253  01:C197  A9 40             lda     #$40
+  254  01:C199  8D 08 22          sta     satb+8
+  255  01:C19C  9C 09 22          stz     satb+9
+  256                     
+  257  01:C19F  A9 20             lda     #$20
+  258  01:C1A1  8D 0A 22          sta     satb+10
+  259  01:C1A4  9C 0B 22          stz     satb+11
+  260                     
+  261  01:C1A7  9C 0C 22          stz     satb+12
+  262  01:C1AA  A9 02             lda     #$2             ;vram address = $4000 -> $200
+  263  01:C1AC  8D 0D 22          sta     satb+13
+  264                     
+  265  01:C1AF  A9 80             lda     #$80            ;priority  & color=0
+  266  01:C1B1  8D 0E 22          sta     satb+14
+  267  01:C1B4  9C 0F 22          stz     satb+15
+  268                     
+  269  01:C1B7  60                rts
+  270                     
+  271                     
+  272  01:C1B8            spr_update:
+  273  01:C1B8  03 00             st0     #0
+  274  01:C1BA  13 00             st1     #$00
+  275  01:C1BC  23 7F             st2     #$7f
+  276  01:C1BE  03 02             st0     #2
+  277  01:C1C0  E3 00 22          tia     satb,VdcDataL,512
+       01:C1C3  02 00 00  
+       01:C1C6  02        
+  278  01:C1C7  60                rts
+  279                     
+  280                     
   281                     
-  282  01:C0CF  60                rts
-  283                     
-  284  01:C0D0            .wave:
-  285  01:C0D0  1F 1D 1B          .db     $1f,$1d,$1b,$19,$17,$15,$13,$11
-       01:C0D3  19 17 15  
-       01:C0D6  13 11     
-  286  01:C0D8  0F 0D 0B          .db     $0f,$0d,$0b,$09,$07,$05,$03,$01
-       01:C0DB  09 07 05  
-       01:C0DE  03 01     
-  287  01:C0E0  1F 1D 1B          .db     $1f,$1d,$1b,$19,$17,$15,$13,$11
-       01:C0E3  19 17 15  
-       01:C0E6  13 11     
-  288  01:C0E8  0F 0D 0B          .db     $0f,$0d,$0b,$09,$07,$05,$03,$01
-       01:C0EB  09 07 05  
-       01:C0EE  03 01     
-  289  01:C0F0  FF                .db     $ff     
-  290                     
-  291  01:C0F1  1F 1F 1F          .db     $1f,$1f,$1f,$1f,$1f,$1f,$1f,$1f
-       01:C0F4  1F 1F 1F  
-       01:C0F7  1F 1F     
-  292  01:C0F9  00 00 00          .db     $00,$00,$00,$00,$00,$00,$00,$00
-       01:C0FC  00 00 00  
-       01:C0FF  00 00     
-  293  01:C101  00 00 00          .db     $00,$00,$00,$00,$00,$00,$00,$00
-       01:C104  00 00 00  
-       01:C107  00 00     
-  294  01:C109  00 00 00          .db     $00,$00,$00,$00,$00,$00,$00,$00
-       01:C10C  00 00 00  
-       01:C10F  00 00     
-  295  01:C111  FF                .db     $ff
-  296                     
-  297  01:C112  0F 12 15          .db     $0f,$12,$15,$17,$19,$1b,$1d,$1E
-       01:C115  17 19 1B  
-       01:C118  1D 1E     
-  298  01:C11A  1E 1E 1D          .db     $1e,$1e,$1d,$1b,$19,$17,$15,$12
-       01:C11D  1B 19 17  
-       01:C120  15 12     
-  299  01:C122  0F 0C 09          .db     $0f,$0c,$09,$07,$05,$03,$01,$00
-       01:C125  07 05 03  
-       01:C128  01 00     
-  300  01:C12A  00 00 01          .db     $00,$00,$01,$03,$05,$07,$09,$0c
-       01:C12D  03 05 07  
-       01:C130  09 0C     
-  301  01:C132  FF                .db     $ff     
-  302                     
-  303                     
-  304  01:C133            spr_init:
-  305                     
-  306                             ;; clear satb
-  307  01:C133  9C 00 22          stz     satb
-  308  01:C136  73 00 22          tii     satb,satb+1,512-1
-       01:C139  01 22 FF  
-       01:C13C  01        
-  309                     
-  310                             ;; set satb 0
-  311  01:C13D  A9 40             lda     #$40
-  312  01:C13F  8D 00 22          sta     satb+0
-  313  01:C142  9C 01 22          stz     satb+1
-  314                     
-  315  01:C145  A9 20             lda     #$20
-  316  01:C147  8D 02 22          sta     satb+2
-  317  01:C14A  9C 03 22          stz     satb+3
-  318                     
-  319  01:C14D  9C 04 22          stz     satb+4
-  320  01:C150  A9 02             lda     #$2             ;vram address = $4000 -> $200
-  321  01:C152  8D 05 22          sta     satb+5
-  322                     
-  323  01:C155  A9 80             lda     #$80            ;priority  & color=0
-  324  01:C157  8D 06 22          sta     satb+6
-  325  01:C15A  9C 07 22          stz     satb+7
-  326                     
-  327                     
-  328                             ;; set satb 1
-  329  01:C15D  A9 40             lda     #$40
-  330  01:C15F  8D 08 22          sta     satb+8
-  331  01:C162  9C 09 22          stz     satb+9
-  332                     
-  333  01:C165  A9 20             lda     #$20
-  334  01:C167  8D 0A 22          sta     satb+10
-  335  01:C16A  9C 0B 22          stz     satb+11
-  336                     
-  337  01:C16D  9C 0C 22          stz     satb+12
-  338  01:C170  A9 02             lda     #$2             ;vram address = $4000 -> $200
-  339  01:C172  8D 0D 22          sta     satb+13
-  340                     
-  341  01:C175  A9 80             lda     #$80            ;priority  & color=0
-  342  01:C177  8D 0E 22          sta     satb+14
-  343  01:C17A  9C 0F 22          stz     satb+15
-  344                     
-  345  01:C17D  60                rts
-  346                     
-  347                     
-  348  01:C17E            spr_update:
-  349  01:C17E  03 00             st0     #0
-  350  01:C180  13 00             st1     #$00
-  351  01:C182  23 7F             st2     #$7f
-  352  01:C184  03 02             st0     #2
-  353  01:C186  E3 00 22          tia     satb,VdcDataL,512
-       01:C189  02 00 00  
-       01:C18C  02        
-  354  01:C18D  60                rts
-  355                     
-  356                     
-  357                     
-  358                             ;...
-  359                     
-  360                     ;ｱｱｱ[ USER DATA ]ｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱ�
-  361                     
-  362                     
-  363           0002              .bank  MAIN_BANK+1
-  364           6000              .org   $6000
-  365                     
-  366                     
-  367                     ;--------
-  368                     ;--------
-  369                     
-  370                     
-  371                     ;--------
-  372                     ;--------
-  373                     
-  374                     
-  375                             ;; satb
-  376           2200              .bss
-  377  --:2200            satb    .ds 512 ; the local SATB
+  282                             ;...
+  283                             ;; satb
+  284           2200              .bss
+  285  --:2200            satb    .ds 512 ; the local SATB
 #[1]   nibbler.asm
    10                     ;        .include "chrdriver.asm"
 #[2]   player.asm
@@ -680,7 +662,7 @@
    11                     
    12  --:201F            zplTailStop:    ds  1
    13                     
-   14           6000          .code
+   14           C1C8          .code
    15           0001          .bank   MAIN_BANK
    16                     
    17                     ;
@@ -689,45 +671,45 @@
    20                     ;   @args       なし
    21                     ;   @saveregs   なし
    22                     ;   @return     なし
-   23  01:C18E            plInit:
+   23  01:C1C8            plInit:
    24           200C      .tmp_fldadr_l   equ     zarg2       ;フィールドアドレス
    25           200D      .tmp_fldadr_h   equ     zarg3
    26                     
-   27  01:C18E  64 1F         stz <zplTailStop
+   27  01:C1C8  64 1F         stz <zplTailStop
    28                     
    29                                             ;頭の座標
-   30  01:C190  82            clx
-   31  01:C191  A9 80         lda     #(5*3+1)*8
-   32  01:C193  85 15         sta     <zplx
-   33  01:C195  A9 C8         lda     #(8*3+1)*8
-   34  01:C197  85 17         sta     <zply
-   35  01:C199  A9 02         lda     #2
-   36  01:C19B  85 1D         sta     <zplspeed
-   37  01:C19D  A9 20         lda     #%00100000
-   38  01:C19F  20 C5 C1      jsr     plSetDir
+   30  01:C1CA  82            clx
+   31  01:C1CB  A9 80         lda     #(5*3+1)*8
+   32  01:C1CD  85 15         sta     <zplx
+   33  01:C1CF  A9 C8         lda     #(8*3+1)*8
+   34  01:C1D1  85 17         sta     <zply
+   35  01:C1D3  A9 02         lda     #2
+   36  01:C1D5  85 1D         sta     <zplspeed
+   37  01:C1D7  A9 20         lda     #%00100000
+   38  01:C1D9  20 FF C1      jsr     plSetDir
    39                                             ;尻尾の座標
-   40  01:C1A2  A2 01         ldx #1
-   41  01:C1A4  A9 50         lda     #(3*3+1)*8
-   42  01:C1A6  95 15         sta     <zplx,x
-   43  01:C1A8  A9 C8         lda     #(8*3+1)*8
-   44  01:C1AA  95 17         sta     <zply,x
-   45  01:C1AC  A9 02         lda     #2
-   46  01:C1AE  95 1D         sta     <zplspeed,x
-   47  01:C1B0  A9 20         lda     #%00100000
-   48  01:C1B2  20 C5 C1      jsr     plSetDir
+   40  01:C1DC  A2 01         ldx #1
+   41  01:C1DE  A9 50         lda     #(3*3+1)*8
+   42  01:C1E0  95 15         sta     <zplx,x
+   43  01:C1E2  A9 C8         lda     #(8*3+1)*8
+   44  01:C1E4  95 17         sta     <zply,x
+   45  01:C1E6  A9 02         lda     #2
+   46  01:C1E8  95 1D         sta     <zplspeed,x
+   47  01:C1EA  A9 20         lda     #%00100000
+   48  01:C1EC  20 FF C1      jsr     plSetDir
    49                                             ;胴体
    50                                             ;TODO: 胴体の絵を描いてない
-   51  01:C1B5  20 D6 C1      jsr plGetBatFldAdr
-   52  01:C1B8  C2            cly
-   53  01:C1B9            .loop:
-   54  01:C1B9  B1 0C         lda [.tmp_fldadr_l],y
-   55  01:C1BB  09 02         ora #%00000010
-   56  01:C1BD  91 0C         sta [.tmp_fldadr_l],y
-   57  01:C1BF  C8            iny
-   58  01:C1C0  C0 06         cpy #6
-   59  01:C1C2  D0 F5         bne .loop
+   51  01:C1EF  20 10 C2      jsr plGetBatFldAdr
+   52  01:C1F2  C2            cly
+   53  01:C1F3            .loop:
+   54  01:C1F3  B1 0C         lda [.tmp_fldadr_l],y
+   55  01:C1F5  09 02         ora #%00000010
+   56  01:C1F7  91 0C         sta [.tmp_fldadr_l],y
+   57  01:C1F9  C8            iny
+   58  01:C1FA  C0 06         cpy #6
+   59  01:C1FC  D0 F5         bne .loop
    60                     
-   61  01:C1C4  60            rts
+   61  01:C1FE  60            rts
    62                     
    63                     ;
    64                     ;   移動方向（とその逆方向）をセット
@@ -736,19 +718,19 @@
    67                     ;               x = キャラクタインデックス
    68                     ;   @saveregs   x
    69                     ;   @return     なし
-   70  01:C1C5            plSetDir:
-   71  01:C1C5  29 F0         and     #$f0        ;下位4ビットは必ずクリアしておく（方向転換判定で誤判定の元となる）
-   72  01:C1C7  95 19         sta     <zpldir,x
+   70  01:C1FF            plSetDir:
+   71  01:C1FF  29 F0         and     #$f0        ;下位4ビットは必ずクリアしておく（方向転換判定で誤判定の元となる）
+   72  01:C201  95 19         sta     <zpldir,x
    73                     
-   74  01:C1C9  89 A0         bit     #%10100000
-   75  01:C1CB  F0 04         beq     .du
-   76  01:C1CD  49 A0         eor     #%10100000
-   77  01:C1CF  80 02         bra     .set
-   78  01:C1D1            .du:
-   79  01:C1D1  49 50         eor     #%01010000
-   80  01:C1D3            .set:
-   81  01:C1D3  95 1B         sta     <zpldirr,x
-   82  01:C1D5  60            rts
+   74  01:C203  89 A0         bit     #%10100000
+   75  01:C205  F0 04         beq     .du
+   76  01:C207  49 A0         eor     #%10100000
+   77  01:C209  80 02         bra     .set
+   78  01:C20B            .du:
+   79  01:C20B  49 50         eor     #%01010000
+   80  01:C20D            .set:
+   81  01:C20D  95 1B         sta     <zpldirr,x
+   82  01:C20F  60            rts
    83                     
    84                     
    85                     ;
@@ -758,35 +740,35 @@
    89                     ;   @saveregs   x
    90                     ;   @return     zarg0,1 = BATアドレス
    91                     ;               zarg2,3 = フィールドアドレス
-   92  01:C1D6            plGetBatFldAdr:
+   92  01:C210            plGetBatFldAdr:
    93           200A      .arg_batadr_l     equ     zarg0
    94           200B      .arg_batadr_h     equ     zarg1
    95           200C      .arg_fldadr_l     equ     zarg2
    96           200D      .arg_fldadr_h     equ     zarg3
    97                     
-   98  01:C1D6  B5 15         lda     <zplx,x
-   99  01:C1D8  4A            lsr     a
-  100  01:C1D9  4A            lsr     a
-  101  01:C1DA  4A            lsr     a
-  102  01:C1DB  85 0A         sta     <.arg_batadr_l
-  103  01:C1DD  64 0B         stz     <.arg_batadr_h
-  104  01:C1DF  B5 17         lda     <zply,x
-  105  01:C1E1  29 F8         and     #$f8
-  106  01:C1E3  0A            asl     a
-  107  01:C1E4  26 0B         rol     <.arg_batadr_h
-  108  01:C1E6  0A            asl     a
-  109  01:C1E7  26 0B         rol     <.arg_batadr_h
-  110  01:C1E9  04 0A         tsb     <.arg_batadr_l
+   98  01:C210  B5 15         lda     <zplx,x
+   99  01:C212  4A            lsr     a
+  100  01:C213  4A            lsr     a
+  101  01:C214  4A            lsr     a
+  102  01:C215  85 0A         sta     <.arg_batadr_l
+  103  01:C217  64 0B         stz     <.arg_batadr_h
+  104  01:C219  B5 17         lda     <zply,x
+  105  01:C21B  29 F8         and     #$f8
+  106  01:C21D  0A            asl     a
+  107  01:C21E  26 0B         rol     <.arg_batadr_h
+  108  01:C220  0A            asl     a
+  109  01:C221  26 0B         rol     <.arg_batadr_h
+  110  01:C223  04 0A         tsb     <.arg_batadr_l
   111                     
-  112  01:C1EB  A5 0A         lda <.arg_batadr_l
-  113  01:C1ED  18            clc
-  114  01:C1EE  69 00         adc #LOW(VMap)
-  115  01:C1F0  85 0C         sta <.arg_fldadr_l
-  116  01:C1F2  A5 0B         lda <.arg_batadr_h
-  117  01:C1F4  69 24         adc #HIGH(VMap)
-  118  01:C1F6  85 0D         sta <.arg_fldadr_h
+  112  01:C225  A5 0A         lda <.arg_batadr_l
+  113  01:C227  18            clc
+  114  01:C228  69 00         adc #LOW(VMap)
+  115  01:C22A  85 0C         sta <.arg_fldadr_l
+  116  01:C22C  A5 0B         lda <.arg_batadr_h
+  117  01:C22E  69 24         adc #HIGH(VMap)
+  118  01:C230  85 0D         sta <.arg_fldadr_h
   119                     
-  120  01:C1F8  60            rts
+  120  01:C232  60            rts
   121                     
   122                     ;
   123                     ;       ヘビの頭の動き
@@ -794,7 +776,7 @@
   125                     ;       @args           x = キャラクタインデックス
   126                     ;       @saveregs       x
   127                     ;       @return         その場で停止すべき時は cf=1
-  128  01:C1F9            plHeadAction:
+  128  01:C233            plHeadAction:
   129           200C      .tmp_fldadr_l   equ     zarg2       ;フィールドアドレス
   130           200D      .tmp_fldadr_h   equ     zarg3
   131           2005      .tmp_fldv       equ     ztmp2       ;フィールド上の値
@@ -803,141 +785,141 @@
   134           2003      .tmp_dead_flg   equ ztmp0
   135                     
   136                                             ;グリッドの中間にいる場合は何もしない
-  137  01:C1F9  B5 15         lda <zplx,x
-  138  01:C1FB  15 17         ora <zply,x
-  139  01:C1FD  29 07         and #$07
-  140  01:C1FF  F0 02         beq .act
-  141  01:C201  18            clc
-  142  01:C202  60            rts
+  137  01:C233  B5 15         lda <zplx,x
+  138  01:C235  15 17         ora <zply,x
+  139  01:C237  29 07         and #$07
+  140  01:C239  F0 02         beq .act
+  141  01:C23B  18            clc
+  142  01:C23C  60            rts
   143                                             ;尻尾を停止しているなら解除
-  144  01:C203            .act:
-  145  01:C203  A5 1F         lda <zplTailStop
-  146  01:C205  F0 03         beq .act2
-  147  01:C207  3A            dec a
-  148  01:C208  85 1F         sta <zplTailStop
-  149  01:C20A            .act2:
+  144  01:C23D            .act:
+  145  01:C23D  A5 1F         lda <zplTailStop
+  146  01:C23F  F0 03         beq .act2
+  147  01:C241  3A            dec a
+  148  01:C242  85 1F         sta <zplTailStop
+  149  01:C244            .act2:
   150                     
   151                     
-  152  01:C20A  20 D6 C1      jsr plGetBatFldAdr
+  152  01:C244  20 10 C2      jsr plGetBatFldAdr
   153                                             ;フィールド上の現在位置の値
-  154  01:C20D  B2 0C         lda     [.tmp_fldadr_l]
-  155  01:C20F  85 05         sta     <.tmp_fldv
+  154  01:C247  B2 0C         lda     [.tmp_fldadr_l]
+  155  01:C249  85 05         sta     <.tmp_fldv
   156                     
   157                     ;    lda <.tmp_fldv
-  158  01:C211  29 0F         and #$0f
-  159  01:C213  F0 0A         beq .controller
+  158  01:C24B  29 0F         and #$0f
+  159  01:C24D  F0 0A         beq .controller
   160                                             ;現在位置に尻尾があったら死亡
-  161  01:C215  C9 09         cmp #9
-  162  01:C217  30 58         bmi .dead
+  161  01:C24F  C9 09         cmp #9
+  162  01:C251  30 58         bmi .dead
   163                     
-  164  01:C219  C9 0F         cmp #$0f
-  165  01:C21B  D0 02         bne .controller
+  164  01:C253  C9 0F         cmp #$0f
+  165  01:C255  D0 02         bne .controller
   166                                             ;現在位置にドットがあるなら尻尾を停止させる（胴体を伸ばす）
-  167  01:C21D  E6 1F         inc <zplTailStop
+  167  01:C257  E6 1F         inc <zplTailStop
   168                     
-  169  01:C21F            .controller:
+  169  01:C259            .controller:
   170                                             ;
   171                                             ;コントローラーが押されている場合の方向転換判定 ldru
-  172  01:C21F  A5 00         lda     <zpad
-  173  01:C221  29 F0         and     #$f0
+  172  01:C259  A5 00         lda     <zpad
+  173  01:C25B  29 F0         and     #$f0
   174                                             ;押されていない
-  175  01:C223  F0 10         beq     .notpushed
+  175  01:C25D  F0 10         beq     .notpushed
   176                                             ;移動方向および逆方向が押されていても押されていないとみなす
-  177  01:C225  85 06         sta     <.tmp_pad
-  178  01:C227  B5 19         lda     <zpldir,x
-  179  01:C229  15 1B         ora     <zpldirr,x
-  180  01:C22B  14 06         trb     <.tmp_pad
-  181  01:C22D  F0 06         beq     .notpushed
+  177  01:C25F  85 06         sta     <.tmp_pad
+  178  01:C261  B5 19         lda     <zpldir,x
+  179  01:C263  15 1B         ora     <zpldirr,x
+  180  01:C265  14 06         trb     <.tmp_pad
+  181  01:C267  F0 06         beq     .notpushed
   182                                             ;移動方向以外かつ逆方向以外が押されていて、そっちに移動可能なら変更
-  183  01:C22F  A5 06         lda     <.tmp_pad
-  184  01:C231  24 05         bit     <.tmp_fldv
-  185  01:C233  D0 1A         bne     .changed
+  183  01:C269  A5 06         lda     <.tmp_pad
+  184  01:C26B  24 05         bit     <.tmp_fldv
+  185  01:C26D  D0 1A         bne     .changed
   186                                             ;コントローラーが押されていない場合の方向転換判定
-  187  01:C235            .notpushed:
+  187  01:C26F            .notpushed:
   188                                             ;直進可能ならそのまま進む
-  189  01:C235  A5 05         lda     <.tmp_fldv
-  190  01:C237  34 19         bit     <zpldir,x
-  191  01:C239  D0 17         bne     .notchanged
+  189  01:C26F  A5 05         lda     <.tmp_fldv
+  190  01:C271  34 19         bit     <zpldir,x
+  191  01:C273  D0 17         bne     .notchanged
   192                                             ;直進と後退以外の移動可能方向？
-  193  01:C23B  4A            lsr     a
-  194  01:C23C  4A            lsr     a
-  195  01:C23D  4A            lsr     a
-  196  01:C23E  4A            lsr     a
-  197  01:C23F  A8            tay
-  198  01:C240  B9 77 C2      lda     .DirCountTbl,y
+  193  01:C275  4A            lsr     a
+  194  01:C276  4A            lsr     a
+  195  01:C277  4A            lsr     a
+  196  01:C278  4A            lsr     a
+  197  01:C279  A8            tay
+  198  01:C27A  B9 B1 C2      lda     .DirCountTbl,y
   199                                             ;直角
-  200  01:C243  C9 02         cmp     #2
-  201  01:C245  F0 04         beq     .dc2
+  200  01:C27D  C9 02         cmp     #2
+  201  01:C27F  F0 04         beq     .dc2
   202                                             ;この時点で移動可能方向は3以外はありえない
   203                                             ;直進できないので移動可能方向は1,2,3のいずれか
   204                                             ;2の場合は分岐しており、1（つまり行き止まり）は存在しない
   205                                             ;よって3のみ（つまり丁字路で直進方向が塞がっている状態）
   206                     ;    cmp     #3
   207                     ;    bne     .notchanged
-  208  01:C247  38            sec                 ;丁字路の場合は一時停止
-  209  01:C248  64 03         stz <.tmp_dead_flg  ;死んでいない
-  210  01:C24A  60            rts
+  208  01:C281  38            sec                 ;丁字路の場合は一時停止
+  209  01:C282  64 03         stz <.tmp_dead_flg  ;死んでいない
+  210  01:C284  60            rts
   211                                             ;直角に曲がる
-  212  01:C24B            .dc2:
-  213  01:C24B  A5 05         lda     <.tmp_fldv
-  214  01:C24D  55 1B         eor     <zpldirr,x  ;2方向のうち進行方向の逆を打ち消して残った方向が進むべき方向
+  212  01:C285            .dc2:
+  213  01:C285  A5 05         lda     <.tmp_fldv
+  214  01:C287  55 1B         eor     <zpldirr,x  ;2方向のうち進行方向の逆を打ち消して残った方向が進むべき方向
   215                     
   216                                             ;進行方向を変更
-  217  01:C24F            .changed:
-  218  01:C24F  20 C5 C1      jsr     plSetDir
-  219  01:C252            .notchanged:
+  217  01:C289            .changed:
+  218  01:C289  20 FF C1      jsr     plSetDir
+  219  01:C28C            .notchanged:
   220                     
-  221  01:C252            .draw:
+  221  01:C28C            .draw:
   222                                             ;胴体
   223                                             ;フィールドに胴体フラグをセット
-  224  01:C252  A9 0F         lda #$0f
-  225  01:C254  14 05         trb <.tmp_fldv
-  226  01:C256  B5 19         lda <zpldir,x
-  227  01:C258  4A            lsr a
-  228  01:C259  4A            lsr a
-  229  01:C25A  4A            lsr a
-  230  01:C25B  4A            lsr a
-  231  01:C25C  05 05         ora <.tmp_fldv
-  232  01:C25E  92 0C         sta [.tmp_fldadr_l]
+  224  01:C28C  A9 0F         lda #$0f
+  225  01:C28E  14 05         trb <.tmp_fldv
+  226  01:C290  B5 19         lda <zpldir,x
+  227  01:C292  4A            lsr a
+  228  01:C293  4A            lsr a
+  229  01:C294  4A            lsr a
+  230  01:C295  4A            lsr a
+  231  01:C296  05 05         ora <.tmp_fldv
+  232  01:C298  92 0C         sta [.tmp_fldadr_l]
   233                                             ;描画
   234                                             ;TODO: 移動方向に合わせてタイルを変える
-  235  01:C260  A9 87         lda #LOW(BodyPartsTiles)
-  236  01:C262  85 0C         sta <zarg2
-  237  01:C264  A9 C2         lda #HIGH(BodyPartsTiles)
-  238  01:C266  85 0D         sta <zarg3
-  239  01:C268  A9 01         lda #1
-  240  01:C26A  85 0E         sta <zarg4
-  241  01:C26C  20 37 C4      jsr vqPush
+  235  01:C29A  A9 C1         lda #LOW(BodyPartsTiles)
+  236  01:C29C  85 0C         sta <zarg2
+  237  01:C29E  A9 C2         lda #HIGH(BodyPartsTiles)
+  238  01:C2A0  85 0D         sta <zarg3
+  239  01:C2A2  A9 01         lda #1
+  240  01:C2A4  85 0E         sta <zarg4
+  241  01:C2A6  20 71 C4      jsr vqPush
   242                     
-  243  01:C26F  18            clc                 ;指定方向に進行
-  244  01:C270  60            rts
+  243  01:C2A9  18            clc                 ;指定方向に進行
+  244  01:C2AA  60            rts
   245                     
   246                                             ;死亡
   247                                             ;TODO: 死亡時の処理を実装
-  248  01:C271            .dead:
-  249  01:C271  A9 01         lda #1
-  250  01:C273  85 03         sta <.tmp_dead_flg  ;死んだ
-  251  01:C275  38            sec
-  252  01:C276  60            rts
+  248  01:C2AB            .dead:
+  249  01:C2AB  A9 01         lda #1
+  250  01:C2AD  85 03         sta <.tmp_dead_flg  ;死んだ
+  251  01:C2AF  38            sec
+  252  01:C2B0  60            rts
   253                     ;
   254                     ;       移動可能方向の数（インデックス値のセットされたビットの数）
   255                     ;
-  256  01:C277            .DirCountTbl:
-  257  01:C277  00 01 01      db      0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4
-       01:C27A  02 01 02  
-       01:C27D  02 03 01  
-       01:C280  02 02 03  
-       01:C283  02 03 03  
-       01:C286  04        
+  256  01:C2B1            .DirCountTbl:
+  257  01:C2B1  00 01 01      db      0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4
+       01:C2B4  02 01 02  
+       01:C2B7  02 03 01  
+       01:C2BA  02 02 03  
+       01:C2BD  02 03 03  
+       01:C2C0  04        
   258                     
   259                     
   260                     
   261           1000      PatternAddress  equ $1000
-  262  01:C287            BodyPartsTiles:
-  263  01:C287  0E 01         dw  (PatternAddress+$0e*16)/16
+  262  01:C2C1            BodyPartsTiles:
+  263  01:C2C1  0E 01         dw  (PatternAddress+$0e*16)/16
   264                     
-  265  01:C289            BlankPartsTiles:
-  266  01:C289  00 01         dw  (PatternAddress+$00*16)/16
+  265  01:C2C3            BlankPartsTiles:
+  266  01:C2C3  00 01         dw  (PatternAddress+$00*16)/16
   267                     
   268                     
   269                     ;
@@ -947,53 +929,53 @@
   273                     ;       @saveregs       x
   274                     ;       @return         その場で停止すべき時は cf=1
   275                     ;
-  276  01:C28B            plTailAction:
+  276  01:C2C5            plTailAction:
   277           200C      .tmp_fldadr_l   equ     zarg2       ;フィールドアドレス
   278           200D      .tmp_fldadr_h   equ     zarg3
   279                     
   280                                             ;尻尾を停止させる指示が出ている場合は何もしない
-  281  01:C28B  A5 1F         lda <zplTailStop
-  282  01:C28D  D0 2C         bne .notmove
+  281  01:C2C5  A5 1F         lda <zplTailStop
+  282  01:C2C7  D0 2C         bne .notmove
   283                     
   284                                             ;グリッドの中間にいる場合は何もしない
-  285  01:C28F  B5 15         lda <zplx,x
-  286  01:C291  15 17         ora <zply,x
-  287  01:C293  29 07         and #$07
-  288  01:C295  F0 02         beq .move
-  289  01:C297  18            clc
-  290  01:C298  60            rts
+  285  01:C2C9  B5 15         lda <zplx,x
+  286  01:C2CB  15 17         ora <zply,x
+  287  01:C2CD  29 07         and #$07
+  288  01:C2CF  F0 02         beq .move
+  289  01:C2D1  18            clc
+  290  01:C2D2  60            rts
   291                     
-  292  01:C299            .move:
-  293  01:C299  20 D6 C1      jsr plGetBatFldAdr
+  292  01:C2D3            .move:
+  293  01:C2D3  20 10 C2      jsr plGetBatFldAdr
   294                                             ;フィールド上の現在位置の値
   295                                             ;頭が移動した方向を尻尾の移動方向とする
-  296  01:C29C  B2 0C         lda [.tmp_fldadr_l]
-  297  01:C29E  48            pha
-  298  01:C29F  0A            asl a
-  299  01:C2A0  0A            asl a
-  300  01:C2A1  0A            asl a
-  301  01:C2A2  0A            asl a
-  302  01:C2A3  95 19         sta <zpldir,x
+  296  01:C2D6  B2 0C         lda [.tmp_fldadr_l]
+  297  01:C2D8  48            pha
+  298  01:C2D9  0A            asl a
+  299  01:C2DA  0A            asl a
+  300  01:C2DB  0A            asl a
+  301  01:C2DC  0A            asl a
+  302  01:C2DD  95 19         sta <zpldir,x
   303                                             ;頭が移動した方向をクリア
-  304  01:C2A5  68            pla
-  305  01:C2A6  29 F0         and #$f0
-  306  01:C2A8  92 0C         sta [.tmp_fldadr_l]
+  304  01:C2DF  68            pla
+  305  01:C2E0  29 F0         and #$f0
+  306  01:C2E2  92 0C         sta [.tmp_fldadr_l]
   307                     
   308                                             ;描画
-  309  01:C2AA  A9 89         lda #LOW(BlankPartsTiles)
-  310  01:C2AC  85 0C         sta <zarg2
-  311  01:C2AE  A9 C2         lda #HIGH(BlankPartsTiles)
-  312  01:C2B0  85 0D         sta <zarg3
-  313  01:C2B2  A9 01         lda #1
-  314  01:C2B4  85 0E         sta <zarg4
-  315  01:C2B6  20 37 C4      jsr vqPush
+  309  01:C2E4  A9 C3         lda #LOW(BlankPartsTiles)
+  310  01:C2E6  85 0C         sta <zarg2
+  311  01:C2E8  A9 C2         lda #HIGH(BlankPartsTiles)
+  312  01:C2EA  85 0D         sta <zarg3
+  313  01:C2EC  A9 01         lda #1
+  314  01:C2EE  85 0E         sta <zarg4
+  315  01:C2F0  20 71 C4      jsr vqPush
   316                     
-  317  01:C2B9  18            clc
-  318  01:C2BA  60            rts
+  317  01:C2F3  18            clc
+  318  01:C2F4  60            rts
   319                     
-  320  01:C2BB            .notmove:
-  321  01:C2BB  38            sec
-  322  01:C2BC  60            rts
+  320  01:C2F5            .notmove:
+  321  01:C2F5  38            sec
+  322  01:C2F6  60            rts
   323                     
   324                     
   325                     
@@ -1002,101 +984,101 @@
   328                     ;       @args           x = キャラクタインデックス
   329                     ;       @saveregs       x,y
   330                     ;       @return         なし
-  331  01:C2BD            plMove:
-  332  01:C2BD  B5 19         lda     <zpldir,x         ;bits of zpldir = LDRU----
-  333  01:C2BF  0A            asl     a
-  334  01:C2C0  B0 11         bcs     .moveleft
-  335  01:C2C2  0A            asl     a
-  336  01:C2C3  B0 17         bcs     .movedown
-  337  01:C2C5  0A            asl     a
-  338  01:C2C6  B0 1D         bcs     .moveright
-  339  01:C2C8  10 22         bpl     .notmove
-  340  01:C2CA            .moveup:
-  341  01:C2CA  B5 17         lda     <zply,x
-  342  01:C2CC  38            sec
-  343  01:C2CD  F5 1D         sbc     <zplspeed,x
-  344  01:C2CF  95 17         sta     <zply,x
-  345  01:C2D1  80 19         bra     .moved
-  346  01:C2D3            .moveleft:
-  347  01:C2D3  B5 15         lda     <zplx,x
-  348  01:C2D5  38            sec
-  349  01:C2D6  F5 1D         sbc     <zplspeed,x
-  350  01:C2D8  95 15         sta     <zplx,x
-  351  01:C2DA  80 10         bra     .moved
-  352  01:C2DC            .movedown:
-  353  01:C2DC  B5 17         lda     <zply,x
-  354  01:C2DE  18            clc
-  355  01:C2DF  75 1D         adc     <zplspeed,x
-  356  01:C2E1  95 17         sta     <zply,x
-  357  01:C2E3  80 07         bra     .moved
-  358  01:C2E5            .moveright:
-  359  01:C2E5  B5 15         lda     <zplx,x
-  360  01:C2E7  18            clc
-  361  01:C2E8  75 1D         adc     <zplspeed,x
-  362  01:C2EA  95 15         sta     <zplx,x
-  363  01:C2EC            .notmove:
-  364  01:C2EC            .moved:
+  331  01:C2F7            plMove:
+  332  01:C2F7  B5 19         lda     <zpldir,x         ;bits of zpldir = LDRU----
+  333  01:C2F9  0A            asl     a
+  334  01:C2FA  B0 11         bcs     .moveleft
+  335  01:C2FC  0A            asl     a
+  336  01:C2FD  B0 17         bcs     .movedown
+  337  01:C2FF  0A            asl     a
+  338  01:C300  B0 1D         bcs     .moveright
+  339  01:C302  10 22         bpl     .notmove
+  340  01:C304            .moveup:
+  341  01:C304  B5 17         lda     <zply,x
+  342  01:C306  38            sec
+  343  01:C307  F5 1D         sbc     <zplspeed,x
+  344  01:C309  95 17         sta     <zply,x
+  345  01:C30B  80 19         bra     .moved
+  346  01:C30D            .moveleft:
+  347  01:C30D  B5 15         lda     <zplx,x
+  348  01:C30F  38            sec
+  349  01:C310  F5 1D         sbc     <zplspeed,x
+  350  01:C312  95 15         sta     <zplx,x
+  351  01:C314  80 10         bra     .moved
+  352  01:C316            .movedown:
+  353  01:C316  B5 17         lda     <zply,x
+  354  01:C318  18            clc
+  355  01:C319  75 1D         adc     <zplspeed,x
+  356  01:C31B  95 17         sta     <zply,x
+  357  01:C31D  80 07         bra     .moved
+  358  01:C31F            .moveright:
+  359  01:C31F  B5 15         lda     <zplx,x
+  360  01:C321  18            clc
+  361  01:C322  75 1D         adc     <zplspeed,x
+  362  01:C324  95 15         sta     <zplx,x
+  363  01:C326            .notmove:
+  364  01:C326            .moved:
   365                                             ;スプライト座標設定
-  366  01:C2EC  8A            txa
-  367  01:C2ED  0A            asl a
-  368  01:C2EE  0A            asl a
-  369  01:C2EF  0A            asl a
-  370  01:C2F0  A8            tay
+  366  01:C326  8A            txa
+  367  01:C327  0A            asl a
+  368  01:C328  0A            asl a
+  369  01:C329  0A            asl a
+  370  01:C32A  A8            tay
   371                     
-  372  01:C2F1  B5 15         lda     <zplx,x
-  373  01:C2F3  18            clc
-  374  01:C2F4  69 1C         adc     #$20-4
-  375  01:C2F6  99 02 22      sta     satb+2,y
-  376  01:C2F9  62            cla
-  377  01:C2FA  99 03 22      sta     satb+3,y
+  372  01:C32B  B5 15         lda     <zplx,x
+  373  01:C32D  18            clc
+  374  01:C32E  69 1C         adc     #$20-4
+  375  01:C330  99 02 22      sta     satb+2,y
+  376  01:C333  62            cla
+  377  01:C334  99 03 22      sta     satb+3,y
   378                     
-  379  01:C2FD  B5 17         lda     <zply,x
-  380  01:C2FF  18            clc
-  381  01:C300  69 3C         adc     #$40-4
-  382  01:C302  99 00 22      sta     satb+0,y
-  383  01:C305  A9 00         lda     #0
-  384  01:C307  69 00         adc     #0
-  385  01:C309  99 01 22      sta     satb+1,y
+  379  01:C337  B5 17         lda     <zply,x
+  380  01:C339  18            clc
+  381  01:C33A  69 4C         adc     #$40-4+16   ;+16 はスクロールカウンタの差分
+  382  01:C33C  99 00 22      sta     satb+0,y
+  383  01:C33F  A9 00         lda     #0
+  384  01:C341  69 00         adc     #0
+  385  01:C343  99 01 22      sta     satb+1,y
   386                     
-  387  01:C30C  60            rts
+  387  01:C346  60            rts
   388                     
   389                     
   390                     ;
   391                     ;   task test
   392                     ;
-  393  01:C30D            plTask:
+  393  01:C347            plTask:
   394           2003      .tmp_dead_flg   equ ztmp0
   395                     
   396                                         ;頭
-  397  01:C30D  82                clx
-  398  01:C30E  20 F9 C1          jsr     plHeadAction
-  399  01:C311  B0 0F             bcs     .skipmove
-  400  01:C313  20 BD C2          jsr     plMove
+  397  01:C347  82                clx
+  398  01:C348  20 33 C2          jsr     plHeadAction
+  399  01:C34B  B0 0F             bcs     .skipmove
+  400  01:C34D  20 F7 C2          jsr     plMove
   401                                         ;尻尾
-  402  01:C316  A2 01         ldx #1
-  403  01:C318  20 8B C2      jsr plTailAction
-  404  01:C31B  B0 0A         bcs .yield
-  405  01:C31D  20 BD C2      jsr plMove
-  406  01:C320  80 05         bra .yield
+  402  01:C350  A2 01         ldx #1
+  403  01:C352  20 C5 C2      jsr plTailAction
+  404  01:C355  B0 0A         bcs .yield
+  405  01:C357  20 F7 C2      jsr plMove
+  406  01:C35A  80 05         bra .yield
   407                     
-  408  01:C322            .skipmove:
-  409  01:C322  83 FF 03      tst #$ff,<.tmp_dead_flg
-  410  01:C325  D0 05         bne .dead
+  408  01:C35C            .skipmove:
+  409  01:C35C  83 FF 03      tst #$ff,<.tmp_dead_flg
+  410  01:C35F  D0 05         bne .dead
   411                     
-  412  01:C327            .yield:
-  413  01:C327  20 E3 C4      jsr tkYield
-  414  01:C32A  80 E1         bra plTask
+  412  01:C361            .yield:
+  413  01:C361  20 1D C5      jsr tkYield
+  414  01:C364  80 E1         bra plTask
   415                     
-  416  01:C32C            .dead:
+  416  01:C366            .dead:
   417                                         ;TODO: 死亡時の処理
   418                                         ;タスクの処理の変更は、plTaskの中から呼び出さないとだめ（spが変わってしまって�
-  419  01:C32C  64 1F         stz <zplTailStop
+  419  01:C366  64 1F         stz <zplTailStop
   420                     
-  421  01:C32E  A9 38         lda #LOW(plDeadTask-1)
-  422  01:C330  85 0A         sta <zarg0
-  423  01:C332  A9 C3         lda #HIGH(plDeadTask-1)
-  424  01:C334  85 0B         sta <zarg1
-  425  01:C336  20 F6 C4      jsr tkLink
+  421  01:C368  A9 72         lda #LOW(plDeadTask-1)
+  422  01:C36A  85 0A         sta <zarg0
+  423  01:C36C  A9 C3         lda #HIGH(plDeadTask-1)
+  424  01:C36E  85 0B         sta <zarg1
+  425  01:C370  20 30 C5      jsr tkLink
   426                     
   427                     
   428                     ;
@@ -1104,21 +1086,21 @@
   430                     ;
   431                     ;   TODO:
   432                     
-  433  01:C339            plDeadTask:
-  434  01:C339  A2 01         ldx #1
-  435  01:C33B  20 8B C2      jsr plTailAction
-  436  01:C33E  B5 19         lda <zpldir,x
-  437  01:C340  F0 08         beq .over
-  438  01:C342  20 BD C2      jsr plMove
-  439  01:C345  20 E3 C4      jsr tkYield
-  440  01:C348  80 EF         bra plDeadTask
+  433  01:C373            plDeadTask:
+  434  01:C373  A2 01         ldx #1
+  435  01:C375  20 C5 C2      jsr plTailAction
+  436  01:C378  B5 19         lda <zpldir,x
+  437  01:C37A  F0 08         beq .over
+  438  01:C37C  20 F7 C2      jsr plMove
+  439  01:C37F  20 1D C5      jsr tkYield
+  440  01:C382  80 EF         bra plDeadTask
   441                     
-  442  01:C34A            .over:
-  443  01:C34A  A9 FF         lda #LOW(tkDummyTask-1)
-  444  01:C34C  85 0A         sta <zarg0
-  445  01:C34E  A9 FF         lda #HIGH(tkDummyTask-1)
-  446  01:C350  85 0B         sta <zarg1
-  447  01:C352  20 F6 C4      jsr tkLink
+  442  01:C384            .over:
+  443  01:C384  A9 45         lda #LOW(tkDummyTask-1)
+  444  01:C386  85 0A         sta <zarg0
+  445  01:C388  A9 C5         lda #HIGH(tkDummyTask-1)
+  446  01:C38A  85 0B         sta <zarg1
+  447  01:C38C  20 30 C5      jsr tkLink
 #[1]   nibbler.asm
    12                     ;        .include "pbullet.asm"
    13                     ;        .include "direction.asm"
@@ -1130,7 +1112,7 @@
    19                     
 #[2]   bgpattern.asm
    20                             .include "bgpattern.asm"
-    1           C355              .code
+    1           C38F              .code
     2           0004              .bank   MAIN_BANK+3
     3           4000              .org    $4000
     4                     
@@ -1394,303 +1376,326 @@
        04:41DC  00 00     
        04:41DE  00 00     
    54                     
-   55  04:41E0            BgPattern_end:
-   56           01E0      BgPattern_size  equ BgPattern_end-BgPattern
-   57                     ; ┌─┐
-   58                     ; │ │
-   59                     ; └─┘
-   60                     
-   61  04:41E0            BgPalette:
-   62  04:41E0  00 00             dw $0000,$ffff,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:41E2  FF FF     
-       04:41E4  20 01     
-       04:41E6  00 00     
-       04:41E8  00 00     
-       04:41EA  00 00     
-       04:41EC  00 00     
-       04:41EE  00 00     
-       04:41F0  07 01     
-       04:41F2  C7 01     
+   55                     
+   56                     ;
+   57                     ;   フォント 0-9,A-Z ,
+   58                     ;
+   59  04:41E0            bp_font_0:
+   60  04:41E0  38 00         db  %00111000,0
+   61  04:41E2  4C 00         db  %01001100,0
+   62  04:41E4  C6 00         db  %11000110,0
+   63  04:41E6  C6 00         db  %11000110,0
+   64  04:41E8  C6 00         db  %11000110,0
+   65  04:41EA  64 00         db  %01100100,0
+   66  04:41EC  38 00         db  %00111000,0
+   67  04:41EE  00 00         db  %00000000,0
+   68  04:41F0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:41F2  00 00     
        04:41F4  00 00     
        04:41F6  00 00     
        04:41F8  00 00     
        04:41FA  00 00     
        04:41FC  00 00     
        04:41FE  00 00     
-   63  04:4200  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4202  B6 01     
-       04:4204  20 01     
-       04:4206  00 00     
-       04:4208  00 00     
-       04:420A  00 00     
-       04:420C  00 00     
-       04:420E  00 00     
-       04:4210  07 01     
-       04:4212  C7 01     
+   69                     
+   70  04:4200            bp_font_1:
+   71  04:4200  30 00         db  %00110000,0
+   72  04:4202  70 00         db  %01110000,0
+   73  04:4204  30 00         db  %00110000,0
+   74  04:4206  30 00         db  %00110000,0
+   75  04:4208  30 00         db  %00110000,0
+   76  04:420A  30 00         db  %00110000,0
+   77  04:420C  FC 00         db  %11111100,0
+   78  04:420E  00 00         db  %00000000,0
+   79  04:4210  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4212  00 00     
        04:4214  00 00     
        04:4216  00 00     
        04:4218  00 00     
        04:421A  00 00     
        04:421C  00 00     
        04:421E  00 00     
-   64  04:4220  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4222  B6 01     
-       04:4224  20 01     
-       04:4226  00 00     
-       04:4228  00 00     
-       04:422A  00 00     
-       04:422C  00 00     
-       04:422E  00 00     
-       04:4230  07 01     
-       04:4232  C7 01     
+   80                     
+   81  04:4220            bp_font_2:
+   82  04:4220  7C 00         db  %01111100,0
+   83  04:4222  C6 00         db  %11000110,0
+   84  04:4224  0E 00         db  %00001110,0
+   85  04:4226  3C 00         db  %00111100,0
+   86  04:4228  78 00         db  %01111000,0
+   87  04:422A  E0 00         db  %11100000,0
+   88  04:422C  FE 00         db  %11111110,0
+   89  04:422E  00 00         db  %00000000,0
+   90  04:4230  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4232  00 00     
        04:4234  00 00     
        04:4236  00 00     
        04:4238  00 00     
        04:423A  00 00     
        04:423C  00 00     
        04:423E  00 00     
-   65  04:4240  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4242  B6 01     
-       04:4244  20 01     
-       04:4246  00 00     
-       04:4248  00 00     
-       04:424A  00 00     
-       04:424C  00 00     
-       04:424E  00 00     
-       04:4250  07 01     
-       04:4252  C7 01     
+   91                     
+   92  04:4240            bp_font_3:
+   93  04:4240  FE 00         db  %11111110,0
+   94  04:4242  0C 00         db  %00001100,0
+   95  04:4244  18 00         db  %00011000,0
+   96  04:4246  3C 00         db  %00111100,0
+   97  04:4248  06 00         db  %00000110,0
+   98  04:424A  C6 00         db  %11000110,0
+   99  04:424C  7C 00         db  %01111100,0
+  100  04:424E  00 00         db  %00000000,0
+  101  04:4250  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4252  00 00     
        04:4254  00 00     
        04:4256  00 00     
        04:4258  00 00     
        04:425A  00 00     
        04:425C  00 00     
        04:425E  00 00     
-   66  04:4260  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4262  B6 01     
-       04:4264  20 01     
-       04:4266  00 00     
-       04:4268  00 00     
-       04:426A  00 00     
-       04:426C  00 00     
-       04:426E  00 00     
-       04:4270  07 01     
-       04:4272  C7 01     
+  102                     
+  103  04:4260            bp_font_4:
+  104  04:4260  1C 00         db  %00011100,0
+  105  04:4262  3C 00         db  %00111100,0
+  106  04:4264  6C 00         db  %01101100,0
+  107  04:4266  CC 00         db  %11001100,0
+  108  04:4268  FE 00         db  %11111110,0
+  109  04:426A  0C 00         db  %00001100,0
+  110  04:426C  0C 00         db  %00001100,0
+  111  04:426E  00 00         db  %00000000,0
+  112  04:4270  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4272  00 00     
        04:4274  00 00     
        04:4276  00 00     
        04:4278  00 00     
        04:427A  00 00     
        04:427C  00 00     
        04:427E  00 00     
-   67  04:4280  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4282  B6 01     
-       04:4284  20 01     
-       04:4286  00 00     
-       04:4288  00 00     
-       04:428A  00 00     
-       04:428C  00 00     
-       04:428E  00 00     
-       04:4290  07 01     
-       04:4292  C7 01     
+  113                     
+  114  04:4280            bp_font_5:
+  115  04:4280  FC 00         db  %11111100,0
+  116  04:4282  C0 00         db  %11000000,0
+  117  04:4284  FC 00         db  %11111100,0
+  118  04:4286  06 00         db  %00000110,0
+  119  04:4288  06 00         db  %00000110,0
+  120  04:428A  C6 00         db  %11000110,0
+  121  04:428C  7C 00         db  %01111100,0
+  122  04:428E  00 00         db  %00000000,0
+  123  04:4290  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4292  00 00     
        04:4294  00 00     
        04:4296  00 00     
        04:4298  00 00     
        04:429A  00 00     
        04:429C  00 00     
        04:429E  00 00     
-   68  04:42A0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:42A2  B6 01     
-       04:42A4  20 01     
-       04:42A6  00 00     
-       04:42A8  00 00     
-       04:42AA  00 00     
-       04:42AC  00 00     
-       04:42AE  00 00     
-       04:42B0  07 01     
-       04:42B2  C7 01     
+  124                     
+  125  04:42A0            bp_font_6:
+  126  04:42A0  3C 00         db  %00111100,0
+  127  04:42A2  60 00         db  %01100000,0
+  128  04:42A4  C0 00         db  %11000000,0
+  129  04:42A6  FC 00         db  %11111100,0
+  130  04:42A8  C6 00         db  %11000110,0
+  131  04:42AA  C6 00         db  %11000110,0
+  132  04:42AC  7C 00         db  %01111100,0
+  133  04:42AE  00 00         db  %00000000,0
+  134  04:42B0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:42B2  00 00     
        04:42B4  00 00     
        04:42B6  00 00     
        04:42B8  00 00     
        04:42BA  00 00     
        04:42BC  00 00     
        04:42BE  00 00     
-   69  04:42C0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:42C2  B6 01     
-       04:42C4  20 01     
-       04:42C6  00 00     
-       04:42C8  00 00     
-       04:42CA  00 00     
-       04:42CC  00 00     
-       04:42CE  00 00     
-       04:42D0  07 01     
-       04:42D2  C7 01     
+  135                     
+  136  04:42C0            bp_font_7:
+  137  04:42C0  FE 00         db  %11111110,0
+  138  04:42C2  C6 00         db  %11000110,0
+  139  04:42C4  0C 00         db  %00001100,0
+  140  04:42C6  18 00         db  %00011000,0
+  141  04:42C8  30 00         db  %00110000,0
+  142  04:42CA  30 00         db  %00110000,0
+  143  04:42CC  30 00         db  %00110000,0
+  144  04:42CE  00 00         db  %00000000,0
+  145  04:42D0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:42D2  00 00     
        04:42D4  00 00     
        04:42D6  00 00     
        04:42D8  00 00     
        04:42DA  00 00     
        04:42DC  00 00     
        04:42DE  00 00     
-   70  04:42E0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:42E2  B6 01     
-       04:42E4  20 01     
-       04:42E6  00 00     
-       04:42E8  00 00     
-       04:42EA  00 00     
-       04:42EC  00 00     
-       04:42EE  00 00     
-       04:42F0  07 01     
-       04:42F2  C7 01     
+  146                     
+  147  04:42E0            bp_font_8:
+  148  04:42E0  78 00         db  %01111000,0
+  149  04:42E2  C4 00         db  %11000100,0
+  150  04:42E4  E4 00         db  %11100100,0
+  151  04:42E6  78 00         db  %01111000,0
+  152  04:42E8  9E 00         db  %10011110,0
+  153  04:42EA  86 00         db  %10000110,0
+  154  04:42EC  7C 00         db  %01111100,0
+  155  04:42EE  00 00         db  %00000000,0
+  156  04:42F0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:42F2  00 00     
        04:42F4  00 00     
        04:42F6  00 00     
        04:42F8  00 00     
        04:42FA  00 00     
        04:42FC  00 00     
        04:42FE  00 00     
-   71  04:4300  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4302  B6 01     
-       04:4304  20 01     
-       04:4306  00 00     
-       04:4308  00 00     
-       04:430A  00 00     
-       04:430C  00 00     
-       04:430E  00 00     
-       04:4310  07 01     
-       04:4312  C7 01     
+  157                     
+  158  04:4300            bp_font_9:
+  159  04:4300  7C 00         db  %01111100,0
+  160  04:4302  C6 00         db  %11000110,0
+  161  04:4304  C6 00         db  %11000110,0
+  162  04:4306  7E 00         db  %01111110,0
+  163  04:4308  06 00         db  %00000110,0
+  164  04:430A  0C 00         db  %00001100,0
+  165  04:430C  78 00         db  %01111000,0
+  166  04:430E  00 00         db  %00000000,0
+  167  04:4310  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4312  00 00     
        04:4314  00 00     
        04:4316  00 00     
        04:4318  00 00     
        04:431A  00 00     
        04:431C  00 00     
        04:431E  00 00     
-   72  04:4320  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4322  B6 01     
-       04:4324  20 01     
-       04:4326  00 00     
-       04:4328  00 00     
-       04:432A  00 00     
-       04:432C  00 00     
-       04:432E  00 00     
-       04:4330  07 01     
-       04:4332  C7 01     
+  168                     
+  169  04:4320            bp_font_A:
+  170  04:4320  38 00         db  %00111000,0
+  171  04:4322  6C 00         db  %01101100,0
+  172  04:4324  C6 00         db  %11000110,0
+  173  04:4326  C6 00         db  %11000110,0
+  174  04:4328  FE 00         db  %11111110,0
+  175  04:432A  C6 00         db  %11000110,0
+  176  04:432C  C6 00         db  %11000110,0
+  177  04:432E  00 00         db  %00000000,0
+  178  04:4330  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4332  00 00     
        04:4334  00 00     
        04:4336  00 00     
        04:4338  00 00     
        04:433A  00 00     
        04:433C  00 00     
        04:433E  00 00     
-   73  04:4340  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4342  B6 01     
-       04:4344  20 01     
-       04:4346  00 00     
-       04:4348  00 00     
-       04:434A  00 00     
-       04:434C  00 00     
-       04:434E  00 00     
-       04:4350  07 01     
-       04:4352  C7 01     
+  179                     
+  180  04:4340            bp_font_B:
+  181  04:4340  FC 00         db  %11111100,0
+  182  04:4342  C6 00         db  %11000110,0
+  183  04:4344  C6 00         db  %11000110,0
+  184  04:4346  FC 00         db  %11111100,0
+  185  04:4348  C6 00         db  %11000110,0
+  186  04:434A  C6 00         db  %11000110,0
+  187  04:434C  FC 00         db  %11111100,0
+  188  04:434E  00 00         db  %00000000,0
+  189  04:4350  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4352  00 00     
        04:4354  00 00     
        04:4356  00 00     
        04:4358  00 00     
        04:435A  00 00     
        04:435C  00 00     
        04:435E  00 00     
-   74  04:4360  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4362  B6 01     
-       04:4364  20 01     
-       04:4366  00 00     
-       04:4368  00 00     
-       04:436A  00 00     
-       04:436C  00 00     
-       04:436E  00 00     
-       04:4370  07 01     
-       04:4372  C7 01     
+  190                     
+  191  04:4360            bp_font_C:
+  192  04:4360  3C 00         db  %00111100,0
+  193  04:4362  66 00         db  %01100110,0
+  194  04:4364  C0 00         db  %11000000,0
+  195  04:4366  C0 00         db  %11000000,0
+  196  04:4368  C0 00         db  %11000000,0
+  197  04:436A  66 00         db  %01100110,0
+  198  04:436C  3C 00         db  %00111100,0
+  199  04:436E  00 00         db  %00000000,0
+  200  04:4370  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4372  00 00     
        04:4374  00 00     
        04:4376  00 00     
        04:4378  00 00     
        04:437A  00 00     
        04:437C  00 00     
        04:437E  00 00     
-   75  04:4380  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4382  B6 01     
-       04:4384  20 01     
-       04:4386  00 00     
-       04:4388  00 00     
-       04:438A  00 00     
-       04:438C  00 00     
-       04:438E  00 00     
-       04:4390  07 01     
-       04:4392  C7 01     
+  201                     
+  202  04:4380            bp_font_D:
+  203  04:4380  F8 00         db  %11111000,0
+  204  04:4382  CC 00         db  %11001100,0
+  205  04:4384  C6 00         db  %11000110,0
+  206  04:4386  C6 00         db  %11000110,0
+  207  04:4388  C6 00         db  %11000110,0
+  208  04:438A  CC 00         db  %11001100,0
+  209  04:438C  F8 00         db  %11111000,0
+  210  04:438E  00 00         db  %00000000,0
+  211  04:4390  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4392  00 00     
        04:4394  00 00     
        04:4396  00 00     
        04:4398  00 00     
        04:439A  00 00     
        04:439C  00 00     
        04:439E  00 00     
-   76  04:43A0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:43A2  B6 01     
-       04:43A4  20 01     
-       04:43A6  00 00     
-       04:43A8  00 00     
-       04:43AA  00 00     
-       04:43AC  00 00     
-       04:43AE  00 00     
-       04:43B0  07 01     
-       04:43B2  C7 01     
+  212                     
+  213  04:43A0            bp_font_E:
+  214  04:43A0  FC 00         db  %11111100,0
+  215  04:43A2  C0 00         db  %11000000,0
+  216  04:43A4  C0 00         db  %11000000,0
+  217  04:43A6  F8 00         db  %11111000,0
+  218  04:43A8  C0 00         db  %11000000,0
+  219  04:43AA  C0 00         db  %11000000,0
+  220  04:43AC  FC 00         db  %11111100,0
+  221  04:43AE  00 00         db  %00000000,0
+  222  04:43B0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:43B2  00 00     
        04:43B4  00 00     
        04:43B6  00 00     
        04:43B8  00 00     
        04:43BA  00 00     
        04:43BC  00 00     
        04:43BE  00 00     
-   77  04:43C0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:43C2  B6 01     
-       04:43C4  20 01     
-       04:43C6  00 00     
-       04:43C8  00 00     
-       04:43CA  00 00     
-       04:43CC  00 00     
-       04:43CE  00 00     
-       04:43D0  07 01     
-       04:43D2  C7 01     
+  223                     
+  224  04:43C0            bp_font_F:
+  225  04:43C0  FC 00         db  %11111100,0
+  226  04:43C2  C0 00         db  %11000000,0
+  227  04:43C4  C0 00         db  %11000000,0
+  228  04:43C6  F8 00         db  %11111000,0
+  229  04:43C8  C0 00         db  %11000000,0
+  230  04:43CA  C0 00         db  %11000000,0
+  231  04:43CC  C0 00         db  %11000000,0
+  232  04:43CE  00 00         db  %00000000,0
+  233  04:43D0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:43D2  00 00     
        04:43D4  00 00     
        04:43D6  00 00     
        04:43D8  00 00     
        04:43DA  00 00     
        04:43DC  00 00     
        04:43DE  00 00     
-#[1]   nibbler.asm
-#[2]   sprpattern.asm
-   21                             .include "sprpattern.asm"
-    1           43E0              .code
-    2           0004              .bank   MAIN_BANK+3
-    3                     
-    4  04:43E0            SpPattern:
-    5                     
-    6  04:43E0            sp_head:
-    7  04:43E0  FF FF             dw $ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
-       04:43E2  FF FF     
-       04:43E4  FF FF     
-       04:43E6  FF FF     
-       04:43E8  FF FF     
-       04:43EA  FF FF     
-       04:43EC  FF FF     
-       04:43EE  FF FF     
-    8  04:43F0  FF FF             dw $ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
-       04:43F2  FF FF     
-       04:43F4  FF FF     
-       04:43F6  FF FF     
-       04:43F8  FF FF     
-       04:43FA  FF FF     
-       04:43FC  FF FF     
-       04:43FE  FF FF     
-    9  04:4400  00 00             dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4402  00 00     
-       04:4404  00 00     
-       04:4406  00 00     
-       04:4408  00 00     
-       04:440A  00 00     
-       04:440C  00 00     
-       04:440E  00 00     
-   10  04:4410  00 00             dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+  234                     
+  235  04:43E0            bp_font_G:
+  236  04:43E0  3E 00         db  %00111110,0
+  237  04:43E2  60 00         db  %01100000,0
+  238  04:43E4  C0 00         db  %11000000,0
+  239  04:43E6  CE 00         db  %11001110,0
+  240  04:43E8  C6 00         db  %11000110,0
+  241  04:43EA  66 00         db  %01100110,0
+  242  04:43EC  3E 00         db  %00111110,0
+  243  04:43EE  00 00         db  %00000000,0
+  244  04:43F0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:43F2  00 00     
+       04:43F4  00 00     
+       04:43F6  00 00     
+       04:43F8  00 00     
+       04:43FA  00 00     
+       04:43FC  00 00     
+       04:43FE  00 00     
+  245                     
+  246  04:4400            bp_font_H:
+  247  04:4400  C6 00         db  %11000110,0
+  248  04:4402  C6 00         db  %11000110,0
+  249  04:4404  C6 00         db  %11000110,0
+  250  04:4406  FE 00         db  %11111110,0
+  251  04:4408  C6 00         db  %11000110,0
+  252  04:440A  C6 00         db  %11000110,0
+  253  04:440C  C6 00         db  %11000110,0
+  254  04:440E  00 00         db  %00000000,0
+  255  04:4410  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
        04:4412  00 00     
        04:4414  00 00     
        04:4416  00 00     
@@ -1698,15 +1703,17 @@
        04:441A  00 00     
        04:441C  00 00     
        04:441E  00 00     
-   11  04:4420  00 00             dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4422  00 00     
-       04:4424  00 00     
-       04:4426  00 00     
-       04:4428  00 00     
-       04:442A  00 00     
-       04:442C  00 00     
-       04:442E  00 00     
-   12  04:4430  00 00             dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+  256                     
+  257  04:4420            bp_font_I:
+  258  04:4420  FC 00         db  %11111100,0
+  259  04:4422  30 00         db  %00110000,0
+  260  04:4424  30 00         db  %00110000,0
+  261  04:4426  30 00         db  %00110000,0
+  262  04:4428  30 00         db  %00110000,0
+  263  04:442A  30 00         db  %00110000,0
+  264  04:442C  FC 00         db  %11111100,0
+  265  04:442E  00 00         db  %00000000,0
+  266  04:4430  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
        04:4432  00 00     
        04:4434  00 00     
        04:4436  00 00     
@@ -1714,15 +1721,17 @@
        04:443A  00 00     
        04:443C  00 00     
        04:443E  00 00     
-   13  04:4440  00 00             dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4442  00 00     
-       04:4444  00 00     
-       04:4446  00 00     
-       04:4448  00 00     
-       04:444A  00 00     
-       04:444C  00 00     
-       04:444E  00 00     
-   14  04:4450  00 00             dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+  267                     
+  268  04:4440            bp_font_J:
+  269  04:4440  06 00         db  %00000110,0
+  270  04:4442  06 00         db  %00000110,0
+  271  04:4444  06 00         db  %00000110,0
+  272  04:4446  06 00         db  %00000110,0
+  273  04:4448  06 00         db  %00000110,0
+  274  04:444A  C6 00         db  %11000110,0
+  275  04:444C  7C 00         db  %01111100,0
+  276  04:444E  00 00         db  %00000000,0
+  277  04:4450  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
        04:4452  00 00     
        04:4454  00 00     
        04:4456  00 00     
@@ -1730,279 +1739,1102 @@
        04:445A  00 00     
        04:445C  00 00     
        04:445E  00 00     
-   15                     
-   16  04:4460            SpPattern_end:
-   17                     
-   18           0080      SpPattern_size  equ     SpPattern_end-SpPattern
-   19                     
-   20                     
-   21  04:4460            SpPalette:
-   22  04:4460  00 00             dw $0000,$0038,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4462  38 00     
-       04:4464  20 01     
-       04:4466  00 00     
-       04:4468  00 00     
-       04:446A  00 00     
-       04:446C  00 00     
-       04:446E  00 00     
-       04:4470  07 01     
-       04:4472  C7 01     
+  278                     
+  279  04:4460            bp_font_K:
+  280  04:4460  C6 00         db  %11000110,0
+  281  04:4462  CC 00         db  %11001100,0
+  282  04:4464  D8 00         db  %11011000,0
+  283  04:4466  F0 00         db  %11110000,0
+  284  04:4468  F8 00         db  %11111000,0
+  285  04:446A  DC 00         db  %11011100,0
+  286  04:446C  CE 00         db  %11001110,0
+  287  04:446E  00 00         db  %00000000,0
+  288  04:4470  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4472  00 00     
        04:4474  00 00     
        04:4476  00 00     
        04:4478  00 00     
        04:447A  00 00     
        04:447C  00 00     
        04:447E  00 00     
-   23  04:4480  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4482  B6 01     
-       04:4484  20 01     
-       04:4486  00 00     
-       04:4488  00 00     
-       04:448A  00 00     
-       04:448C  00 00     
-       04:448E  00 00     
-       04:4490  07 01     
-       04:4492  C7 01     
+  289                     
+  290  04:4480            bp_font_L:
+  291  04:4480  C0 00         db  %11000000,0
+  292  04:4482  C0 00         db  %11000000,0
+  293  04:4484  C0 00         db  %11000000,0
+  294  04:4486  C0 00         db  %11000000,0
+  295  04:4488  C0 00         db  %11000000,0
+  296  04:448A  C0 00         db  %11000000,0
+  297  04:448C  FE 00         db  %11111110,0
+  298  04:448E  00 00         db  %00000000,0
+  299  04:4490  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4492  00 00     
        04:4494  00 00     
        04:4496  00 00     
        04:4498  00 00     
        04:449A  00 00     
        04:449C  00 00     
        04:449E  00 00     
-   24  04:44A0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:44A2  B6 01     
-       04:44A4  20 01     
-       04:44A6  00 00     
-       04:44A8  00 00     
-       04:44AA  00 00     
-       04:44AC  00 00     
-       04:44AE  00 00     
-       04:44B0  07 01     
-       04:44B2  C7 01     
+  300                     
+  301  04:44A0            bp_font_M:
+  302  04:44A0  C6 00         db  %11000110,0
+  303  04:44A2  EE 00         db  %11101110,0
+  304  04:44A4  FE 00         db  %11111110,0
+  305  04:44A6  FE 00         db  %11111110,0
+  306  04:44A8  D6 00         db  %11010110,0
+  307  04:44AA  C6 00         db  %11000110,0
+  308  04:44AC  C6 00         db  %11000110,0
+  309  04:44AE  00 00         db  %00000000,0
+  310  04:44B0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:44B2  00 00     
        04:44B4  00 00     
        04:44B6  00 00     
        04:44B8  00 00     
        04:44BA  00 00     
        04:44BC  00 00     
        04:44BE  00 00     
-   25  04:44C0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:44C2  B6 01     
-       04:44C4  20 01     
-       04:44C6  00 00     
-       04:44C8  00 00     
-       04:44CA  00 00     
-       04:44CC  00 00     
-       04:44CE  00 00     
-       04:44D0  07 01     
-       04:44D2  C7 01     
+  311                     
+  312  04:44C0            bp_font_N:
+  313  04:44C0  C6 00         db  %11000110,0
+  314  04:44C2  E6 00         db  %11100110,0
+  315  04:44C4  F6 00         db  %11110110,0
+  316  04:44C6  FE 00         db  %11111110,0
+  317  04:44C8  DE 00         db  %11011110,0
+  318  04:44CA  CE 00         db  %11001110,0
+  319  04:44CC  C6 00         db  %11000110,0
+  320  04:44CE  00 00         db  %00000000,0
+  321  04:44D0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:44D2  00 00     
        04:44D4  00 00     
        04:44D6  00 00     
        04:44D8  00 00     
        04:44DA  00 00     
        04:44DC  00 00     
        04:44DE  00 00     
-   26  04:44E0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:44E2  B6 01     
-       04:44E4  20 01     
-       04:44E6  00 00     
-       04:44E8  00 00     
-       04:44EA  00 00     
-       04:44EC  00 00     
-       04:44EE  00 00     
-       04:44F0  07 01     
-       04:44F2  C7 01     
+  322                     
+  323  04:44E0            bp_font_O:
+  324  04:44E0  7C 00         db  %01111100,0
+  325  04:44E2  C6 00         db  %11000110,0
+  326  04:44E4  C6 00         db  %11000110,0
+  327  04:44E6  C6 00         db  %11000110,0
+  328  04:44E8  C6 00         db  %11000110,0
+  329  04:44EA  C6 00         db  %11000110,0
+  330  04:44EC  7C 00         db  %01111100,0
+  331  04:44EE  00 00         db  %00000000,0
+  332  04:44F0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:44F2  00 00     
        04:44F4  00 00     
        04:44F6  00 00     
        04:44F8  00 00     
        04:44FA  00 00     
        04:44FC  00 00     
        04:44FE  00 00     
-   27  04:4500  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4502  B6 01     
-       04:4504  20 01     
-       04:4506  00 00     
-       04:4508  00 00     
-       04:450A  00 00     
-       04:450C  00 00     
-       04:450E  00 00     
-       04:4510  07 01     
-       04:4512  C7 01     
+  333                     
+  334  04:4500            bp_font_P:
+  335  04:4500  FC 00         db  %11111100,0
+  336  04:4502  C6 00         db  %11000110,0
+  337  04:4504  C6 00         db  %11000110,0
+  338  04:4506  C6 00         db  %11000110,0
+  339  04:4508  FC 00         db  %11111100,0
+  340  04:450A  C0 00         db  %11000000,0
+  341  04:450C  C0 00         db  %11000000,0
+  342  04:450E  00 00         db  %00000000,0
+  343  04:4510  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4512  00 00     
        04:4514  00 00     
        04:4516  00 00     
        04:4518  00 00     
        04:451A  00 00     
        04:451C  00 00     
        04:451E  00 00     
-   28  04:4520  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4522  B6 01     
-       04:4524  20 01     
-       04:4526  00 00     
-       04:4528  00 00     
-       04:452A  00 00     
-       04:452C  00 00     
-       04:452E  00 00     
-       04:4530  07 01     
-       04:4532  C7 01     
+  344                     
+  345  04:4520            bp_font_Q:
+  346  04:4520  7C 00         db  %01111100,0
+  347  04:4522  C6 00         db  %11000110,0
+  348  04:4524  C6 00         db  %11000110,0
+  349  04:4526  C6 00         db  %11000110,0
+  350  04:4528  DE 00         db  %11011110,0
+  351  04:452A  CC 00         db  %11001100,0
+  352  04:452C  7A 00         db  %01111010,0
+  353  04:452E  00 00         db  %00000000,0
+  354  04:4530  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4532  00 00     
        04:4534  00 00     
        04:4536  00 00     
        04:4538  00 00     
        04:453A  00 00     
        04:453C  00 00     
        04:453E  00 00     
-   29  04:4540  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4542  B6 01     
-       04:4544  20 01     
-       04:4546  00 00     
-       04:4548  00 00     
-       04:454A  00 00     
-       04:454C  00 00     
-       04:454E  00 00     
-       04:4550  07 01     
-       04:4552  C7 01     
+  355                     
+  356  04:4540            bp_font_R:
+  357  04:4540  FC 00         db  %11111100,0
+  358  04:4542  C6 00         db  %11000110,0
+  359  04:4544  C6 00         db  %11000110,0
+  360  04:4546  CE 00         db  %11001110,0
+  361  04:4548  F8 00         db  %11111000,0
+  362  04:454A  DC 00         db  %11011100,0
+  363  04:454C  CE 00         db  %11001110,0
+  364  04:454E  00 00         db  %00000000,0
+  365  04:4550  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4552  00 00     
        04:4554  00 00     
        04:4556  00 00     
        04:4558  00 00     
        04:455A  00 00     
        04:455C  00 00     
        04:455E  00 00     
-   30  04:4560  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4562  B6 01     
-       04:4564  20 01     
-       04:4566  00 00     
-       04:4568  00 00     
-       04:456A  00 00     
-       04:456C  00 00     
-       04:456E  00 00     
-       04:4570  07 01     
-       04:4572  C7 01     
+  366                     
+  367  04:4560            bp_font_S:
+  368  04:4560  7C 00         db  %01111100,0
+  369  04:4562  C6 00         db  %11000110,0
+  370  04:4564  C0 00         db  %11000000,0
+  371  04:4566  7C 00         db  %01111100,0
+  372  04:4568  06 00         db  %00000110,0
+  373  04:456A  C6 00         db  %11000110,0
+  374  04:456C  7C 00         db  %01111100,0
+  375  04:456E  00 00         db  %00000000,0
+  376  04:4570  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4572  00 00     
        04:4574  00 00     
        04:4576  00 00     
        04:4578  00 00     
        04:457A  00 00     
        04:457C  00 00     
        04:457E  00 00     
-   31  04:4580  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4582  B6 01     
-       04:4584  20 01     
-       04:4586  00 00     
-       04:4588  00 00     
-       04:458A  00 00     
-       04:458C  00 00     
-       04:458E  00 00     
-       04:4590  07 01     
-       04:4592  C7 01     
+  377                     
+  378  04:4580            bp_font_T:
+  379  04:4580  FC 00         db  %11111100,0
+  380  04:4582  30 00         db  %00110000,0
+  381  04:4584  30 00         db  %00110000,0
+  382  04:4586  30 00         db  %00110000,0
+  383  04:4588  30 00         db  %00110000,0
+  384  04:458A  30 00         db  %00110000,0
+  385  04:458C  30 00         db  %00110000,0
+  386  04:458E  00 00         db  %00000000,0
+  387  04:4590  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4592  00 00     
        04:4594  00 00     
        04:4596  00 00     
        04:4598  00 00     
        04:459A  00 00     
        04:459C  00 00     
        04:459E  00 00     
-   32  04:45A0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:45A2  B6 01     
-       04:45A4  20 01     
-       04:45A6  00 00     
-       04:45A8  00 00     
-       04:45AA  00 00     
-       04:45AC  00 00     
-       04:45AE  00 00     
-       04:45B0  07 01     
-       04:45B2  C7 01     
+  388                     
+  389  04:45A0            bp_font_U:
+  390  04:45A0  C6 00         db  %11000110,0
+  391  04:45A2  C6 00         db  %11000110,0
+  392  04:45A4  C6 00         db  %11000110,0
+  393  04:45A6  C6 00         db  %11000110,0
+  394  04:45A8  C6 00         db  %11000110,0
+  395  04:45AA  C6 00         db  %11000110,0
+  396  04:45AC  7C 00         db  %01111100,0
+  397  04:45AE  00 00         db  %00000000,0
+  398  04:45B0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:45B2  00 00     
        04:45B4  00 00     
        04:45B6  00 00     
        04:45B8  00 00     
        04:45BA  00 00     
        04:45BC  00 00     
        04:45BE  00 00     
-   33  04:45C0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:45C2  B6 01     
-       04:45C4  20 01     
-       04:45C6  00 00     
-       04:45C8  00 00     
-       04:45CA  00 00     
-       04:45CC  00 00     
-       04:45CE  00 00     
-       04:45D0  07 01     
-       04:45D2  C7 01     
+  399                     
+  400  04:45C0            bp_font_V:
+  401  04:45C0  C6 00         db  %11000110,0
+  402  04:45C2  C6 00         db  %11000110,0
+  403  04:45C4  C6 00         db  %11000110,0
+  404  04:45C6  EE 00         db  %11101110,0
+  405  04:45C8  7C 00         db  %01111100,0
+  406  04:45CA  38 00         db  %00111000,0
+  407  04:45CC  10 00         db  %00010000,0
+  408  04:45CE  00 00         db  %00000000,0
+  409  04:45D0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:45D2  00 00     
        04:45D4  00 00     
        04:45D6  00 00     
        04:45D8  00 00     
        04:45DA  00 00     
        04:45DC  00 00     
        04:45DE  00 00     
-   34  04:45E0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:45E2  B6 01     
-       04:45E4  20 01     
-       04:45E6  00 00     
-       04:45E8  00 00     
-       04:45EA  00 00     
-       04:45EC  00 00     
-       04:45EE  00 00     
-       04:45F0  07 01     
-       04:45F2  C7 01     
+  410                     
+  411  04:45E0            bp_font_W:
+  412  04:45E0  C6 00         db  %11000110,0
+  413  04:45E2  C6 00         db  %11000110,0
+  414  04:45E4  D6 00         db  %11010110,0
+  415  04:45E6  FE 00         db  %11111110,0
+  416  04:45E8  FE 00         db  %11111110,0
+  417  04:45EA  EE 00         db  %11101110,0
+  418  04:45EC  C6 00         db  %11000110,0
+  419  04:45EE  00 00         db  %00000000,0
+  420  04:45F0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:45F2  00 00     
        04:45F4  00 00     
        04:45F6  00 00     
        04:45F8  00 00     
        04:45FA  00 00     
        04:45FC  00 00     
        04:45FE  00 00     
-   35  04:4600  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4602  B6 01     
-       04:4604  20 01     
-       04:4606  00 00     
-       04:4608  00 00     
-       04:460A  00 00     
-       04:460C  00 00     
-       04:460E  00 00     
-       04:4610  07 01     
-       04:4612  C7 01     
+  421                     
+  422  04:4600            bp_font_X:
+  423  04:4600  C6 00         db  %11000110,0
+  424  04:4602  EE 00         db  %11101110,0
+  425  04:4604  7C 00         db  %01111100,0
+  426  04:4606  38 00         db  %00111000,0
+  427  04:4608  7C 00         db  %01111100,0
+  428  04:460A  EE 00         db  %11101110,0
+  429  04:460C  C6 00         db  %11000110,0
+  430  04:460E  00 00         db  %00000000,0
+  431  04:4610  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4612  00 00     
        04:4614  00 00     
        04:4616  00 00     
        04:4618  00 00     
        04:461A  00 00     
        04:461C  00 00     
        04:461E  00 00     
-   36  04:4620  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4622  B6 01     
-       04:4624  20 01     
-       04:4626  00 00     
-       04:4628  00 00     
-       04:462A  00 00     
-       04:462C  00 00     
-       04:462E  00 00     
-       04:4630  07 01     
-       04:4632  C7 01     
+  432                     
+  433  04:4620            bp_font_Y:
+  434  04:4620  CC 00         db  %11001100,0
+  435  04:4622  CC 00         db  %11001100,0
+  436  04:4624  CC 00         db  %11001100,0
+  437  04:4626  78 00         db  %01111000,0
+  438  04:4628  30 00         db  %00110000,0
+  439  04:462A  30 00         db  %00110000,0
+  440  04:462C  30 00         db  %00110000,0
+  441  04:462E  00 00         db  %00000000,0
+  442  04:4630  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4632  00 00     
        04:4634  00 00     
        04:4636  00 00     
        04:4638  00 00     
        04:463A  00 00     
        04:463C  00 00     
        04:463E  00 00     
-   37  04:4640  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
-       04:4642  B6 01     
-       04:4644  20 01     
-       04:4646  00 00     
-       04:4648  00 00     
-       04:464A  00 00     
-       04:464C  00 00     
-       04:464E  00 00     
-       04:4650  07 01     
-       04:4652  C7 01     
+  443                     
+  444  04:4640            bp_font_Z:
+  445  04:4640  FE 00         db  %11111110,0
+  446  04:4642  0E 00         db  %00001110,0
+  447  04:4644  1C 00         db  %00011100,0
+  448  04:4646  38 00         db  %00111000,0
+  449  04:4648  70 00         db  %01110000,0
+  450  04:464A  E0 00         db  %11100000,0
+  451  04:464C  FE 00         db  %11111110,0
+  452  04:464E  00 00         db  %00000000,0
+  453  04:4650  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4652  00 00     
        04:4654  00 00     
        04:4656  00 00     
        04:4658  00 00     
        04:465A  00 00     
        04:465C  00 00     
        04:465E  00 00     
+  454                     
+  455  04:4660            bp_font_comma:
+  456  04:4660  00 00         db  %00000000,0
+  457  04:4662  00 00         db  %00000000,0
+  458  04:4664  00 00         db  %00000000,0
+  459  04:4666  00 00         db  %00000000,0
+  460  04:4668  00 00         db  %00000000,0
+  461  04:466A  30 00         db  %00110000,0
+  462  04:466C  30 00         db  %00110000,0
+  463  04:466E  10 00         db  %00010000,0
+  464  04:4670  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4672  00 00     
+       04:4674  00 00     
+       04:4676  00 00     
+       04:4678  00 00     
+       04:467A  00 00     
+       04:467C  00 00     
+       04:467E  00 00     
+  465                     
+  466  04:4680            bp_font_player1_0:
+  467  04:4680  F4 00         db  %11110100,0
+  468  04:4682  94 00         db  %10010100,0
+  469  04:4684  F4 00         db  %11110100,0
+  470  04:4686  84 00         db  %10000100,0
+  471  04:4688  84 00         db  %10000100,0
+  472  04:468A  84 00         db  %10000100,0
+  473  04:468C  87 00         db  %10000111,0
+  474  04:468E  00 00         db  %00000000,0
+  475  04:4690  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4692  00 00     
+       04:4694  00 00     
+       04:4696  00 00     
+       04:4698  00 00     
+       04:469A  00 00     
+       04:469C  00 00     
+       04:469E  00 00     
+  476                     
+  477  04:46A0            bp_font_player1_1:
+  478  04:46A0  25 00         db  %00100101,0
+  479  04:46A2  55 00         db  %01010101,0
+  480  04:46A4  55 00         db  %01010101,0
+  481  04:46A6  72 00         db  %01110010,0
+  482  04:46A8  52 00         db  %01010010,0
+  483  04:46AA  52 00         db  %01010010,0
+  484  04:46AC  52 00         db  %01010010,0
+  485  04:46AE  00 00         db  %00000000,0
+  486  04:46B0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:46B2  00 00     
+       04:46B4  00 00     
+       04:46B6  00 00     
+       04:46B8  00 00     
+       04:46BA  00 00     
+       04:46BC  00 00     
+       04:46BE  00 00     
+  487                     
+  488  04:46C0            bp_font_player1_2:
+  489  04:46C0  77 00         db  %01110111,0
+  490  04:46C2  45 00         db  %01000101,0
+  491  04:46C4  47 00         db  %01000111,0
+  492  04:46C6  66 00         db  %01100110,0
+  493  04:46C8  45 00         db  %01000101,0
+  494  04:46CA  45 00         db  %01000101,0
+  495  04:46CC  75 00         db  %01110101,0
+  496  04:46CE  00 00         db  %00000000,0
+  497  04:46D0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:46D2  00 00     
+       04:46D4  00 00     
+       04:46D6  00 00     
+       04:46D8  00 00     
+       04:46DA  00 00     
+       04:46DC  00 00     
+       04:46DE  00 00     
+  498                     
+  499  04:46E0            bp_font_player1_3:
+  500  04:46E0  10 00         db  %00010000,0
+  501  04:46E2  30 00         db  %00110000,0
+  502  04:46E4  10 00         db  %00010000,0
+  503  04:46E6  10 00         db  %00010000,0
+  504  04:46E8  10 00         db  %00010000,0
+  505  04:46EA  10 00         db  %00010000,0
+  506  04:46EC  38 00         db  %00111000,0
+  507  04:46EE  00 00         db  %00000000,0
+  508  04:46F0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:46F2  00 00     
+       04:46F4  00 00     
+       04:46F6  00 00     
+       04:46F8  00 00     
+       04:46FA  00 00     
+       04:46FC  00 00     
+       04:46FE  00 00     
+  509                     
+  510  04:4700            bp_font_hiscore_0:
+  511  04:4700  AE 00         db  %10101110,0
+  512  04:4702  A4 00         db  %10100100,0
+  513  04:4704  A4 00         db  %10100100,0
+  514  04:4706  E4 00         db  %11100100,0
+  515  04:4708  A4 00         db  %10100100,0
+  516  04:470A  A4 00         db  %10100100,0
+  517  04:470C  AE 00         db  %10101110,0
+  518  04:470E  00 00         db  %00000000,0
+  519  04:4710  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4712  00 00     
+       04:4714  00 00     
+       04:4716  00 00     
+       04:4718  00 00     
+       04:471A  00 00     
+       04:471C  00 00     
+       04:471E  00 00     
+  520                     
+  521  04:4720            bp_font_hiscore_1:
+  522  04:4720  22 00         db  %00100010,0
+  523  04:4722  55 00         db  %01010101,0
+  524  04:4724  44 00         db  %01000100,0
+  525  04:4726  24 00         db  %00100100,0
+  526  04:4728  14 00         db  %00010100,0
+  527  04:472A  55 00         db  %01010101,0
+  528  04:472C  22 00         db  %00100010,0
+  529  04:472E  00 00         db  %00000000,0
+  530  04:4730  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4732  00 00     
+       04:4734  00 00     
+       04:4736  00 00     
+       04:4738  00 00     
+       04:473A  00 00     
+       04:473C  00 00     
+       04:473E  00 00     
+  531                     
+  532  04:4740            bp_font_hiscore_2:
+  533  04:4740  27 00         db  %00100111,0
+  534  04:4742  55 00         db  %01010101,0
+  535  04:4744  57 00         db  %01010111,0
+  536  04:4746  56 00         db  %01010110,0
+  537  04:4748  55 00         db  %01010101,0
+  538  04:474A  55 00         db  %01010101,0
+  539  04:474C  25 00         db  %00100101,0
+  540  04:474E  00 00         db  %00000000,0
+  541  04:4750  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4752  00 00     
+       04:4754  00 00     
+       04:4756  00 00     
+       04:4758  00 00     
+       04:475A  00 00     
+       04:475C  00 00     
+       04:475E  00 00     
+  542                     
+  543  04:4760            bp_font_hiscore_3:
+  544  04:4760  70 00         db  %01110000,0
+  545  04:4762  40 00         db  %01000000,0
+  546  04:4764  40 00         db  %01000000,0
+  547  04:4766  60 00         db  %01100000,0
+  548  04:4768  40 00         db  %01000000,0
+  549  04:476A  40 00         db  %01000000,0
+  550  04:476C  70 00         db  %01110000,0
+  551  04:476E  00 00         db  %00000000,0
+  552  04:4770  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4772  00 00     
+       04:4774  00 00     
+       04:4776  00 00     
+       04:4778  00 00     
+       04:477A  00 00     
+       04:477C  00 00     
+       04:477E  00 00     
+  553                     
+  554  04:4780            bp_font_left_0:
+  555  04:4780  8E 00         db  %10001110,0
+  556  04:4782  88 00         db  %10001000,0
+  557  04:4784  88 00         db  %10001000,0
+  558  04:4786  8C 00         db  %10001100,0
+  559  04:4788  88 00         db  %10001000,0
+  560  04:478A  88 00         db  %10001000,0
+  561  04:478C  EE 00         db  %11101110,0
+  562  04:478E  00 00         db  %00000000,0
+  563  04:4790  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:4792  00 00     
+       04:4794  00 00     
+       04:4796  00 00     
+       04:4798  00 00     
+       04:479A  00 00     
+       04:479C  00 00     
+       04:479E  00 00     
+  564                     
+  565  04:47A0            bp_font_left_1:
+  566  04:47A0  EE 00         db  %11101110,0
+  567  04:47A2  84 00         db  %10000100,0
+  568  04:47A4  84 00         db  %10000100,0
+  569  04:47A6  C4 00         db  %11000100,0
+  570  04:47A8  84 00         db  %10000100,0
+  571  04:47AA  84 00         db  %10000100,0
+  572  04:47AC  84 00         db  %10000100,0
+  573  04:47AE  00 00         db  %00000000,0
+  574  04:47B0  00 00         dw  $00,$00,$00,$00,$00,$00,$00,$00
+       04:47B2  00 00     
+       04:47B4  00 00     
+       04:47B6  00 00     
+       04:47B8  00 00     
+       04:47BA  00 00     
+       04:47BC  00 00     
+       04:47BE  00 00     
+  575                     
+  576  04:47C0            BgPattern_end:
+  577           07C0      BgPattern_size  equ BgPattern_end-BgPattern
+  578                     ; ┌─┐
+  579                     ; │ │
+  580                     ; └─┘
+  581                     
+  582  04:47C0            BgPalette:
+  583  04:47C0  00 00             dw $0000,$ffff,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:47C2  FF FF     
+       04:47C4  20 01     
+       04:47C6  00 00     
+       04:47C8  00 00     
+       04:47CA  00 00     
+       04:47CC  00 00     
+       04:47CE  00 00     
+       04:47D0  07 01     
+       04:47D2  C7 01     
+       04:47D4  00 00     
+       04:47D6  00 00     
+       04:47D8  00 00     
+       04:47DA  00 00     
+       04:47DC  00 00     
+       04:47DE  00 00     
+  584  04:47E0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:47E2  B6 01     
+       04:47E4  20 01     
+       04:47E6  00 00     
+       04:47E8  00 00     
+       04:47EA  00 00     
+       04:47EC  00 00     
+       04:47EE  00 00     
+       04:47F0  07 01     
+       04:47F2  C7 01     
+       04:47F4  00 00     
+       04:47F6  00 00     
+       04:47F8  00 00     
+       04:47FA  00 00     
+       04:47FC  00 00     
+       04:47FE  00 00     
+  585  04:4800  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4802  B6 01     
+       04:4804  20 01     
+       04:4806  00 00     
+       04:4808  00 00     
+       04:480A  00 00     
+       04:480C  00 00     
+       04:480E  00 00     
+       04:4810  07 01     
+       04:4812  C7 01     
+       04:4814  00 00     
+       04:4816  00 00     
+       04:4818  00 00     
+       04:481A  00 00     
+       04:481C  00 00     
+       04:481E  00 00     
+  586  04:4820  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4822  B6 01     
+       04:4824  20 01     
+       04:4826  00 00     
+       04:4828  00 00     
+       04:482A  00 00     
+       04:482C  00 00     
+       04:482E  00 00     
+       04:4830  07 01     
+       04:4832  C7 01     
+       04:4834  00 00     
+       04:4836  00 00     
+       04:4838  00 00     
+       04:483A  00 00     
+       04:483C  00 00     
+       04:483E  00 00     
+  587  04:4840  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4842  B6 01     
+       04:4844  20 01     
+       04:4846  00 00     
+       04:4848  00 00     
+       04:484A  00 00     
+       04:484C  00 00     
+       04:484E  00 00     
+       04:4850  07 01     
+       04:4852  C7 01     
+       04:4854  00 00     
+       04:4856  00 00     
+       04:4858  00 00     
+       04:485A  00 00     
+       04:485C  00 00     
+       04:485E  00 00     
+  588  04:4860  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4862  B6 01     
+       04:4864  20 01     
+       04:4866  00 00     
+       04:4868  00 00     
+       04:486A  00 00     
+       04:486C  00 00     
+       04:486E  00 00     
+       04:4870  07 01     
+       04:4872  C7 01     
+       04:4874  00 00     
+       04:4876  00 00     
+       04:4878  00 00     
+       04:487A  00 00     
+       04:487C  00 00     
+       04:487E  00 00     
+  589  04:4880  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4882  B6 01     
+       04:4884  20 01     
+       04:4886  00 00     
+       04:4888  00 00     
+       04:488A  00 00     
+       04:488C  00 00     
+       04:488E  00 00     
+       04:4890  07 01     
+       04:4892  C7 01     
+       04:4894  00 00     
+       04:4896  00 00     
+       04:4898  00 00     
+       04:489A  00 00     
+       04:489C  00 00     
+       04:489E  00 00     
+  590  04:48A0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:48A2  B6 01     
+       04:48A4  20 01     
+       04:48A6  00 00     
+       04:48A8  00 00     
+       04:48AA  00 00     
+       04:48AC  00 00     
+       04:48AE  00 00     
+       04:48B0  07 01     
+       04:48B2  C7 01     
+       04:48B4  00 00     
+       04:48B6  00 00     
+       04:48B8  00 00     
+       04:48BA  00 00     
+       04:48BC  00 00     
+       04:48BE  00 00     
+  591  04:48C0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:48C2  B6 01     
+       04:48C4  20 01     
+       04:48C6  00 00     
+       04:48C8  00 00     
+       04:48CA  00 00     
+       04:48CC  00 00     
+       04:48CE  00 00     
+       04:48D0  07 01     
+       04:48D2  C7 01     
+       04:48D4  00 00     
+       04:48D6  00 00     
+       04:48D8  00 00     
+       04:48DA  00 00     
+       04:48DC  00 00     
+       04:48DE  00 00     
+  592  04:48E0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:48E2  B6 01     
+       04:48E4  20 01     
+       04:48E6  00 00     
+       04:48E8  00 00     
+       04:48EA  00 00     
+       04:48EC  00 00     
+       04:48EE  00 00     
+       04:48F0  07 01     
+       04:48F2  C7 01     
+       04:48F4  00 00     
+       04:48F6  00 00     
+       04:48F8  00 00     
+       04:48FA  00 00     
+       04:48FC  00 00     
+       04:48FE  00 00     
+  593  04:4900  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4902  B6 01     
+       04:4904  20 01     
+       04:4906  00 00     
+       04:4908  00 00     
+       04:490A  00 00     
+       04:490C  00 00     
+       04:490E  00 00     
+       04:4910  07 01     
+       04:4912  C7 01     
+       04:4914  00 00     
+       04:4916  00 00     
+       04:4918  00 00     
+       04:491A  00 00     
+       04:491C  00 00     
+       04:491E  00 00     
+  594  04:4920  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4922  B6 01     
+       04:4924  20 01     
+       04:4926  00 00     
+       04:4928  00 00     
+       04:492A  00 00     
+       04:492C  00 00     
+       04:492E  00 00     
+       04:4930  07 01     
+       04:4932  C7 01     
+       04:4934  00 00     
+       04:4936  00 00     
+       04:4938  00 00     
+       04:493A  00 00     
+       04:493C  00 00     
+       04:493E  00 00     
+  595  04:4940  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4942  B6 01     
+       04:4944  20 01     
+       04:4946  00 00     
+       04:4948  00 00     
+       04:494A  00 00     
+       04:494C  00 00     
+       04:494E  00 00     
+       04:4950  07 01     
+       04:4952  C7 01     
+       04:4954  00 00     
+       04:4956  00 00     
+       04:4958  00 00     
+       04:495A  00 00     
+       04:495C  00 00     
+       04:495E  00 00     
+  596  04:4960  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4962  B6 01     
+       04:4964  20 01     
+       04:4966  00 00     
+       04:4968  00 00     
+       04:496A  00 00     
+       04:496C  00 00     
+       04:496E  00 00     
+       04:4970  07 01     
+       04:4972  C7 01     
+       04:4974  00 00     
+       04:4976  00 00     
+       04:4978  00 00     
+       04:497A  00 00     
+       04:497C  00 00     
+       04:497E  00 00     
+  597  04:4980  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4982  B6 01     
+       04:4984  20 01     
+       04:4986  00 00     
+       04:4988  00 00     
+       04:498A  00 00     
+       04:498C  00 00     
+       04:498E  00 00     
+       04:4990  07 01     
+       04:4992  C7 01     
+       04:4994  00 00     
+       04:4996  00 00     
+       04:4998  00 00     
+       04:499A  00 00     
+       04:499C  00 00     
+       04:499E  00 00     
+  598  04:49A0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:49A2  B6 01     
+       04:49A4  20 01     
+       04:49A6  00 00     
+       04:49A8  00 00     
+       04:49AA  00 00     
+       04:49AC  00 00     
+       04:49AE  00 00     
+       04:49B0  07 01     
+       04:49B2  C7 01     
+       04:49B4  00 00     
+       04:49B6  00 00     
+       04:49B8  00 00     
+       04:49BA  00 00     
+       04:49BC  00 00     
+       04:49BE  00 00     
+#[1]   nibbler.asm
+#[2]   sprpattern.asm
+   21                             .include "sprpattern.asm"
+    1           49C0              .code
+    2           0004              .bank   MAIN_BANK+3
+    3                     
+    4  04:49C0            SpPattern:
+    5                     
+    6  04:49C0            sp_head:
+    7  04:49C0  FF FF             dw $ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
+       04:49C2  FF FF     
+       04:49C4  FF FF     
+       04:49C6  FF FF     
+       04:49C8  FF FF     
+       04:49CA  FF FF     
+       04:49CC  FF FF     
+       04:49CE  FF FF     
+    8  04:49D0  FF FF             dw $ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
+       04:49D2  FF FF     
+       04:49D4  FF FF     
+       04:49D6  FF FF     
+       04:49D8  FF FF     
+       04:49DA  FF FF     
+       04:49DC  FF FF     
+       04:49DE  FF FF     
+    9  04:49E0  00 00             dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+       04:49E2  00 00     
+       04:49E4  00 00     
+       04:49E6  00 00     
+       04:49E8  00 00     
+       04:49EA  00 00     
+       04:49EC  00 00     
+       04:49EE  00 00     
+   10  04:49F0  00 00             dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+       04:49F2  00 00     
+       04:49F4  00 00     
+       04:49F6  00 00     
+       04:49F8  00 00     
+       04:49FA  00 00     
+       04:49FC  00 00     
+       04:49FE  00 00     
+   11  04:4A00  00 00             dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4A02  00 00     
+       04:4A04  00 00     
+       04:4A06  00 00     
+       04:4A08  00 00     
+       04:4A0A  00 00     
+       04:4A0C  00 00     
+       04:4A0E  00 00     
+   12  04:4A10  00 00             dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4A12  00 00     
+       04:4A14  00 00     
+       04:4A16  00 00     
+       04:4A18  00 00     
+       04:4A1A  00 00     
+       04:4A1C  00 00     
+       04:4A1E  00 00     
+   13  04:4A20  00 00             dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4A22  00 00     
+       04:4A24  00 00     
+       04:4A26  00 00     
+       04:4A28  00 00     
+       04:4A2A  00 00     
+       04:4A2C  00 00     
+       04:4A2E  00 00     
+   14  04:4A30  00 00             dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4A32  00 00     
+       04:4A34  00 00     
+       04:4A36  00 00     
+       04:4A38  00 00     
+       04:4A3A  00 00     
+       04:4A3C  00 00     
+       04:4A3E  00 00     
+   15                     
+   16  04:4A40            SpPattern_end:
+   17                     
+   18           0080      SpPattern_size  equ     SpPattern_end-SpPattern
+   19                     
+   20                     
+   21  04:4A40            SpPalette:
+   22  04:4A40  00 00             dw $0000,$0038,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4A42  38 00     
+       04:4A44  20 01     
+       04:4A46  00 00     
+       04:4A48  00 00     
+       04:4A4A  00 00     
+       04:4A4C  00 00     
+       04:4A4E  00 00     
+       04:4A50  07 01     
+       04:4A52  C7 01     
+       04:4A54  00 00     
+       04:4A56  00 00     
+       04:4A58  00 00     
+       04:4A5A  00 00     
+       04:4A5C  00 00     
+       04:4A5E  00 00     
+   23  04:4A60  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4A62  B6 01     
+       04:4A64  20 01     
+       04:4A66  00 00     
+       04:4A68  00 00     
+       04:4A6A  00 00     
+       04:4A6C  00 00     
+       04:4A6E  00 00     
+       04:4A70  07 01     
+       04:4A72  C7 01     
+       04:4A74  00 00     
+       04:4A76  00 00     
+       04:4A78  00 00     
+       04:4A7A  00 00     
+       04:4A7C  00 00     
+       04:4A7E  00 00     
+   24  04:4A80  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4A82  B6 01     
+       04:4A84  20 01     
+       04:4A86  00 00     
+       04:4A88  00 00     
+       04:4A8A  00 00     
+       04:4A8C  00 00     
+       04:4A8E  00 00     
+       04:4A90  07 01     
+       04:4A92  C7 01     
+       04:4A94  00 00     
+       04:4A96  00 00     
+       04:4A98  00 00     
+       04:4A9A  00 00     
+       04:4A9C  00 00     
+       04:4A9E  00 00     
+   25  04:4AA0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4AA2  B6 01     
+       04:4AA4  20 01     
+       04:4AA6  00 00     
+       04:4AA8  00 00     
+       04:4AAA  00 00     
+       04:4AAC  00 00     
+       04:4AAE  00 00     
+       04:4AB0  07 01     
+       04:4AB2  C7 01     
+       04:4AB4  00 00     
+       04:4AB6  00 00     
+       04:4AB8  00 00     
+       04:4ABA  00 00     
+       04:4ABC  00 00     
+       04:4ABE  00 00     
+   26  04:4AC0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4AC2  B6 01     
+       04:4AC4  20 01     
+       04:4AC6  00 00     
+       04:4AC8  00 00     
+       04:4ACA  00 00     
+       04:4ACC  00 00     
+       04:4ACE  00 00     
+       04:4AD0  07 01     
+       04:4AD2  C7 01     
+       04:4AD4  00 00     
+       04:4AD6  00 00     
+       04:4AD8  00 00     
+       04:4ADA  00 00     
+       04:4ADC  00 00     
+       04:4ADE  00 00     
+   27  04:4AE0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4AE2  B6 01     
+       04:4AE4  20 01     
+       04:4AE6  00 00     
+       04:4AE8  00 00     
+       04:4AEA  00 00     
+       04:4AEC  00 00     
+       04:4AEE  00 00     
+       04:4AF0  07 01     
+       04:4AF2  C7 01     
+       04:4AF4  00 00     
+       04:4AF6  00 00     
+       04:4AF8  00 00     
+       04:4AFA  00 00     
+       04:4AFC  00 00     
+       04:4AFE  00 00     
+   28  04:4B00  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4B02  B6 01     
+       04:4B04  20 01     
+       04:4B06  00 00     
+       04:4B08  00 00     
+       04:4B0A  00 00     
+       04:4B0C  00 00     
+       04:4B0E  00 00     
+       04:4B10  07 01     
+       04:4B12  C7 01     
+       04:4B14  00 00     
+       04:4B16  00 00     
+       04:4B18  00 00     
+       04:4B1A  00 00     
+       04:4B1C  00 00     
+       04:4B1E  00 00     
+   29  04:4B20  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4B22  B6 01     
+       04:4B24  20 01     
+       04:4B26  00 00     
+       04:4B28  00 00     
+       04:4B2A  00 00     
+       04:4B2C  00 00     
+       04:4B2E  00 00     
+       04:4B30  07 01     
+       04:4B32  C7 01     
+       04:4B34  00 00     
+       04:4B36  00 00     
+       04:4B38  00 00     
+       04:4B3A  00 00     
+       04:4B3C  00 00     
+       04:4B3E  00 00     
+   30  04:4B40  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4B42  B6 01     
+       04:4B44  20 01     
+       04:4B46  00 00     
+       04:4B48  00 00     
+       04:4B4A  00 00     
+       04:4B4C  00 00     
+       04:4B4E  00 00     
+       04:4B50  07 01     
+       04:4B52  C7 01     
+       04:4B54  00 00     
+       04:4B56  00 00     
+       04:4B58  00 00     
+       04:4B5A  00 00     
+       04:4B5C  00 00     
+       04:4B5E  00 00     
+   31  04:4B60  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4B62  B6 01     
+       04:4B64  20 01     
+       04:4B66  00 00     
+       04:4B68  00 00     
+       04:4B6A  00 00     
+       04:4B6C  00 00     
+       04:4B6E  00 00     
+       04:4B70  07 01     
+       04:4B72  C7 01     
+       04:4B74  00 00     
+       04:4B76  00 00     
+       04:4B78  00 00     
+       04:4B7A  00 00     
+       04:4B7C  00 00     
+       04:4B7E  00 00     
+   32  04:4B80  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4B82  B6 01     
+       04:4B84  20 01     
+       04:4B86  00 00     
+       04:4B88  00 00     
+       04:4B8A  00 00     
+       04:4B8C  00 00     
+       04:4B8E  00 00     
+       04:4B90  07 01     
+       04:4B92  C7 01     
+       04:4B94  00 00     
+       04:4B96  00 00     
+       04:4B98  00 00     
+       04:4B9A  00 00     
+       04:4B9C  00 00     
+       04:4B9E  00 00     
+   33  04:4BA0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4BA2  B6 01     
+       04:4BA4  20 01     
+       04:4BA6  00 00     
+       04:4BA8  00 00     
+       04:4BAA  00 00     
+       04:4BAC  00 00     
+       04:4BAE  00 00     
+       04:4BB0  07 01     
+       04:4BB2  C7 01     
+       04:4BB4  00 00     
+       04:4BB6  00 00     
+       04:4BB8  00 00     
+       04:4BBA  00 00     
+       04:4BBC  00 00     
+       04:4BBE  00 00     
+   34  04:4BC0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4BC2  B6 01     
+       04:4BC4  20 01     
+       04:4BC6  00 00     
+       04:4BC8  00 00     
+       04:4BCA  00 00     
+       04:4BCC  00 00     
+       04:4BCE  00 00     
+       04:4BD0  07 01     
+       04:4BD2  C7 01     
+       04:4BD4  00 00     
+       04:4BD6  00 00     
+       04:4BD8  00 00     
+       04:4BDA  00 00     
+       04:4BDC  00 00     
+       04:4BDE  00 00     
+   35  04:4BE0  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4BE2  B6 01     
+       04:4BE4  20 01     
+       04:4BE6  00 00     
+       04:4BE8  00 00     
+       04:4BEA  00 00     
+       04:4BEC  00 00     
+       04:4BEE  00 00     
+       04:4BF0  07 01     
+       04:4BF2  C7 01     
+       04:4BF4  00 00     
+       04:4BF6  00 00     
+       04:4BF8  00 00     
+       04:4BFA  00 00     
+       04:4BFC  00 00     
+       04:4BFE  00 00     
+   36  04:4C00  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4C02  B6 01     
+       04:4C04  20 01     
+       04:4C06  00 00     
+       04:4C08  00 00     
+       04:4C0A  00 00     
+       04:4C0C  00 00     
+       04:4C0E  00 00     
+       04:4C10  07 01     
+       04:4C12  C7 01     
+       04:4C14  00 00     
+       04:4C16  00 00     
+       04:4C18  00 00     
+       04:4C1A  00 00     
+       04:4C1C  00 00     
+       04:4C1E  00 00     
+   37  04:4C20  00 00             dw $0000,$01b6,$0120,$0000,$0000,$0000,$0000,$0000,$0107,$01c7,$0000,$0000,$0000,$0000,$0000,$0000
+       04:4C22  B6 01     
+       04:4C24  20 01     
+       04:4C26  00 00     
+       04:4C28  00 00     
+       04:4C2A  00 00     
+       04:4C2C  00 00     
+       04:4C2E  00 00     
+       04:4C30  07 01     
+       04:4C32  C7 01     
+       04:4C34  00 00     
+       04:4C36  00 00     
+       04:4C38  00 00     
+       04:4C3A  00 00     
+       04:4C3C  00 00     
+       04:4C3E  00 00     
    38                     
 #[1]   nibbler.asm
 #[2]   map.asm
    22                             .include "map.asm"
-    1           4660          .code
+    1           4C40          .code
     2           0001          .bank   MAIN_BANK
     3                     
     4                     
     5                     ;   zarg0,1 = wave map address
-    6  01:C355            DrawWave:
+    6  01:C38F            DrawWave:
     7           200A      .arg_wavemap_l  equ zarg0   ;マップデータアドレス
     8           200B      .arg_wavemap_h  equ zarg1
     9                     
@@ -2012,80 +2844,80 @@
    13           200F      .tmp_vmap_ptr_h equ zarg5
    14                     
    15                     ;    lda #32
-   16  01:C355  64 0C         stz <.tmp_vram_l
-   17  01:C357  64 0D         stz <.tmp_vram_h
+   16  01:C38F  64 0C         stz <.tmp_vram_l
+   17  01:C391  64 0D         stz <.tmp_vram_h
    18                     
-   19  01:C359  A9 00         lda #LOW(VMap)
-   20  01:C35B  85 0E         sta <.tmp_vmap_ptr_l
-   21  01:C35D  A9 24         lda #HIGH(VMap)
-   22  01:C35F  85 0F         sta <.tmp_vmap_ptr_h
+   19  01:C393  A9 00         lda #LOW(VMap)
+   20  01:C395  85 0E         sta <.tmp_vmap_ptr_l
+   21  01:C397  A9 24         lda #HIGH(VMap)
+   22  01:C399  85 0F         sta <.tmp_vmap_ptr_h
    23                     
-   24  01:C361  C2            cly                 ;y=マップデータのインデックス
-   25  01:C362            .loop_nextrow:
-   26  01:C362  A2 09         ldx #9              ;x=行カウンタ
-   27  01:C364            .loop_nextgrid:
+   24  01:C39B  C2            cly                 ;y=マップデータのインデックス
+   25  01:C39C            .loop_nextrow:
+   26  01:C39C  A2 09         ldx #9              ;x=行カウンタ
+   27  01:C39E            .loop_nextgrid:
    28                                             ;grid描画
-   29  01:C364  DA            phx
-   30  01:C365  5A            phy
-   31  01:C366  B1 0A         lda [.arg_wavemap_l],y
-   32  01:C368  20 AE C3      jsr DrawMapGrid
-   33  01:C36B  7A            ply
-   34  01:C36C  FA            plx
+   29  01:C39E  DA            phx
+   30  01:C39F  5A            phy
+   31  01:C3A0  B1 0A         lda [.arg_wavemap_l],y
+   32  01:C3A2  20 E8 C3      jsr DrawMapGrid
+   33  01:C3A5  7A            ply
+   34  01:C3A6  FA            plx
    35                                             ;全grid済なら終了
-   36  01:C36D  C8            iny
-   37  01:C36E  C0 51         cpy #9*9
-   38  01:C370  F0 3B         beq .loop_end
+   36  01:C3A7  C8            iny
+   37  01:C3A8  C0 51         cpy #9*9
+   38  01:C3AA  F0 3B         beq .loop_end
    39                                             ;1行終了？
-   40  01:C372  CA            dex
-   41  01:C373  F0 1C         beq .nextrow
+   40  01:C3AC  CA            dex
+   41  01:C3AD  F0 1C         beq .nextrow
    42                                             ;同一行の右隣に移動
-   43  01:C375  A5 0C         lda <.tmp_vram_l
-   44  01:C377  18            clc
-   45  01:C378  69 03         adc #3
-   46  01:C37A  85 0C         sta <.tmp_vram_l
-   47  01:C37C  A5 0D         lda <.tmp_vram_h
-   48  01:C37E  69 00         adc #0
-   49  01:C380  85 0D         sta <.tmp_vram_h
+   43  01:C3AF  A5 0C         lda <.tmp_vram_l
+   44  01:C3B1  18            clc
+   45  01:C3B2  69 03         adc #3
+   46  01:C3B4  85 0C         sta <.tmp_vram_l
+   47  01:C3B6  A5 0D         lda <.tmp_vram_h
+   48  01:C3B8  69 00         adc #0
+   49  01:C3BA  85 0D         sta <.tmp_vram_h
    50                     
-   51  01:C382  A5 0E         lda <.tmp_vmap_ptr_l
-   52  01:C384  18            clc
-   53  01:C385  69 03         adc #3
-   54  01:C387  85 0E         sta <.tmp_vmap_ptr_l
-   55  01:C389  A5 0F         lda <.tmp_vmap_ptr_h
-   56  01:C38B  69 00         adc #0
-   57  01:C38D  85 0F         sta <.tmp_vmap_ptr_h
+   51  01:C3BC  A5 0E         lda <.tmp_vmap_ptr_l
+   52  01:C3BE  18            clc
+   53  01:C3BF  69 03         adc #3
+   54  01:C3C1  85 0E         sta <.tmp_vmap_ptr_l
+   55  01:C3C3  A5 0F         lda <.tmp_vmap_ptr_h
+   56  01:C3C5  69 00         adc #0
+   57  01:C3C7  85 0F         sta <.tmp_vmap_ptr_h
    58                     
-   59  01:C38F  80 D3         bra .loop_nextgrid
+   59  01:C3C9  80 D3         bra .loop_nextgrid
    60                     
    61                                             ;次の行の左端に移動
-   62  01:C391            .nextrow:
-   63  01:C391  A5 0C         lda <.tmp_vram_l
-   64  01:C393  18            clc
-   65  01:C394  69 48         adc #3*32-3*8
-   66  01:C396  85 0C         sta <.tmp_vram_l
-   67  01:C398  A5 0D         lda <.tmp_vram_h
-   68  01:C39A  69 00         adc #0
-   69  01:C39C  85 0D         sta <.tmp_vram_h
+   62  01:C3CB            .nextrow:
+   63  01:C3CB  A5 0C         lda <.tmp_vram_l
+   64  01:C3CD  18            clc
+   65  01:C3CE  69 48         adc #3*32-3*8
+   66  01:C3D0  85 0C         sta <.tmp_vram_l
+   67  01:C3D2  A5 0D         lda <.tmp_vram_h
+   68  01:C3D4  69 00         adc #0
+   69  01:C3D6  85 0D         sta <.tmp_vram_h
    70                     
-   71  01:C39E  A5 0E         lda <.tmp_vmap_ptr_l
-   72  01:C3A0  18            clc
-   73  01:C3A1  69 48         adc #3*32-3*8
-   74  01:C3A3  85 0E         sta <.tmp_vmap_ptr_l
-   75  01:C3A5  A5 0F         lda <.tmp_vmap_ptr_h
-   76  01:C3A7  69 00         adc #0
-   77  01:C3A9  85 0F         sta <.tmp_vmap_ptr_h
+   71  01:C3D8  A5 0E         lda <.tmp_vmap_ptr_l
+   72  01:C3DA  18            clc
+   73  01:C3DB  69 48         adc #3*32-3*8
+   74  01:C3DD  85 0E         sta <.tmp_vmap_ptr_l
+   75  01:C3DF  A5 0F         lda <.tmp_vmap_ptr_h
+   76  01:C3E1  69 00         adc #0
+   77  01:C3E3  85 0F         sta <.tmp_vmap_ptr_h
    78                     
-   79  01:C3AB  80 B5         bra .loop_nextrow
+   79  01:C3E5  80 B5         bra .loop_nextrow
    80                     
-   81  01:C3AD            .loop_end:
-   82  01:C3AD  60            rts
+   81  01:C3E7            .loop_end:
+   82  01:C3E7  60            rts
    83                     
    84                     
    85                     
    86                     ;   a = the number of grid
    87                     ;   zarg2,3 = BAT address
    88                     ;   zarg4,5 = Virtual Map address
-   89  01:C3AE            DrawMapGrid:
+   89  01:C3E8            DrawMapGrid:
    90           200C      .arg_vram_l     equ zarg2   ;vram(BAT)アドレス
    91           200D      .arg_vram_h     equ zarg3
    92           200E      .arg_vmap_ptr_l equ zarg4   ;仮想vramアドレス
@@ -2099,100 +2931,100 @@
   100           2007      .tmp_dotcombi   equ ztmp4
   101           2008      .tmp_vmap_value equ ztmp5
   102                     
-  103  01:C3AE  A8            tay
+  103  01:C3E8  A8            tay
   104                                             ;x=gridデータのインデックス
   105                                             ;grid番号x9
-  106  01:C3AF  29 0F         and #$0f
-  107  01:C3B1  85 03         sta <.tmp_x9
-  108  01:C3B3  0A            asl a
-  109  01:C3B4  0A            asl a
-  110  01:C3B5  0A            asl a
-  111  01:C3B6  65 03         adc <.tmp_x9
-  112  01:C3B8  AA            tax
+  106  01:C3E9  29 0F         and #$0f
+  107  01:C3EB  85 03         sta <.tmp_x9
+  108  01:C3ED  0A            asl a
+  109  01:C3EE  0A            asl a
+  110  01:C3EF  0A            asl a
+  111  01:C3F0  65 03         adc <.tmp_x9
+  112  01:C3F2  AA            tax
   113                                             ;ドット配置
-  114  01:C3B9  98            tya
-  115  01:C3BA  4A            lsr a
-  116  01:C3BB  4A            lsr a
-  117  01:C3BC  4A            lsr a
-  118  01:C3BD  4A            lsr a
-  119  01:C3BE  A8            tay
-  120  01:C3BF  B9 9C 47      lda DotCombination,y
-  121  01:C3C2  85 07         sta <.tmp_dotcombi
+  114  01:C3F3  98            tya
+  115  01:C3F4  4A            lsr a
+  116  01:C3F5  4A            lsr a
+  117  01:C3F6  4A            lsr a
+  118  01:C3F7  4A            lsr a
+  119  01:C3F8  A8            tay
+  120  01:C3F9  B9 7C 4D      lda DotCombination,y
+  121  01:C3FC  85 07         sta <.tmp_dotcombi
   122                     
   123                                             ;vram(BAT)アドレス初期値
-  124  01:C3C4  A5 0C         lda <.arg_vram_l
-  125  01:C3C6  85 03         sta <.tmp_vram_l
-  126  01:C3C8  A5 0D         lda <.arg_vram_h
-  127  01:C3CA  85 04         sta <.tmp_vram_h
+  124  01:C3FE  A5 0C         lda <.arg_vram_l
+  125  01:C400  85 03         sta <.tmp_vram_l
+  126  01:C402  A5 0D         lda <.arg_vram_h
+  127  01:C404  85 04         sta <.tmp_vram_h
   128                     
-  129  01:C3CC  C2            cly                 ;y=仮想vramのインデックス
+  129  01:C406  C2            cly                 ;y=仮想vramのインデックス
   130                                             ;gridの行数
-  131  01:C3CD  A9 03         lda #3
-  132  01:C3CF  85 05         sta <.tmp_looprow
+  131  01:C407  A9 03         lda #3
+  132  01:C409  85 05         sta <.tmp_looprow
   133                     
-  134  01:C3D1            .loop_row:
+  134  01:C40B            .loop_row:
   135                                             ;vram(BAT)アドレスセット
-  136  01:C3D1  03 00         st0 #0
-  137  01:C3D3  A5 03         lda <.tmp_vram_l
-  138  01:C3D5  8D 02 00      sta VdcDataL
-  139  01:C3D8  A5 04         lda <.tmp_vram_h
-  140  01:C3DA  8D 03 00      sta VdcDataH
-  141  01:C3DD  03 02         st0 #2
+  136  01:C40B  03 00         st0 #0
+  137  01:C40D  A5 03         lda <.tmp_vram_l
+  138  01:C40F  8D 02 00      sta VdcDataL
+  139  01:C412  A5 04         lda <.tmp_vram_h
+  140  01:C414  8D 03 00      sta VdcDataH
+  141  01:C417  03 02         st0 #2
   142                                             ;gridの水平方向のキャラ数
-  143  01:C3DF  A9 03         lda #3
-  144  01:C3E1  85 06         sta <.tmp_loopchar
-  145  01:C3E3            .loop_char:
-  146  01:C3E3  BD 0C 47      lda VMapGrids,x
-  147  01:C3E6  85 08         sta <.tmp_vmap_value
+  143  01:C419  A9 03         lda #3
+  144  01:C41B  85 06         sta <.tmp_loopchar
+  145  01:C41D            .loop_char:
+  146  01:C41D  BD EC 4C      lda VMapGrids,x
+  147  01:C420  85 08         sta <.tmp_vmap_value
   148                     
-  149  01:C3E8  BD 7C 46      lda MapGrids,x
-  150  01:C3EB  D0 09         bne .setchar
+  149  01:C422  BD 5C 4C      lda MapGrids,x
+  150  01:C425  D0 09         bne .setchar
   151                                                 ;空白かつドットが配置されているならドットのタイルをセット
-  152  01:C3ED  7F 07 06      bbr7    <.tmp_dotcombi,.setchar
+  152  01:C427  7F 07 06      bbr7    <.tmp_dotcombi,.setchar
   153                     ;    smb0    <.tmp_vmap_value    ;仮想vramにドットのフラグをセット
-  154  01:C3F0  A9 0F         lda #$0f
-  155  01:C3F2  04 08         tsb <.tmp_vmap_value
-  156  01:C3F4  A9 1A         lda #$0d*2                  ;TODO: ドットのタイル番号
-  157  01:C3F6            .setchar
+  154  01:C42A  A9 0F         lda #$0f
+  155  01:C42C  04 08         tsb <.tmp_vmap_value
+  156  01:C42E  A9 1A         lda #$0d*2                  ;TODO: ドットのタイル番号
+  157  01:C430            .setchar
   158                                             ;タイルをvram(BAT)に書き込み
-  159  01:C3F6  5A            phy
-  160  01:C3F7  A8            tay
-  161  01:C3F8  B9 60 46      lda MapPartsTiles,y
-  162  01:C3FB  8D 02 00      sta VdcDataL
-  163  01:C3FE  B9 61 46      lda MapPartsTiles+1,y
-  164  01:C401  8D 03 00      sta VdcDataH
-  165  01:C404  7A            ply
+  159  01:C430  5A            phy
+  160  01:C431  A8            tay
+  161  01:C432  B9 40 4C      lda MapPartsTiles,y
+  162  01:C435  8D 02 00      sta VdcDataL
+  163  01:C438  B9 41 4C      lda MapPartsTiles+1,y
+  164  01:C43B  8D 03 00      sta VdcDataH
+  165  01:C43E  7A            ply
   166                                             ;仮想vramに書き込み
-  167  01:C405  A5 08         lda <.tmp_vmap_value
-  168  01:C407  91 0E         sta [.arg_vmap_ptr_l],y
+  167  01:C43F  A5 08         lda <.tmp_vmap_value
+  168  01:C441  91 0E         sta [.arg_vmap_ptr_l],y
   169                     
-  170  01:C409  06 07         asl <.tmp_dotcombi
-  171  01:C40B  E8            inx
-  172  01:C40C  C8            iny
+  170  01:C443  06 07         asl <.tmp_dotcombi
+  171  01:C445  E8            inx
+  172  01:C446  C8            iny
   173                     
-  174  01:C40D  C6 06         dec <.tmp_loopchar
-  175  01:C40F  D0 D2         bne .loop_char
+  174  01:C447  C6 06         dec <.tmp_loopchar
+  175  01:C449  D0 D2         bne .loop_char
   176                     
-  177  01:C411  C6 05         dec <.tmp_looprow
-  178  01:C413  F0 14         beq .end_loop
+  177  01:C44B  C6 05         dec <.tmp_looprow
+  178  01:C44D  F0 14         beq .end_loop
   179                                             ;次の行にvramアドレスを移動
-  180  01:C415  A5 03         lda <.tmp_vram_l
-  181  01:C417  18            clc
-  182  01:C418  69 20         adc #32
-  183  01:C41A  85 03         sta <.tmp_vram_l
-  184  01:C41C  A5 04         lda <.tmp_vram_h
-  185  01:C41E  69 00         adc #0
-  186  01:C420  85 04         sta <.tmp_vram_h
+  180  01:C44F  A5 03         lda <.tmp_vram_l
+  181  01:C451  18            clc
+  182  01:C452  69 20         adc #32
+  183  01:C454  85 03         sta <.tmp_vram_l
+  184  01:C456  A5 04         lda <.tmp_vram_h
+  185  01:C458  69 00         adc #0
+  186  01:C45A  85 04         sta <.tmp_vram_h
   187                                             ;次の行に仮想vramインデックスを移動
-  188  01:C422  98            tya
-  189  01:C423  18            clc
-  190  01:C424  69 1D         adc #32-3
-  191  01:C426  A8            tay
+  188  01:C45C  98            tya
+  189  01:C45D  18            clc
+  190  01:C45E  69 1D         adc #32-3
+  191  01:C460  A8            tay
   192                     
-  193  01:C427  80 A8         bra .loop_row
+  193  01:C461  80 A8         bra .loop_row
   194                     
-  195  01:C429            .end_loop:
-  196  01:C429  60            rts
+  195  01:C463            .end_loop:
+  196  01:C463  60            rts
   197                     
   198                     
   199           2400          .bss
@@ -2202,7 +3034,7 @@
 #[1]   nibbler.asm
 #[2]   mapdata.asm
    23                             .include "mapdata.asm"
-    1           C42A          .code
+    1           C464          .code
     2           0004          .bank   MAIN_BANK+3
     3                     
     4                     
@@ -2211,21 +3043,21 @@
     7                     ;   gridを構成するタイルのキャラクター番号（BATの下12ビットの値）
     8                     ;
     9           1000      MapPartsPatternAddress  equ $1000
-   10  04:4660            MapPartsTiles:
-   11  04:4660  00 01         dw  (MapPartsPatternAddress+$00*16)/16  ;空白
-   12  04:4662  01 01         dw  (MapPartsPatternAddress+$01*16)/16  ;左上┌
-   13  04:4664  02 01         dw  (MapPartsPatternAddress+$02*16)/16  ;右上┐
-   14  04:4666  03 01         dw  (MapPartsPatternAddress+$03*16)/16  ;左下└
-   15  04:4668  04 01         dw  (MapPartsPatternAddress+$04*16)/16  ;右下┐
-   16  04:466A  05 01         dw  (MapPartsPatternAddress+$05*16)/16  ;左│
-   17  04:466C  06 01         dw  (MapPartsPatternAddress+$06*16)/16  ;右│
-   18  04:466E  07 01         dw  (MapPartsPatternAddress+$07*16)/16  ;上─
-   19  04:4670  08 01         dw  (MapPartsPatternAddress+$08*16)/16  ;下─
-   20  04:4672  09 01         dw  (MapPartsPatternAddress+$09*16)/16  ;左上・
-   21  04:4674  0A 01         dw  (MapPartsPatternAddress+$0a*16)/16  ;右上・
-   22  04:4676  0B 01         dw  (MapPartsPatternAddress+$0b*16)/16  ;左下・
-   23  04:4678  0C 01         dw  (MapPartsPatternAddress+$0c*16)/16  ;右下・
-   24  04:467A  0D 01         dw  (MapPartsPatternAddress+$0d*16)/16  ;ドット
+   10  04:4C40            MapPartsTiles:
+   11  04:4C40  00 01         dw  (MapPartsPatternAddress+$00*16)/16  ;空白
+   12  04:4C42  01 01         dw  (MapPartsPatternAddress+$01*16)/16  ;左上┌
+   13  04:4C44  02 01         dw  (MapPartsPatternAddress+$02*16)/16  ;右上┐
+   14  04:4C46  03 01         dw  (MapPartsPatternAddress+$03*16)/16  ;左下└
+   15  04:4C48  04 01         dw  (MapPartsPatternAddress+$04*16)/16  ;右下┐
+   16  04:4C4A  05 01         dw  (MapPartsPatternAddress+$05*16)/16  ;左│
+   17  04:4C4C  06 01         dw  (MapPartsPatternAddress+$06*16)/16  ;右│
+   18  04:4C4E  07 01         dw  (MapPartsPatternAddress+$07*16)/16  ;上─
+   19  04:4C50  08 01         dw  (MapPartsPatternAddress+$08*16)/16  ;下─
+   20  04:4C52  09 01         dw  (MapPartsPatternAddress+$09*16)/16  ;左上・
+   21  04:4C54  0A 01         dw  (MapPartsPatternAddress+$0a*16)/16  ;右上・
+   22  04:4C56  0B 01         dw  (MapPartsPatternAddress+$0b*16)/16  ;左下・
+   23  04:4C58  0C 01         dw  (MapPartsPatternAddress+$0c*16)/16  ;右下・
+   24  04:4C5A  0D 01         dw  (MapPartsPatternAddress+$0d*16)/16  ;ドット
    25                     
    26                     ;
    27                     ;   マップのgridの中身
@@ -2236,71 +3068,71 @@
    32                         db  \1*2,\2*2,\3*2
    33                         .endm
    34                     
-   35  04:467C            MapGrids:
-   36  04:467C            MapGrid_00:
-   37  04:867C                MapGridData  $01,$07,$02
-   38  04:867F                MapGridData  $05,$00,$06
-   39  04:8682                MapGridData  $03,$08,$04
-   40  04:4685            MapGrid_01:
-   41  04:8685                MapGridData  $05,$00,$06
-   42  04:8688                MapGridData  $05,$00,$06
-   43  04:868B                MapGridData  $03,$08,$04
-   44  04:468E            MapGrid_02:
-   45  04:868E                MapGridData  $01,$07,$07
-   46  04:8691                MapGridData  $05,$00,$00
-   47  04:8694                MapGridData  $03,$08,$08
-   48  04:4697            MapGrid_03:
-   49  04:8697                MapGridData  $05,$00,$0a
-   50  04:869A                MapGridData  $05,$00,$00
-   51  04:869D                MapGridData  $03,$08,$08
-   52  04:46A0            MapGrid_04:
-   53  04:86A0                MapGridData  $01,$07,$02
-   54  04:86A3                MapGridData  $05,$00,$06
-   55  04:86A6                MapGridData  $05,$00,$06
-   56  04:46A9            MapGrid_05:
-   57  04:86A9                MapGridData  $05,$00,$06
-   58  04:86AC                MapGridData  $05,$00,$06
-   59  04:86AF                MapGridData  $05,$00,$06
-   60  04:46B2            MapGrid_06:
-   61  04:86B2                MapGridData  $01,$07,$07
-   62  04:86B5                MapGridData  $05,$00,$00
-   63  04:86B8                MapGridData  $05,$00,$0c
-   64  04:46BB            MapGrid_07:
-   65  04:86BB                MapGridData  $05,$00,$0a
-   66  04:86BE                MapGridData  $05,$00,$00
-   67  04:86C1                MapGridData  $05,$00,$0c
-   68  04:46C4            MapGrid_08:
-   69  04:86C4                MapGridData  $07,$07,$02
-   70  04:86C7                MapGridData  $00,$00,$06
-   71  04:86CA                MapGridData  $08,$08,$04
-   72  04:46CD            MapGrid_09:
-   73  04:86CD                MapGridData  $09,$00,$06
-   74  04:86D0                MapGridData  $00,$00,$06
-   75  04:86D3                MapGridData  $08,$08,$04
-   76  04:46D6            MapGrid_0a:
-   77  04:86D6                MapGridData  $07,$07,$07
-   78  04:86D9                MapGridData  $00,$00,$00
-   79  04:86DC                MapGridData  $08,$08,$08
-   80  04:46DF            MapGrid_0b:
-   81  04:86DF                MapGridData  $09,$00,$0a
-   82  04:86E2                MapGridData  $00,$00,$00
-   83  04:86E5                MapGridData  $08,$08,$08
-   84  04:46E8            MapGrid_0c:
-   85  04:86E8                MapGridData  $07,$07,$02
-   86  04:86EB                MapGridData  $00,$00,$06
-   87  04:86EE                MapGridData  $0b,$00,$06
-   88  04:46F1            MapGrid_0d:
-   89  04:86F1                MapGridData  $09,$00,$06
-   90  04:86F4                MapGridData  $00,$00,$06
-   91  04:86F7                MapGridData  $0b,$00,$06
-   92  04:46FA            MapGrid_0e:
-   93  04:86FA                MapGridData  $07,$07,$07
-   94  04:86FD                MapGridData  $00,$00,$00
-   95  04:8700                MapGridData  $0b,$00,$0c
-   96  04:4703            MapGrid_0f:
-   97  04:8703                MapGridData  $09,$00,$0a
-   98  04:8706                MapGridData  $00,$00,$00
-   99  04:8709                MapGridData  $0b,$00,$0c
+   35  04:4C5C            MapGrids:
+   36  04:4C5C            MapGrid_00:
+   37  04:8C5C                MapGridData  $01,$07,$02
+   38  04:8C5F                MapGridData  $05,$00,$06
+   39  04:8C62                MapGridData  $03,$08,$04
+   40  04:4C65            MapGrid_01:
+   41  04:8C65                MapGridData  $05,$00,$06
+   42  04:8C68                MapGridData  $05,$00,$06
+   43  04:8C6B                MapGridData  $03,$08,$04
+   44  04:4C6E            MapGrid_02:
+   45  04:8C6E                MapGridData  $01,$07,$07
+   46  04:8C71                MapGridData  $05,$00,$00
+   47  04:8C74                MapGridData  $03,$08,$08
+   48  04:4C77            MapGrid_03:
+   49  04:8C77                MapGridData  $05,$00,$0a
+   50  04:8C7A                MapGridData  $05,$00,$00
+   51  04:8C7D                MapGridData  $03,$08,$08
+   52  04:4C80            MapGrid_04:
+   53  04:8C80                MapGridData  $01,$07,$02
+   54  04:8C83                MapGridData  $05,$00,$06
+   55  04:8C86                MapGridData  $05,$00,$06
+   56  04:4C89            MapGrid_05:
+   57  04:8C89                MapGridData  $05,$00,$06
+   58  04:8C8C                MapGridData  $05,$00,$06
+   59  04:8C8F                MapGridData  $05,$00,$06
+   60  04:4C92            MapGrid_06:
+   61  04:8C92                MapGridData  $01,$07,$07
+   62  04:8C95                MapGridData  $05,$00,$00
+   63  04:8C98                MapGridData  $05,$00,$0c
+   64  04:4C9B            MapGrid_07:
+   65  04:8C9B                MapGridData  $05,$00,$0a
+   66  04:8C9E                MapGridData  $05,$00,$00
+   67  04:8CA1                MapGridData  $05,$00,$0c
+   68  04:4CA4            MapGrid_08:
+   69  04:8CA4                MapGridData  $07,$07,$02
+   70  04:8CA7                MapGridData  $00,$00,$06
+   71  04:8CAA                MapGridData  $08,$08,$04
+   72  04:4CAD            MapGrid_09:
+   73  04:8CAD                MapGridData  $09,$00,$06
+   74  04:8CB0                MapGridData  $00,$00,$06
+   75  04:8CB3                MapGridData  $08,$08,$04
+   76  04:4CB6            MapGrid_0a:
+   77  04:8CB6                MapGridData  $07,$07,$07
+   78  04:8CB9                MapGridData  $00,$00,$00
+   79  04:8CBC                MapGridData  $08,$08,$08
+   80  04:4CBF            MapGrid_0b:
+   81  04:8CBF                MapGridData  $09,$00,$0a
+   82  04:8CC2                MapGridData  $00,$00,$00
+   83  04:8CC5                MapGridData  $08,$08,$08
+   84  04:4CC8            MapGrid_0c:
+   85  04:8CC8                MapGridData  $07,$07,$02
+   86  04:8CCB                MapGridData  $00,$00,$06
+   87  04:8CCE                MapGridData  $0b,$00,$06
+   88  04:4CD1            MapGrid_0d:
+   89  04:8CD1                MapGridData  $09,$00,$06
+   90  04:8CD4                MapGridData  $00,$00,$06
+   91  04:8CD7                MapGridData  $0b,$00,$06
+   92  04:4CDA            MapGrid_0e:
+   93  04:8CDA                MapGridData  $07,$07,$07
+   94  04:8CDD                MapGridData  $00,$00,$00
+   95  04:8CE0                MapGridData  $0b,$00,$0c
+   96  04:4CE3            MapGrid_0f:
+   97  04:8CE3                MapGridData  $09,$00,$0a
+   98  04:8CE6                MapGridData  $00,$00,$00
+   99  04:8CE9                MapGridData  $0b,$00,$0c
   100                     
   101                     ;
   102                     ;   マップのgridの中身（仮想vram用）
@@ -2312,71 +3144,71 @@
   108                         db  \1*16,\2*16,\3*16
   109                         .endm
   110                     
-  111  04:470C            VMapGrids:
-  112  04:470C            VMapGrid_00:
-  113  04:870C                VMapGridData  %0000,%0000,%0000
-  114  04:870F                VMapGridData  %0000,%0000,%0000
-  115  04:8712                VMapGridData  %0000,%0000,%0000
-  116  04:4715            VMapGrid_01:
-  117  04:8715                VMapGridData  %0000,%0101,%0000
-  118  04:8718                VMapGridData  %0000,%0001,%0000
-  119  04:871B                VMapGridData  %0000,%0000,%0000
-  120  04:471E            VMapGrid_02:
-  121  04:871E                VMapGridData  %0000,%0000,%0000
-  122  04:8721                VMapGridData  %0000,%0010,%1010
-  123  04:8724                VMapGridData  %0000,%0000,%0000
-  124  04:4727            VMapGrid_03:
-  125  04:8727                VMapGridData  %0000,%0101,%0000
-  126  04:872A                VMapGridData  %0000,%0011,%1010
-  127  04:872D                VMapGridData  %0000,%0000,%0000
-  128  04:4730            VMapGrid_04:
-  129  04:8730                VMapGridData  %0000,%0000,%0000
-  130  04:8733                VMapGridData  %0000,%0100,%0000
-  131  04:8736                VMapGridData  %0000,%0101,%0000
-  132  04:4739            VMapGrid_05:
-  133  04:8739                VMapGridData  %0000,%0101,%0000
-  134  04:873C                VMapGridData  %0000,%0101,%0000
-  135  04:873F                VMapGridData  %0000,%0101,%0000
-  136  04:4742            VMapGrid_06:
-  137  04:8742                VMapGridData  %0000,%0000,%0000
-  138  04:8745                VMapGridData  %0000,%0110,%1010
-  139  04:8748                VMapGridData  %0000,%0101,%0000
-  140  04:474B            VMapGrid_07:
-  141  04:874B                VMapGridData  %0000,%0101,%0000
-  142  04:874E                VMapGridData  %0000,%0111,%1010
-  143  04:8751                VMapGridData  %0000,%0101,%0000
-  144  04:4754            VMapGrid_08:
-  145  04:8754                VMapGridData  %0000,%0000,%0000
-  146  04:8757                VMapGridData  %1010,%1000,%0000
-  147  04:875A                VMapGridData  %0000,%0000,%0000
-  148  04:475D            VMapGrid_09:
-  149  04:875D                VMapGridData  %0000,%0101,%0000
-  150  04:8760                VMapGridData  %1010,%1001,%0000
-  151  04:8763                VMapGridData  %0000,%0000,%0000
-  152  04:4766            VMapGrid_0a:
-  153  04:8766                VMapGridData  %0000,%0000,%0000
-  154  04:8769                VMapGridData  %1010,%1010,%1010
-  155  04:876C                VMapGridData  %0000,%0000,%0000
-  156  04:476F            VMapGrid_0b:
-  157  04:876F                VMapGridData  %0000,%0101,%0000
-  158  04:8772                VMapGridData  %1010,%1011,%1010
-  159  04:8775                VMapGridData  %0000,%0000,%0000
-  160  04:4778            VMapGrid_0c:
-  161  04:8778                VMapGridData  %0000,%0000,%0000
-  162  04:877B                VMapGridData  %1010,%1100,%0000
-  163  04:877E                VMapGridData  %0000,%0101,%0000
-  164  04:4781            VMapGrid_0d:
-  165  04:8781                VMapGridData  %0000,%0101,%0000
-  166  04:8784                VMapGridData  %1010,%1101,%0000
-  167  04:8787                VMapGridData  %0000,%0101,%0000
-  168  04:478A            VMapGrid_0e:
-  169  04:878A                VMapGridData  %0000,%0000,%0000
-  170  04:878D                VMapGridData  %1010,%1110,%1010
-  171  04:8790                VMapGridData  %0000,%0101,%0000
-  172  04:4793            VMapGrid_0f:
-  173  04:8793                VMapGridData  %0000,%0101,%0000
-  174  04:8796                VMapGridData  %1010,%1111,%1010
-  175  04:8799                VMapGridData  %0000,%0101,%0000
+  111  04:4CEC            VMapGrids:
+  112  04:4CEC            VMapGrid_00:
+  113  04:8CEC                VMapGridData  %0000,%0000,%0000
+  114  04:8CEF                VMapGridData  %0000,%0000,%0000
+  115  04:8CF2                VMapGridData  %0000,%0000,%0000
+  116  04:4CF5            VMapGrid_01:
+  117  04:8CF5                VMapGridData  %0000,%0101,%0000
+  118  04:8CF8                VMapGridData  %0000,%0001,%0000
+  119  04:8CFB                VMapGridData  %0000,%0000,%0000
+  120  04:4CFE            VMapGrid_02:
+  121  04:8CFE                VMapGridData  %0000,%0000,%0000
+  122  04:8D01                VMapGridData  %0000,%0010,%1010
+  123  04:8D04                VMapGridData  %0000,%0000,%0000
+  124  04:4D07            VMapGrid_03:
+  125  04:8D07                VMapGridData  %0000,%0101,%0000
+  126  04:8D0A                VMapGridData  %0000,%0011,%1010
+  127  04:8D0D                VMapGridData  %0000,%0000,%0000
+  128  04:4D10            VMapGrid_04:
+  129  04:8D10                VMapGridData  %0000,%0000,%0000
+  130  04:8D13                VMapGridData  %0000,%0100,%0000
+  131  04:8D16                VMapGridData  %0000,%0101,%0000
+  132  04:4D19            VMapGrid_05:
+  133  04:8D19                VMapGridData  %0000,%0101,%0000
+  134  04:8D1C                VMapGridData  %0000,%0101,%0000
+  135  04:8D1F                VMapGridData  %0000,%0101,%0000
+  136  04:4D22            VMapGrid_06:
+  137  04:8D22                VMapGridData  %0000,%0000,%0000
+  138  04:8D25                VMapGridData  %0000,%0110,%1010
+  139  04:8D28                VMapGridData  %0000,%0101,%0000
+  140  04:4D2B            VMapGrid_07:
+  141  04:8D2B                VMapGridData  %0000,%0101,%0000
+  142  04:8D2E                VMapGridData  %0000,%0111,%1010
+  143  04:8D31                VMapGridData  %0000,%0101,%0000
+  144  04:4D34            VMapGrid_08:
+  145  04:8D34                VMapGridData  %0000,%0000,%0000
+  146  04:8D37                VMapGridData  %1010,%1000,%0000
+  147  04:8D3A                VMapGridData  %0000,%0000,%0000
+  148  04:4D3D            VMapGrid_09:
+  149  04:8D3D                VMapGridData  %0000,%0101,%0000
+  150  04:8D40                VMapGridData  %1010,%1001,%0000
+  151  04:8D43                VMapGridData  %0000,%0000,%0000
+  152  04:4D46            VMapGrid_0a:
+  153  04:8D46                VMapGridData  %0000,%0000,%0000
+  154  04:8D49                VMapGridData  %1010,%1010,%1010
+  155  04:8D4C                VMapGridData  %0000,%0000,%0000
+  156  04:4D4F            VMapGrid_0b:
+  157  04:8D4F                VMapGridData  %0000,%0101,%0000
+  158  04:8D52                VMapGridData  %1010,%1011,%1010
+  159  04:8D55                VMapGridData  %0000,%0000,%0000
+  160  04:4D58            VMapGrid_0c:
+  161  04:8D58                VMapGridData  %0000,%0000,%0000
+  162  04:8D5B                VMapGridData  %1010,%1100,%0000
+  163  04:8D5E                VMapGridData  %0000,%0101,%0000
+  164  04:4D61            VMapGrid_0d:
+  165  04:8D61                VMapGridData  %0000,%0101,%0000
+  166  04:8D64                VMapGridData  %1010,%1101,%0000
+  167  04:8D67                VMapGridData  %0000,%0101,%0000
+  168  04:4D6A            VMapGrid_0e:
+  169  04:8D6A                VMapGridData  %0000,%0000,%0000
+  170  04:8D6D                VMapGridData  %1010,%1110,%1010
+  171  04:8D70                VMapGridData  %0000,%0101,%0000
+  172  04:4D73            VMapGrid_0f:
+  173  04:8D73                VMapGridData  %0000,%0101,%0000
+  174  04:8D76                VMapGridData  %1010,%1111,%1010
+  175  04:8D79                VMapGridData  %0000,%0101,%0000
   176                     
   177                     
   178                     ;
@@ -2385,15 +3217,15 @@
   181                     ;   右下に対応するビットがないが、右下にドットが置かれることはないので有無を表すビットを�
   182                     ;   左上、右上、左下もドットが置かれることはないが、マップ描画処理の都合上、対応するビッ�
   183                     ;
-  184  04:479C            DotCombination:
-  185  04:479C  00            db  %00000000
-  186  04:479D  08            db  %00001000
-  187  04:479E  40            db  %01000000
-  188  04:479F  01            db  %00000001
-  189  04:47A0  10            db  %00010000
-  190  04:47A1  04            db  %00000100
-  191  04:47A2  41            db  %01000001
-  192  04:47A3  14            db  %00010100
+  184  04:4D7C            DotCombination:
+  185  04:4D7C  00            db  %00000000
+  186  04:4D7D  08            db  %00001000
+  187  04:4D7E  40            db  %01000000
+  188  04:4D7F  01            db  %00000001
+  189  04:4D80  10            db  %00010000
+  190  04:4D81  04            db  %00000100
+  191  04:4D82  41            db  %01000001
+  192  04:4D83  14            db  %00010100
   193                     
   194                     
   195                     ;
@@ -2404,63 +3236,63 @@
   200                     ;   壁配置は MapGrids のインデックス
   201                     ;
   202                     
-  203  04:47A4            WaveMap:
-  204  04:47A4            WaveMap_01:
-  205  04:47A4  06 1A 0E      db  $06,$1a,$0e,$1e,$0a,$1e,$0e,$1a,$0c
-       04:47A7  1E 0A 1E  
-       04:47AA  0E 1A 0C  
-  206  04:47AD  15 00 15      db  $15,$00,$15,$07,$0e,$0d,$15,$00,$15
-       04:47B0  07 0E 0D  
-       04:47B3  15 00 15  
-  207  04:47B6  07 0A 09      db  $07,$0a,$09,$15,$05,$15,$03,$0a,$0d
-       04:47B9  15 05 15  
-       04:47BC  03 0A 0D  
-  208  04:47BF  15 06 4A      db  $15,$06,$4a,$0b,$0f,$0b,$5a,$0c,$15
-       04:47C2  0B 0F 0B  
-       04:47C5  5A 0C 15  
-  209  04:47C8  07 0B 4A      db  $07,$0b,$4a,$0e,$2b,$0e,$5a,$0b,$0d
-       04:47CB  0E 2B 0E  
-       04:47CE  5A 0B 0D  
-  210  04:47D1  07 1A 0E      db  $07,$1a,$0e,$0d,$00,$07,$0e,$1a,$0d
-       04:47D4  0D 00 07  
-       04:47D7  0E 1A 0D  
-  211  04:47DA  05 00 05      db  $05,$00,$05,$07,$1a,$0d,$05,$00,$05
-       04:47DD  07 1A 0D  
-       04:47E0  05 00 05  
-  212  04:47E3  67 0A 29      db  $67,$0a,$29,$25,$00,$25,$23,$0a,$6d
-       04:47E6  25 00 25  
-       04:47E9  23 0A 6D  
-  213  04:47EC  03 0A 0A      db  $03,$0a,$0a,$0b,$0a,$0b,$0a,$0a,$09
-       04:47EF  0B 0A 0B  
-       04:47F2  0A 0A 09  
-  214  04:47F5            WaveMap_10:
-  215  04:47F5  06 1A 0E      db  $06,$1a,$0e,$0e,$1a,$0e,$0e,$1a,$0c
-       04:47F8  0E 1A 0E  
-       04:47FB  0E 1A 0C  
-  216  04:47FE  07 1A 0D      db  $07,$1a,$0d,$27,$1a,$2d,$07,$1a,$0d
-       04:4801  27 1A 2D  
-       04:4804  07 1A 0D  
-  217  04:4807  15 16 0B      db  $15,$16,$0b,$0f,$1a,$0f,$0b,$1c,$15
-       04:480A  0F 1A 0F  
-       04:480D  0B 1C 15  
-  218  04:4810  07 0D 06      db  $07,$0d,$06,$2d,$00,$27,$0c,$07,$0d
-       04:4813  2D 00 27  
-       04:4816  0C 07 0D  
-  219  04:4819  07 0F 1D      db  $07,$0f,$1d,$07,$1a,$0d,$17,$0f,$0d
-       04:481C  07 1A 0D  
-       04:481F  17 0F 0D  
-  220  04:4822  07 0D 03      db  $07,$0d,$03,$3d,$00,$37,$09,$07,$0d
-       04:4825  3D 00 37  
-       04:4828  09 07 0D  
-  221  04:482B  15 03 3E      db  $15,$03,$3e,$0f,$1a,$0f,$3e,$09,$15
-       04:482E  0F 1A 0F  
-       04:4831  3E 09 15  
-  222  04:4834  07 1A 0D      db  $07,$1a,$0d,$07,$1a,$0d,$07,$1a,$0d
-       04:4837  07 1A 0D  
-       04:483A  07 1A 0D  
-  223  04:483D  03 0A 0B      db  $03,$0a,$0b,$0b,$0a,$0b,$0b,$0a,$09
-       04:4840  0B 0A 0B  
-       04:4843  0B 0A 09  
+  203  04:4D84            WaveMap:
+  204  04:4D84            WaveMap_01:
+  205  04:4D84  06 1A 0E      db  $06,$1a,$0e,$1e,$0a,$1e,$0e,$1a,$0c
+       04:4D87  1E 0A 1E  
+       04:4D8A  0E 1A 0C  
+  206  04:4D8D  15 00 15      db  $15,$00,$15,$07,$0e,$0d,$15,$00,$15
+       04:4D90  07 0E 0D  
+       04:4D93  15 00 15  
+  207  04:4D96  07 0A 09      db  $07,$0a,$09,$15,$05,$15,$03,$0a,$0d
+       04:4D99  15 05 15  
+       04:4D9C  03 0A 0D  
+  208  04:4D9F  15 06 4A      db  $15,$06,$4a,$0b,$0f,$0b,$5a,$0c,$15
+       04:4DA2  0B 0F 0B  
+       04:4DA5  5A 0C 15  
+  209  04:4DA8  07 0B 4A      db  $07,$0b,$4a,$0e,$2b,$0e,$5a,$0b,$0d
+       04:4DAB  0E 2B 0E  
+       04:4DAE  5A 0B 0D  
+  210  04:4DB1  07 1A 0E      db  $07,$1a,$0e,$0d,$00,$07,$0e,$1a,$0d
+       04:4DB4  0D 00 07  
+       04:4DB7  0E 1A 0D  
+  211  04:4DBA  05 00 05      db  $05,$00,$05,$07,$1a,$0d,$05,$00,$05
+       04:4DBD  07 1A 0D  
+       04:4DC0  05 00 05  
+  212  04:4DC3  67 0A 29      db  $67,$0a,$29,$25,$00,$25,$23,$0a,$6d
+       04:4DC6  25 00 25  
+       04:4DC9  23 0A 6D  
+  213  04:4DCC  03 0A 0A      db  $03,$0a,$0a,$0b,$0a,$0b,$0a,$0a,$09
+       04:4DCF  0B 0A 0B  
+       04:4DD2  0A 0A 09  
+  214  04:4DD5            WaveMap_10:
+  215  04:4DD5  06 1A 0E      db  $06,$1a,$0e,$0e,$1a,$0e,$0e,$1a,$0c
+       04:4DD8  0E 1A 0E  
+       04:4DDB  0E 1A 0C  
+  216  04:4DDE  07 1A 0D      db  $07,$1a,$0d,$27,$1a,$2d,$07,$1a,$0d
+       04:4DE1  27 1A 2D  
+       04:4DE4  07 1A 0D  
+  217  04:4DE7  15 16 0B      db  $15,$16,$0b,$0f,$1a,$0f,$0b,$1c,$15
+       04:4DEA  0F 1A 0F  
+       04:4DED  0B 1C 15  
+  218  04:4DF0  07 0D 06      db  $07,$0d,$06,$2d,$00,$27,$0c,$07,$0d
+       04:4DF3  2D 00 27  
+       04:4DF6  0C 07 0D  
+  219  04:4DF9  07 0F 1D      db  $07,$0f,$1d,$07,$1a,$0d,$17,$0f,$0d
+       04:4DFC  07 1A 0D  
+       04:4DFF  17 0F 0D  
+  220  04:4E02  07 0D 03      db  $07,$0d,$03,$3d,$00,$37,$09,$07,$0d
+       04:4E05  3D 00 37  
+       04:4E08  09 07 0D  
+  221  04:4E0B  15 03 3E      db  $15,$03,$3e,$0f,$1a,$0f,$3e,$09,$15
+       04:4E0E  0F 1A 0F  
+       04:4E11  3E 09 15  
+  222  04:4E14  07 1A 0D      db  $07,$1a,$0d,$07,$1a,$0d,$07,$1a,$0d
+       04:4E17  07 1A 0D  
+       04:4E1A  07 1A 0D  
+  223  04:4E1D  03 0A 0B      db  $03,$0a,$0b,$0b,$0a,$0b,$0b,$0a,$09
+       04:4E20  0B 0A 0B  
+       04:4E23  0B 0A 09  
 #[1]   nibbler.asm
 #[2]   vqueue.asm
    24                             .include "vqueue.asm"
@@ -2484,99 +3316,99 @@
    18  --:27B0            vqArea_end:
    19           0050      vqArea_size equ vqArea_end-vqArea
    20                     
-   21           4846          .code
+   21           4E26          .code
    22           0001          .bank   MAIN_BANK
    23                     
    24                     ;   キューを初期化
    25                     ;   @args       なし
    26                     ;   @saveregs   なし
    27                     ;   @return     なし
-   28  01:C42A            vqInit:
+   28  01:C464            vqInit:
    29                                             ;キューをクリア
-   30  01:C42A  9C 60 27      stz vqArea
-   31  01:C42D  73 60 27      tii vqArea,vqArea+1,vqArea_size-1
-       01:C430  61 27 4F  
-       01:C433  00        
-   32  01:C434  64 20         stz <zvqIndex
-   33  01:C436  60            rts
+   30  01:C464  9C 60 27      stz vqArea
+   31  01:C467  73 60 27      tii vqArea,vqArea+1,vqArea_size-1
+       01:C46A  61 27 4F  
+       01:C46D  00        
+   32  01:C46E  64 20         stz <zvqIndex
+   33  01:C470  60            rts
    34                     
    35                     ;   キューにデータを追加
    36                     ;   @args       zarg0,1 = vramアドレス
    37                     ;               zarg2,3 = データ
    38                     ;   @saveregs   x
    39                     ;   @return     なし
-   40  01:C437            vqPush:
+   40  01:C471            vqPush:
    41           200A      .tmp_vramadr_l  equ zarg0
    42           200B      .tmp_vramadr_h  equ zarg1
    43           200C      .tmp_src_l      equ zarg2
    44           200D      .tmp_src_h      equ zarg3
    45           200E      .tmp_len        equ zarg4
-   46  01:C437  A4 20         ldy <zvqIndex
+   46  01:C471  A4 20         ldy <zvqIndex
    47                     
-   48  01:C439  AD 0A 20      lda .tmp_vramadr_l
-   49  01:C43C  99 60 27      sta vqDstL,y
-   50  01:C43F  AD 0B 20      lda .tmp_vramadr_h
-   51  01:C442  99 70 27      sta vqDstH,y
+   48  01:C473  AD 0A 20      lda .tmp_vramadr_l
+   49  01:C476  99 60 27      sta vqDstL,y
+   50  01:C479  AD 0B 20      lda .tmp_vramadr_h
+   51  01:C47C  99 70 27      sta vqDstH,y
    52                     
-   53  01:C445  AD 0C 20      lda .tmp_src_l
-   54  01:C448  99 80 27      sta vqSrcL,y
-   55  01:C44B  AD 0D 20      lda .tmp_src_h
-   56  01:C44E  99 90 27      sta vqSrcH,y
+   53  01:C47F  AD 0C 20      lda .tmp_src_l
+   54  01:C482  99 80 27      sta vqSrcL,y
+   55  01:C485  AD 0D 20      lda .tmp_src_h
+   56  01:C488  99 90 27      sta vqSrcH,y
    57                     
-   58  01:C451  AD 0E 20      lda .tmp_len
-   59  01:C454  99 A0 27      sta vqWLen,y
+   58  01:C48B  AD 0E 20      lda .tmp_len
+   59  01:C48E  99 A0 27      sta vqWLen,y
    60                     
-   61  01:C457  C8            iny
-   62  01:C458  84 20         sty <zvqIndex
+   61  01:C491  C8            iny
+   62  01:C492  84 20         sty <zvqIndex
    63                     
-   64  01:C45A  60            rts
+   64  01:C494  60            rts
    65                     
    66                     ;   キューの内容を描画
    67                     ;   VRAMを更新するのでvblank中に呼び出すこと
    68                     ;   @args       なし
    69                     ;   @saveregs   なし
    70                     ;   @return     なし
-   71  01:C45B            vqDraw:
+   71  01:C495            vqDraw:
    72           2003      .tmp_src_l  equ ztmp0
    73           2004      .tmp_src_h  equ ztmp1
    74                     
-   75  01:C45B  A6 20         ldx <zvqIndex
-   76  01:C45D  D0 01         bne .loop_queue
-   77  01:C45F  60            rts
+   75  01:C495  A6 20         ldx <zvqIndex
+   76  01:C497  D0 01         bne .loop_queue
+   77  01:C499  60            rts
    78                     
-   79  01:C460            .loop_queue:
-   80  01:C460  CA            dex
+   79  01:C49A            .loop_queue:
+   80  01:C49A  CA            dex
    81                     
-   82  01:C461  03 00         st0 #0
-   83  01:C463  BD 60 27      lda vqDstL,x
-   84  01:C466  8D 02 00      sta VdcDataL
-   85  01:C469  BD 70 27      lda vqDstH,x
-   86  01:C46C  8D 03 00      sta VdcDataH
+   82  01:C49B  03 00         st0 #0
+   83  01:C49D  BD 60 27      lda vqDstL,x
+   84  01:C4A0  8D 02 00      sta VdcDataL
+   85  01:C4A3  BD 70 27      lda vqDstH,x
+   86  01:C4A6  8D 03 00      sta VdcDataH
    87                     
-   88  01:C46F  BD 80 27      lda vqSrcL,x
-   89  01:C472  85 03         sta <.tmp_src_l
-   90  01:C474  BD 90 27      lda vqSrcH,x
-   91  01:C477  85 04         sta <.tmp_src_h
+   88  01:C4A9  BD 80 27      lda vqSrcL,x
+   89  01:C4AC  85 03         sta <.tmp_src_l
+   90  01:C4AE  BD 90 27      lda vqSrcH,x
+   91  01:C4B1  85 04         sta <.tmp_src_h
    92                     
-   93  01:C479  03 02         st0 #2
-   94  01:C47B  C2            cly
+   93  01:C4B3  03 02         st0 #2
+   94  01:C4B5  C2            cly
    95                     
-   96  01:C47C            .loop_copy:
-   97  01:C47C  B1 03         lda [.tmp_src_l],y
-   98  01:C47E  8D 02 00      sta VdcDataL
-   99  01:C481  C8            iny
-  100  01:C482  B1 03         lda [.tmp_src_l],y
-  101  01:C484  8D 03 00      sta VdcDataH
-  102  01:C487  C8            iny
+   96  01:C4B6            .loop_copy:
+   97  01:C4B6  B1 03         lda [.tmp_src_l],y
+   98  01:C4B8  8D 02 00      sta VdcDataL
+   99  01:C4BB  C8            iny
+  100  01:C4BC  B1 03         lda [.tmp_src_l],y
+  101  01:C4BE  8D 03 00      sta VdcDataH
+  102  01:C4C1  C8            iny
   103                     
-  104  01:C488  DE A0 27      dec vqWLen,x
-  105  01:C48B  D0 EF         bne .loop_copy
+  104  01:C4C2  DE A0 27      dec vqWLen,x
+  105  01:C4C5  D0 EF         bne .loop_copy
   106                     
-  107  01:C48D  E0 00         cpx #0
-  108  01:C48F  D0 CF         bne .loop_queue
+  107  01:C4C7  E0 00         cpx #0
+  108  01:C4C9  D0 CF         bne .loop_queue
   109                     
-  110  01:C491  64 20         stz <zvqIndex
-  111  01:C493  60            rts
+  110  01:C4CB  64 20         stz <zvqIndex
+  111  01:C4CD  60            rts
 #[1]   nibbler.asm
 #[2]   task.asm
    25                             .include "task.asm"
@@ -2594,7 +3426,7 @@
    12                     
    13  --:27B0            tkSp:   ds  TK_MAX_TASK         ;タスクのsp
    14                     
-   15           C494          .code
+   15           C4CE          .code
    16           0001          .bank   MAIN_BANK
    17                     
    18                     ;
@@ -2605,14 +3437,14 @@
    23                     ;
    24                                     ;pレジスタも保管すると、割り込み状態も変わってしまって予期せぬ動きに繋がりかね
    25                                     ;実際、禁止していた割り込みが勝手にかかってしまい、おかしな動きになってしまっ�
-   26  01:C494            tkInit:
-   27  01:C494  A9 0C         lda #LOW(tkTaskTable)
-   28  01:C496  85 0C         sta <zarg2
-   29  01:C498  A9 C5         lda #HIGH(tkTaskTable)
-   30  01:C49A  85 0D         sta <zarg3
-   31  01:C49C  20 C0 C4      jsr tkSetAllTasks
+   26  01:C4CE            tkInit:
+   27  01:C4CE  A9 4B         lda #LOW(tkTaskTable)
+   28  01:C4D0  85 0C         sta <zarg2
+   29  01:C4D2  A9 C5         lda #HIGH(tkTaskTable)
+   30  01:C4D4  85 0D         sta <zarg3
+   31  01:C4D6  20 FA C4      jsr tkSetAllTasks
    32                     
-   33  01:C49F  60            rts
+   33  01:C4D9  60            rts
    34                     
    35                     ;
    36                     ;   タスク変更
@@ -2621,31 +3453,31 @@
    39                     ;   @saveregs       x
    40                     ;   @return         なし
    41                     ;
-   42  01:C4A0            tkSetTask:
-   43  01:C4A0  DA            phx
+   42  01:C4DA            tkSetTask:
+   43  01:C4DA  DA            phx
    44                     
-   45  01:C4A1  8A            txa
-   46  01:C4A2  1A            inc a
+   45  01:C4DB  8A            txa
+   46  01:C4DC  1A            inc a
    47           0001          .if TK_TASK_STACK_SIZE=16
-   48  01:C4A3  0A            asl a
-   49  01:C4A4  0A            asl a
-   50  01:C4A5  0A            asl a
-   51  01:C4A6  0A            asl a
+   48  01:C4DD  0A            asl a
+   49  01:C4DE  0A            asl a
+   50  01:C4DF  0A            asl a
+   51  01:C4E0  0A            asl a
    52                         .else
    54                         .endif
-   55  01:C4A7  9D B0 27      sta tkSp,x
+   55  01:C4E1  9D B0 27      sta tkSp,x
    56                     
-   57  01:C4AA  AA            tax
-   58  01:C4AB  9E 01 21      stz TK_STACK_AREA+1,x
-   59  01:C4AE  9E 02 21      stz TK_STACK_AREA+2,x
-   60  01:C4B1  9E 03 21      stz TK_STACK_AREA+3,x
-   61  01:C4B4  A5 0A         lda <zarg0
-   62  01:C4B6  9D 04 21      sta TK_STACK_AREA+4,x
-   63  01:C4B9  A5 0B         lda <zarg1
-   64  01:C4BB  9D 05 21      sta TK_STACK_AREA+5,x
+   57  01:C4E4  AA            tax
+   58  01:C4E5  9E 01 21      stz TK_STACK_AREA+1,x
+   59  01:C4E8  9E 02 21      stz TK_STACK_AREA+2,x
+   60  01:C4EB  9E 03 21      stz TK_STACK_AREA+3,x
+   61  01:C4EE  A5 0A         lda <zarg0
+   62  01:C4F0  9D 04 21      sta TK_STACK_AREA+4,x
+   63  01:C4F3  A5 0B         lda <zarg1
+   64  01:C4F5  9D 05 21      sta TK_STACK_AREA+5,x
    65                     
-   66  01:C4BE  FA            plx
-   67  01:C4BF  60            rts
+   66  01:C4F8  FA            plx
+   67  01:C4F9  60            rts
    68                     
    69                     ;
    70                     ;   全てのタスク変更
@@ -2653,24 +3485,24 @@
    72                     ;   @saveregs       なし
    73                     ;   @return         なし
    74                     ;
-   75  01:C4C0            tkSetAllTasks:
-   76  01:C4C0  82            clx
-   77  01:C4C1  C2            cly
+   75  01:C4FA            tkSetAllTasks:
+   76  01:C4FA  82            clx
+   77  01:C4FB  C2            cly
    78                     
-   79  01:C4C2            .loop:
-   80  01:C4C2  B1 0C         lda [zarg2],y
-   81  01:C4C4  85 0A         sta <zarg0
-   82  01:C4C6  C8            iny
-   83  01:C4C7  B1 0C         lda [zarg2],y
-   84  01:C4C9  85 0B         sta <zarg1
-   85  01:C4CB  20 A0 C4      jsr tkSetTask
+   79  01:C4FC            .loop:
+   80  01:C4FC  B1 0C         lda [zarg2],y
+   81  01:C4FE  85 0A         sta <zarg0
+   82  01:C500  C8            iny
+   83  01:C501  B1 0C         lda [zarg2],y
+   84  01:C503  85 0B         sta <zarg1
+   85  01:C505  20 DA C4      jsr tkSetTask
    86                     
-   87  01:C4CE  C8            iny
-   88  01:C4CF  E8            inx
-   89  01:C4D0  E0 02         cpx #TK_MAX_TASK
-   90  01:C4D2  D0 EE         bne .loop
+   87  01:C508  C8            iny
+   88  01:C509  E8            inx
+   89  01:C50A  E0 02         cpx #TK_MAX_TASK
+   90  01:C50C  D0 EE         bne .loop
    91                     
-   92  01:C4D4  60            rts
+   92  01:C50E  60            rts
    93                     
    94                     
    95                     
@@ -2680,46 +3512,46 @@
    99                     ;   @saveregs       なし
   100                     ;   @return         なし
   101                     ;
-  102  01:C4D5            tkDispatch:
+  102  01:C50F            tkDispatch:
   103                                         ;このルーチン開始時のspを保管
-  104  01:C4D5  BA            tsx
-  105  01:C4D6  86 21         stx <ztkSaveSp
+  104  01:C50F  BA            tsx
+  105  01:C510  86 21         stx <ztkSaveSp
   106                     
-  107  01:C4D8  C2            cly             ;y=タスク番号
+  107  01:C512  C2            cly             ;y=タスク番号
   108                     
-  109  01:C4D9            tkDispatch_loop:
+  109  01:C513            tkDispatch_loop:
   110                                         ;タスクを実行
   111                                         ;タスクのspを復元
-  112  01:C4D9  BE B0 27      ldx tkSp,y
-  113  01:C4DC  9A            txs
-  114  01:C4DD  84 22         sty <ztkCurTask ;現在のタスク番号を保管
+  112  01:C513  BE B0 27      ldx tkSp,y
+  113  01:C516  9A            txs
+  114  01:C517  84 22         sty <ztkCurTask ;現在のタスク番号を保管
   115                                         ;タスクのレジスタを復元
-  116  01:C4DF  7A            ply
-  117  01:C4E0  FA            plx
-  118  01:C4E1  68            pla
-  119  01:C4E2  60            rts             ;タスクの実行アドレスにジャンプ
+  116  01:C519  7A            ply
+  117  01:C51A  FA            plx
+  118  01:C51B  68            pla
+  119  01:C51C  60            rts             ;タスクの実行アドレスにジャンプ
   120                     
   121                                         ;タスク切り替え
-  122  01:C4E3            tkYield:
+  122  01:C51D            tkYield:
   123                                         ;タスクのレジスタを保管
-  124  01:C4E3  48            pha
-  125  01:C4E4  DA            phx
-  126  01:C4E5  5A            phy
+  124  01:C51D  48            pha
+  125  01:C51E  DA            phx
+  126  01:C51F  5A            phy
   127                                         ;タスクのspを保管
-  128  01:C4E6  A4 22         ldy <ztkCurTask ;y=現在のタスク番号
-  129  01:C4E8  BA            tsx
-  130  01:C4E9  8A            txa
-  131  01:C4EA  99 B0 27      sta tkSp,y      
+  128  01:C520  A4 22         ldy <ztkCurTask ;y=現在のタスク番号
+  129  01:C522  BA            tsx
+  130  01:C523  8A            txa
+  131  01:C524  99 B0 27      sta tkSp,y      
   132                                         ;次のタスク
-  133  01:C4ED            tkNextTask:
-  134  01:C4ED  C8            iny
-  135  01:C4EE  C0 02         cpy #TK_MAX_TASK
-  136  01:C4F0  D0 E7         bne tkDispatch_loop
+  133  01:C527            tkNextTask:
+  134  01:C527  C8            iny
+  135  01:C528  C0 02         cpy #TK_MAX_TASK
+  136  01:C52A  D0 E7         bne tkDispatch_loop
   137                                         ;tkDispatch開始時のspを復元
-  138  01:C4F2  A6 21         ldx <ztkSaveSp
-  139  01:C4F4  9A            txs
+  138  01:C52C  A6 21         ldx <ztkSaveSp
+  139  01:C52E  9A            txs
   140                     
-  141  01:C4F5  60            rts
+  141  01:C52F  60            rts
   142                     
   143                     ;
   144                     ;   実行中のタスクの変更
@@ -2728,46 +3560,50 @@
   147                     ;   @saveregs       なし
   148                     ;   @return         なし
   149                     ;
-  150  01:C4F6            tkLink:
+  150  01:C530            tkLink:
   151                                         ;タスクのレジスタを保管
-  152  01:C4F6  48            pha
-  153  01:C4F7  DA            phx
-  154  01:C4F8  5A            phy
+  152  01:C530  48            pha
+  153  01:C531  DA            phx
+  154  01:C532  5A            phy
   155                                         ;タスクのspを保管
-  156  01:C4F9  A4 22         ldy <ztkCurTask ;y=現在のタスク番号
-  157  01:C4FB  BA            tsx
-  158  01:C4FC  8A            txa
-  159  01:C4FD  99 B0 27      sta tkSp,y      
+  156  01:C533  A4 22         ldy <ztkCurTask ;y=現在のタスク番号
+  157  01:C535  BA            tsx
+  158  01:C536  8A            txa
+  159  01:C537  99 B0 27      sta tkSp,y      
   160                                         ;タスクの開始アドレスを変更
-  161  01:C500  A5 0A         lda <zarg0
-  162  01:C502  9D 04 21      sta TK_STACK_AREA+4,x
-  163  01:C505  A5 0B         lda <zarg1
-  164  01:C507  9D 05 21      sta TK_STACK_AREA+5,x
+  161  01:C53A  A5 0A         lda <zarg0
+  162  01:C53C  9D 04 21      sta TK_STACK_AREA+4,x
+  163  01:C53F  A5 0B         lda <zarg1
+  164  01:C541  9D 05 21      sta TK_STACK_AREA+5,x
   165                     
-  166  01:C50A  80 E1         bra tkNextTask
+  166  01:C544  80 E1         bra tkNextTask
   167                     
   168                     
   169                     
   170                     
-  171                     
-  172                     
-  173                     ;tkDummyTask:
-  174                     ;    jsr tkYield
-  175                     ;    bra tkDummyTask
-  176                     
+  171                     ;
+  172                     ;   何もしないタスク
+  173                     ;
+  174  01:C546            tkDummyTask:
+  175  01:C546  20 1D C5      jsr tkYield
+  176  01:C549  80 FB         bra tkDummyTask
   177                     
   178                     
   179                     
-  180                     tkTaskAddress_  .macro
-  181                         dw  \1-1
-  182                         .endm
-  183                     
-  184                     
-  185                     
-  186  01:C50C            tkTaskTable:
-  187  01:850C                tkTaskAddress_  VSyncTask
-  188  01:850E                tkTaskAddress_  plTask
+  180                     ;
+  181                     ;   タスクリスト
+  182                     ;
+  183                     ;
+  184                     tkTaskAddress_  .macro
+  185                         dw  \1-1
+  186                         .endm
+  187                     
+  188                     
   189                     
+  190  01:C54B            tkTaskTable:
+  191  01:854B                tkTaskAddress_  VSyncTask
+  192  01:854D                tkTaskAddress_  plTask
+  193                     
 #[1]   nibbler.asm
    26                             
    27                             

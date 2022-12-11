@@ -378,7 +378,7 @@ plMove:
 
     lda     <zply,x
     clc
-    adc     #$40-4
+    adc     #$40-4+16   ;+16 はスクロールカウンタの差分
     sta     satb+0,y
     lda     #0
     adc     #0
