@@ -5,8 +5,11 @@
 MAIN_BANK       .equ    1
 
         .include "pce.asm"        
+        .include "task.inc"
+        
         .include "bank0.asm"
         .include "main.asm"
+        .include "task.asm"
 ;        .include "chrdriver.asm"
         .include "player.asm"
 ;        .include "pbullet.asm"
@@ -22,7 +25,6 @@ MAIN_BANK       .equ    1
         .include "map.asm"
         .include "mapdata.asm"
         .include "vqueue.asm"
-        .include "task.asm"
         
         
         

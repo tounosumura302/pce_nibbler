@@ -17,10 +17,6 @@ zarg3:	ds	1
 zarg4:	ds	1
 zarg5:	ds	1
 
-;ptr:	.ds   2 	; pointer to buffer address
-;a_cnt:	.ds   1
-;x_cnt:	.ds   1
-
 
 	;; scroll counter
 scrx:	.ds	2
@@ -51,6 +47,7 @@ main:
         tam     #PAGE(BgPattern)
 
 	; set bg pattern
+
 	st0	#0
         lda     #$00
         sta     VdcDataL
@@ -86,6 +83,19 @@ main:
 	;vsync			; vsync to avoid snow
         jsr     waitVsync
 
+
+	jsr	spr_init
+	jsr	spr_update
+
+	jsr	vqInit
+
+	jsr	initPsgTest
+
+	jsr	tkInit
+
+	tkChangeTask_	tklInitWave
+
+	.if	0
 	; draw background (test)
 
 	lda	#LOW(WaveMap_01)
@@ -118,27 +128,30 @@ main:
 	lda	#HIGH(($1000+55*16)/16)
 	sta	VdcDataH
 
+	.endif
+
 	;; initialize sprite
-
-	jsr	spr_init
-	jsr	spr_update
-
-
-
-	jsr	initPsgTest
-
-	jsr	tkInit
-
-	jsr	plInit
-
-	jsr	vqInit
+;	jsr	plInit
 
 mainloop:
 	jsr	tkDispatch
+	jsr	tkChangeTasks
 	jmp	mainloop
 
 
+DrawWaveTask:
+	lda	#LOW(WaveMap_01)
+	sta	<zarg0
+	lda	#HIGH(WaveMap_01)
+	sta	<zarg1
+	jsr	DrawWave
 
+	jsr	plInit
+
+	jsr	tkYield
+
+	tkChangeTask_	tklGameMain
+	jsr	tkYield
 
 ;
 ;       vsync

@@ -6,7 +6,7 @@
 ;
 ;   gridを構成するタイルのキャラクター番号（BATの下12ビットの値）
 ;
-MapPartsPatternAddress  equ $1000
+MapPartsPatternAddress  equ $1000+48*16
 MapPartsTiles:
     dw  (MapPartsPatternAddress+$00*16)/16  ;空白
     dw  (MapPartsPatternAddress+$01*16)/16  ;左上┌

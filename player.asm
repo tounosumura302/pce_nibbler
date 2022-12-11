@@ -260,10 +260,10 @@ plHeadAction:
 
 PatternAddress  equ $1000
 BodyPartsTiles:
-    dw  (PatternAddress+$0e*16)/16
+    dw  (PatternAddress+62*16)/16
 
 BlankPartsTiles:
-    dw  (PatternAddress+$00*16)/16
+    dw  (PatternAddress+48*16)/16
 
 
 ;
