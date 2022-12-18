@@ -2,7 +2,10 @@
 ;       2022/11/16
 ;
         list
-MAIN_BANK       .equ    1
+MAIN_BANK       equ 1
+BGPATTERN_BANK  equ 4
+SPRPATTERN_BANK equ 5
+WAVEMAP_BANK    equ 6
 
         .include "pce.asm"        
         .include "task.inc"
@@ -25,6 +28,7 @@ MAIN_BANK       .equ    1
         .include "map.asm"
         .include "mapdata.asm"
         .include "vqueue.asm"
+    .include "digits.asm"
         
         
         

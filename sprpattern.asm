@@ -1,5 +1,7 @@
         .code
-        .bank   MAIN_BANK+3
+;        .bank   MAIN_BANK+3
+        .bank   SPRPATTERN_BANK
+        org     $6000
 
 SpPattern:
 

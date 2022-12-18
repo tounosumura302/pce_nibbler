@@ -22,7 +22,12 @@ zarg5:	ds	1
 scrx:	.ds	2
 scry:	.ds	2
 
-z_frame:	.ds	1
+zframe:	.ds	1
+
+
+zdotnum:	ds	1
+zwave:	ds	1
+ztime:	ds	2
 
 ;--- CODE area ----------
 
@@ -45,6 +50,12 @@ waitVsync:
 main:	
         lda     #BANK(BgPattern)
         tam     #PAGE(BgPattern)
+
+	lda	#BANK(SpPattern)
+	tam	#PAGE(SpPattern)
+
+	lda	#BANK(WaveMap)
+	tam	#PAGE(WaveMap)
 
 	; set bg pattern
 
@@ -93,6 +104,12 @@ main:
 
 	jsr	tkInit
 
+	stz	<zwave
+
+	lda	#$99
+	sta	<ztime
+	sta	<ztime+1
+
 	tkChangeTask_	tklInitWave
 
 	.if	0
@@ -140,10 +157,6 @@ mainloop:
 
 
 DrawWaveTask:
-	lda	#LOW(WaveMap_01)
-	sta	<zarg0
-	lda	#HIGH(WaveMap_01)
-	sta	<zarg1
 	jsr	DrawWave
 
 	jsr	plInit
@@ -152,6 +165,52 @@ DrawWaveTask:
 
 	tkChangeTask_	tklGameMain
 	jsr	tkYield
+
+
+WaveClearTask:
+	lda	<zwave
+	inc	a
+	cmp	#100
+	bmi	.set
+	cla
+.set:
+	sta	<zwave
+
+	tkChangeTask_	tklInitWave
+	jsr	tkYield
+
+TimerTask:
+					;TODO: タイマーの減少間隔調整
+	lda	<zframe
+	and	#64-1
+	bne	.yield
+
+	sed
+	lda	<ztime
+	sec
+	sbc	#1
+	sta	<ztime
+	lda	<ztime+1
+	sbc	#0
+	sta	<ztime+1
+	cld
+
+	lda #LOW(0+30*32)
+    sta <zarg0
+    lda #HIGH(0+30*32)
+    sta <zarg1
+	lda	#LOW(ztime)
+	sta	<zarg2
+	lda	#HIGH(ztime)
+	sta	<zarg3
+	lda	#2
+	sta	<zarg4
+	jsr	drawDigits
+.yield:
+	jsr	tkYield
+	bra	TimerTask
+
+
 
 ;
 ;       vsync
@@ -175,7 +234,7 @@ VSyncTask:
 
     jsr	readPad
 
-	inc	<z_frame
+	inc	<zframe
 	
 	jsr	tkYield
 	bra	VSyncTask

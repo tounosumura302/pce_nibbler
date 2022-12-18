@@ -86,11 +86,10 @@ tkSetAllTasks:
     lda [zarg2],y
     sta <zarg0
     iny
-    lda [zarg2],y
-
-    bit <zarg0
+    ora [zarg2],y
     beq .taskend
 
+    lda [zarg2],y
     sta <zarg1
     jsr tkSetTask
 
@@ -115,7 +114,7 @@ tkDispatch:
                     ;タスクがない場合
     lda <ztkTaskNum
     beq tkDispatch_end
-    
+
                     ;このルーチン開始時のspを保管
     tsx
     stx <ztkSaveSp
@@ -238,5 +237,11 @@ tklInitWave:
 
 tklGameMain:
     tkTaskAddress_  plTask
+    tkTaskAddress_  TimerTask
+    tkTaskAddress_  VSyncTask
+    tkEndTaskList_
+
+tklClearWave:
+    tkTaskAddress_  WaveClearTask
     tkTaskAddress_  VSyncTask
     tkEndTaskList_

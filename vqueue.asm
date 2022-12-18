@@ -35,6 +35,7 @@ vqInit:
 ;   キューにデータを追加
 ;   @args       zarg0,1 = vramアドレス
 ;               zarg2,3 = データ
+;               zarg4   = 長さ
 ;   @saveregs   x
 ;   @return     なし
 vqPush:

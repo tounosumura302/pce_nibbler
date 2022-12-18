@@ -1,5 +1,6 @@
         .code
-        .bank   MAIN_BANK+3
+;        .bank   MAIN_BANK+3
+    .bank   BGPATTERN_BANK
         .org    $4000
 
 BgPattern:

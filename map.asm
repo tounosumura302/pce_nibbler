@@ -1,9 +1,71 @@
     .code
     .bank   MAIN_BANK
 
-
-;   zarg0,1 = wave map address
+;
+;   Wave描画
+;
+;   @args       zwave = wave番号
+;   @saveregs   なし
+;   @return     なし
 DrawWave:
+.arg_wavemap_l  equ zarg0   ;waveマップデータアドレス
+.arg_wavemap_h  equ zarg1
+.tmp_mul_h  equ ztmp0
+
+                            ;zwave*81 の計算
+    stz <.tmp_mul_h
+    lda <zwave
+    asl a
+    rol <.tmp_mul_h
+    asl a
+    rol <.tmp_mul_h
+    asl a
+    rol <.tmp_mul_h
+    asl a
+    rol <.tmp_mul_h
+                            ;zwave*16 を一旦保存
+    sta <.arg_wavemap_l
+    ldx <.tmp_mul_h
+    stx <.arg_wavemap_h
+
+    asl a
+    rol <.tmp_mul_h
+    asl a
+    rol <.tmp_mul_h
+                            ;arg = zwave*16+zwave*64 = zwave*80
+    clc
+    adc <.arg_wavemap_l
+    sta <.arg_wavemap_l
+    lda <.arg_wavemap_h
+    adc <.tmp_mul_h
+    sta <.arg_wavemap_h
+                            ;arg = zwave*80 + zwave = zwave*81
+    lda <.arg_wavemap_l
+    clc
+    adc <zwave
+    sta <.arg_wavemap_l
+    lda <.arg_wavemap_h
+    adc #0
+    sta <.arg_wavemap_h
+                            ;arg = zwave*81 + WaveMap
+    lda <.arg_wavemap_l
+    clc
+    adc #LOW(WaveMap)
+    sta <.arg_wavemap_l
+    lda <.arg_wavemap_h
+    adc #HIGH(WaveMap)
+    sta <.arg_wavemap_h
+
+    jsr DrawWaveByWaveMapAdr
+    rts
+
+;
+;   Wave描画
+;
+;   @args       zarg0,1 = Waveマップアドレス
+;   @saveregs   なし
+;   @return     なし
+DrawWaveByWaveMapAdr:
 .arg_wavemap_l  equ zarg0   ;マップデータアドレス
 .arg_wavemap_h  equ zarg1
 
@@ -12,7 +74,8 @@ DrawWave:
 .tmp_vmap_ptr_l equ zarg4   ;仮想vramアドレス
 .tmp_vmap_ptr_h equ zarg5
 
-;    lda #32
+    stz <zdotnum
+
     stz <.tmp_vram_l
     stz <.tmp_vram_h
 
@@ -83,9 +146,14 @@ DrawWave:
 
 
 
-;   a = the number of grid
-;   zarg2,3 = BAT address
-;   zarg4,5 = Virtual Map address
+;
+;   Waveマップの１グリッド分（3*3キャラクタ）の描画
+;
+;   @args       A = グリッド番号
+;               zarg2,3 = BAT address
+;               zarg4,5 = Virtual Map address
+;   @saveregs   なし
+;   @return     なし
 DrawMapGrid:
 .arg_vram_l     equ zarg2   ;vram(BAT)アドレス
 .arg_vram_h     equ zarg3
@@ -150,10 +218,13 @@ DrawMapGrid:
     bne .setchar
                             ;空白かつドットが配置されているならドットのタイルをセット
     bbr7    <.tmp_dotcombi,.setchar
-;    smb0    <.tmp_vmap_value    ;仮想vramにドットのフラグをセット
+
+    inc <zdotnum            ;ドット数を増加
+
     lda #$0f
     tsb <.tmp_vmap_value
     lda #$0d*2                  ;TODO: ドットのタイル番号
+
 .setchar
                         ;タイルをvram(BAT)に書き込み
     phy
@@ -196,7 +267,11 @@ DrawMapGrid:
     rts
 
 
+;
+;
+
     .bss
-;   仮想vram
+    
+;   フィールドマップ
 ;   必要なのは 27*27 だが、アドレス計算が面倒なので 32*27 とする
 VMap:   ds  32*27

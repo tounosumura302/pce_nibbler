@@ -166,6 +166,8 @@ plHeadAction:
                         ;現在位置にドットがあるなら尻尾を停止させる（胴体を伸ばす）
     inc <zplTailStop
 
+    dec <zdotnum        ;ドット数減少
+
 .controller:
                         ;
                         ;コントローラーが押されている場合の方向転換判定 ldru
@@ -410,6 +412,9 @@ plTask:
     bne .dead
 
 .yield:
+    lda <zdotnum
+    beq .clear
+
     jsr tkYield
     bra plTask
 
@@ -423,6 +428,10 @@ plTask:
     lda #HIGH(plDeadTask-1)
     sta <zarg1
     jsr tkLink
+
+.clear:
+ 	tkChangeTask_	tklClearWave
+    jsr tkYield
 
 
 ;
@@ -440,8 +449,10 @@ plDeadTask:
     bra plDeadTask
 
 .over:
-    lda #LOW(tkDummyTask-1)
-    sta <zarg0
-    lda #HIGH(tkDummyTask-1)
-    sta <zarg1
-    jsr tkLink
+ 	tkChangeTask_	tklInitWave
+    jsr tkYield
+;    lda #LOW(tkDummyTask-1)
+;    sta <zarg0
+;    lda #HIGH(tkDummyTask-1)
+;    sta <zarg1
+;    jsr tkLink
