@@ -162,10 +162,12 @@ tkDispatch_end:
 ;
 tkChangeTasks:
     lda <ztkChgTask
-    bit <ztkChgTask+1
+;    bit <ztkChgTask+1
+    ora <ztkChgTask+1
     bne .chg
     rts
 .chg:
+    lda <ztkChgTask
     sta <zarg2
     lda <ztkChgTask+1
     sta <zarg3

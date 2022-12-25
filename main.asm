@@ -108,6 +108,7 @@ main:
 
 	lda	#$99
 	sta	<ztime
+	lda	#$9
 	sta	<ztime+1
 
 	tkChangeTask_	tklInitWave
@@ -158,14 +159,83 @@ mainloop:
 
 DrawWaveTask:
 	jsr	DrawWave
-
 	jsr	plInit
+	jsr	DrawStatusString
 
 	jsr	tkYield
 
 	tkChangeTask_	tklGameMain
 	jsr	tkYield
+	bra	DrawWaveTask
 
+DrawStatusString:
+						;PLAYER1
+	lda #LOW(0+30*32)
+    sta <zarg0
+    lda #HIGH(0+30*32)
+    sta <zarg1
+	lda	#LOW(.player1)
+	sta	<zarg2
+	lda	#HIGH(.player1)
+	sta	<zarg3
+	lda	#4
+	sta	<zarg4
+	jsr	vqPush
+						;HISCORE
+	lda #LOW(0+31*32)
+    sta <zarg0
+    lda #HIGH(0+31*32)
+    sta <zarg1
+	lda	#LOW(.hiscore)
+	sta	<zarg2
+	lda	#HIGH(.hiscore)
+	sta	<zarg3
+	lda	#4
+	sta	<zarg4
+	jsr	vqPush
+						;LEFT
+	lda #LOW(22+30*32)
+    sta <zarg0
+    lda #HIGH(22+30*32)
+    sta <zarg1
+	lda	#LOW(.left)
+	sta	<zarg2
+	lda	#HIGH(.left)
+	sta	<zarg3
+	lda	#2
+	sta	<zarg4
+	jsr	vqPush
+						;TIME
+	lda #LOW(19+31*32)
+    sta <zarg0
+    lda #HIGH(19+31*32)
+    sta <zarg1
+	lda	#LOW(.time)
+	sta	<zarg2
+	lda	#HIGH(.time)
+	sta	<zarg3
+	lda	#4
+	sta	<zarg4
+	jsr	vqPush
+						;WAVE
+	lda #LOW(10+27*32)
+    sta <zarg0
+    lda #HIGH(10+27*32)
+    sta <zarg1
+	lda	#LOW(.wave)
+	sta	<zarg2
+	lda	#HIGH(.wave)
+	sta	<zarg3
+	lda	#4
+	sta	<zarg4
+	jsr	vqPush
+
+	rts
+.player1:	dw	$100+37,$100+38,$100+39,$100+40
+.hiscore:	dw	$100+41,$100+42,$100+43,$100+44
+.left:		dw	$100+45,$100+46
+.time:		dw	$100+29,$100+18,$100+22,$100+14
+.wave:		dw	$100+32,$100+10,$100+31,$100+14
 
 WaveClearTask:
 	lda	<zwave
@@ -195,9 +265,9 @@ TimerTask:
 	sta	<ztime+1
 	cld
 
-	lda #LOW(0+30*32)
+	lda #LOW(23+31*32)
     sta <zarg0
-    lda #HIGH(0+30*32)
+    lda #HIGH(23+31*32)
     sta <zarg1
 	lda	#LOW(ztime)
 	sta	<zarg2

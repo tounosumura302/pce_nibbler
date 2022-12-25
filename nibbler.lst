@@ -274,21 +274,9 @@
   191  00:E09E  08 00 00          .db     $08,$00,$00     ;y scroll register
   192  00:E0A1  09 00 00          .db     $09,$00,$00     ;memory access width register
   193  00:E0A4  0A                .db     $0a             ;horizontal synchro register
-  194                             HSR     256
-                0001               .if (256 <= 272)
-                                    ; low res
-       00:E0A5  02                  .db $02
-       00:E0A6  03                  .db (18 - (((256 / 8) - 1) / 2))
-                                   .else
-                                   .endif
+  194  00:C0A5                    HSR     256
   195  00:E0A7  0B                .db     $0b             ;horizontal display register
-  196                             HDR     256
-       00:E0A8  1F                 .db ((256 / 8) - 1)
-                0001               .if (256 <= 272)
-                                    ; low res
-       00:E0A9  03                  .db (38 - ((18 - (((256 / 8) - 1) / 2)) + (256 / 8)))
-                                   .else
-                                   .endif
+  196  00:C0A8                    HDR     256
   197  00:E0AA  0C 02 0F          .db     $0c,$02,$0f     ;vertical synchro register
   198  00:E0AD  0D EF 00          .db     $0d,$ef,$00     ;vertical display register
   199  00:E0B0  0E 03 00          .db     $0e,$03,$00     ;vertical display end position register
@@ -459,289 +447,345 @@
    95  01:C05F  20 00 C0          jsr     waitVsync
    96                     
    97                     
-   98  01:C062  20 9E C1          jsr     spr_init
-   99  01:C065  20 E9 C1          jsr     spr_update
+   98  01:C062  20 3D C2          jsr     spr_init
+   99  01:C065  20 88 C2          jsr     spr_update
   100                     
-  101  01:C068  20 F4 C6          jsr     vqInit
+  101  01:C068  20 95 C7          jsr     vqInit
   102                     
-  103  01:C06B  20 0B C1          jsr     initPsgTest
+  103  01:C06B  20 AA C1          jsr     initPsgTest
   104                     
-  105  01:C06E  20 F9 C1          jsr     tkInit
+  105  01:C06E  20 98 C2          jsr     tkInit
   106                     
   107  01:C071  64 16             stz     <zwave
   108                     
   109  01:C073  A9 99             lda     #$99
   110  01:C075  85 17             sta     <ztime
-  111  01:C077  85 18             sta     <ztime+1
-  112                     
-  113                             tkChangeTask_   tklInitWave
-                          ;    .if tklInitWave=0
-                          ;    stz <ztkChgTask
-                          ;    stz <ztkChgTask+1
-                          ;    .else
-       01:C079  A9 A6         lda #LOW(tklInitWave)
-       01:C07B  85 1C         sta <ztkChgTask
-       01:C07D  A9 C2         lda #HIGH(tklInitWave)
-       01:C07F  85 1D         sta <ztkChgTask+1
-                          ;    .endif
-  114                     
-  115           0000              .if     0
-  148                             .endif
-  149                     
-  150                             ;; initialize sprite
-  151                     ;       jsr     plInit
-  152                     
-  153  01:C081            mainloop:
-  154  01:C081  20 4B C2          jsr     tkDispatch
-  155  01:C084  20 70 C2          jsr     tkChangeTasks
-  156  01:C087  4C 81 C0          jmp     mainloop
-  157                     
+  111  01:C077  A9 09             lda     #$9
+  112  01:C079  85 18             sta     <ztime+1
+  113                     
+  114  01:807B                    tkChangeTask_   tklInitWave
+  115                     
+  116           0000              .if     0
+  149                             .endif
+  150                     
+  151                             ;; initialize sprite
+  152                     ;       jsr     plInit
+  153                     
+  154  01:C083            mainloop:
+  155  01:C083  20 EA C2          jsr     tkDispatch
+  156  01:C086  20 0F C3          jsr     tkChangeTasks
+  157  01:C089  4C 83 C0          jmp     mainloop
   158                     
-  159  01:C08A            DrawWaveTask:
-  160  01:C08A  20 92 C4          jsr     DrawWave
-  161                     
-  162  01:C08D  20 BA C2          jsr     plInit
-  163                     
-  164  01:C090  20 5D C2          jsr     tkYield
-  165                     
-  166                             tkChangeTask_   tklGameMain
-                          ;    .if tklGameMain=0
-                          ;    stz <ztkChgTask
-                          ;    stz <ztkChgTask+1
-                          ;    .else
-       01:C093  A9 AC         lda #LOW(tklGameMain)
-       01:C095  85 1C         sta <ztkChgTask
-       01:C097  A9 C2         lda #HIGH(tklGameMain)
-       01:C099  85 1D         sta <ztkChgTask+1
-                          ;    .endif
-  167  01:C09B  20 5D C2          jsr     tkYield
-  168                     
-  169                     
-  170  01:C09E            WaveClearTask:
-  171  01:C09E  A5 16             lda     <zwave
-  172  01:C0A0  1A                inc     a
-  173  01:C0A1  C9 64             cmp     #100
-  174  01:C0A3  30 01             bmi     .set
-  175  01:C0A5  62                cla
-  176  01:C0A6            .set:
-  177  01:C0A6  85 16             sta     <zwave
-  178                     
-  179                             tkChangeTask_   tklInitWave
-                          ;    .if tklInitWave=0
-                          ;    stz <ztkChgTask
-                          ;    stz <ztkChgTask+1
-                          ;    .else
-       01:C0A8  A9 A6         lda #LOW(tklInitWave)
-       01:C0AA  85 1C         sta <ztkChgTask
-       01:C0AC  A9 C2         lda #HIGH(tklInitWave)
-       01:C0AE  85 1D         sta <ztkChgTask+1
-                          ;    .endif
-  180  01:C0B0  20 5D C2          jsr     tkYield
-  181                     
-  182  01:C0B3            TimerTask:
-  183                                                             ;TODO: タイマーの減少間隔調整
-  184  01:C0B3  A5 14             lda     <zframe
-  185  01:C0B5  29 3F             and     #64-1
-  186  01:C0B7  D0 26             bne     .yield
-  187                     
-  188  01:C0B9  F8                sed
-  189  01:C0BA  A5 17             lda     <ztime
-  190  01:C0BC  38                sec
-  191  01:C0BD  E9 01             sbc     #1
-  192  01:C0BF  85 17             sta     <ztime
-  193  01:C0C1  A5 18             lda     <ztime+1
-  194  01:C0C3  E9 00             sbc     #0
-  195  01:C0C5  85 18             sta     <ztime+1
-  196  01:C0C7  D8                cld
-  197                     
-  198  01:C0C8  A9 C0             lda #LOW(0+30*32)
-  199  01:C0CA  85 0A         sta <zarg0
-  200  01:C0CC  A9 03         lda #HIGH(0+30*32)
-  201  01:C0CE  85 0B         sta <zarg1
-  202  01:C0D0  A9 17             lda     #LOW(ztime)
-  203  01:C0D2  85 0C             sta     <zarg2
-  204  01:C0D4  A9 20             lda     #HIGH(ztime)
-  205  01:C0D6  85 0D             sta     <zarg3
-  206  01:C0D8  A9 02             lda     #2
-  207  01:C0DA  85 0E             sta     <zarg4
-  208  01:C0DC  20 5E C7          jsr     drawDigits
-  209  01:C0DF            .yield:
-  210  01:C0DF  20 5D C2          jsr     tkYield
-  211  01:C0E2  80 CF             bra     TimerTask
-  212                     
-  213                     
-  214                     
-  215                     ;
-  216                     ;       vsync
-  217                     ;
-  218  01:C0E4            VSyncTask:
-  219  01:C0E4  20 E9 C1      jsr spr_update
-  220  01:C0E7  20 00 C0      jsr waitVsync
-  221                     
-  222  01:C0EA  20 25 C7          jsr     vqDraw
-  223                     
-  224                     ;       scroll
-  225  01:C0ED  03 07             st0     #7
-  226  01:C0EF  9C 02 00          stz     VdcDataL
-  227  01:C0F2  9C 03 00          stz     VdcDataH
-  228                     
-  229  01:C0F5  03 08             st0     #8
-  230  01:C0F7  A9 EF             lda     #$ef
-  231  01:C0F9  8D 02 00          sta     VdcDataL
-  232  01:C0FC  A9 FF             lda     #$ff
-  233  01:C0FE  8D 03 00          sta     VdcDataH
-  234                     
-  235  01:C101  20 C1 E0      jsr readPad
-  236                     
-  237  01:C104  E6 14             inc     <zframe
-  238                             
-  239  01:C106  20 5D C2          jsr     tkYield
-  240  01:C109  80 D9             bra     VSyncTask
-  241                     
-  242                     
-  243                     
-  244                     
-  245                     ;       psg test        
-  246  01:C10B            initPsgTest:
-  247  01:C10B  A9 00             lda     #0
-  248  01:C10D  8D 00 08          sta     PsgChannel
-  249                     
-  250                     ;       write wave data
-  251  01:C110  A9 40             lda     #$40
-  252  01:C112  8D 04 08          sta     PsgCtrl
-  253  01:C115  9C 04 08          stz     PsgCtrl
-  254                     
-  255  01:C118  82                clx
-  256  01:C119  BD 3B C1  .loop:  lda     .wave,x
-  257  01:C11C  C9 FF             cmp     #$ff
-  258  01:C11E  F0 06             beq     .loopend
-  259  01:C120  8D 06 08          sta     PsgWave
-  260  01:C123  E8                inx
-  261  01:C124  80 F3             bra     .loop
-  262                     
-  263  01:C126            .loopend:
-  264                     ;       set frequency
-  265  01:C126  A9 FE             lda     #$fe
-  266  01:C128  8D 02 08          sta     PsgFreqL
-  267  01:C12B  9C 03 08          stz     PsgFreqH
-  268                     
-  269                     ;       set volume
-  270                             ;lda    #$ff
-  271  01:C12E  62                cla
-  272  01:C12F  8D 05 08          sta     PsgChVol
-  273  01:C132  8D 01 08          sta     PsgMainVol
-  274                     
-  275  01:C135  A9 8F             lda     #$8f
-  276  01:C137  8D 04 08          sta     PsgCtrl
-  277                     
-  278  01:C13A  60                rts
-  279                     
-  280  01:C13B            .wave:
-  281  01:C13B  1F 1D 1B          .db     $1f,$1d,$1b,$19,$17,$15,$13,$11
-       01:C13E  19 17 15  
-       01:C141  13 11     
-  282  01:C143  0F 0D 0B          .db     $0f,$0d,$0b,$09,$07,$05,$03,$01
-       01:C146  09 07 05  
-       01:C149  03 01     
-  283  01:C14B  1F 1D 1B          .db     $1f,$1d,$1b,$19,$17,$15,$13,$11
-       01:C14E  19 17 15  
-       01:C151  13 11     
-  284  01:C153  0F 0D 0B          .db     $0f,$0d,$0b,$09,$07,$05,$03,$01
-       01:C156  09 07 05  
-       01:C159  03 01     
-  285  01:C15B  FF                .db     $ff     
-  286                     
-  287  01:C15C  1F 1F 1F          .db     $1f,$1f,$1f,$1f,$1f,$1f,$1f,$1f
-       01:C15F  1F 1F 1F  
-       01:C162  1F 1F     
-  288  01:C164  00 00 00          .db     $00,$00,$00,$00,$00,$00,$00,$00
-       01:C167  00 00 00  
-       01:C16A  00 00     
-  289  01:C16C  00 00 00          .db     $00,$00,$00,$00,$00,$00,$00,$00
-       01:C16F  00 00 00  
-       01:C172  00 00     
-  290  01:C174  00 00 00          .db     $00,$00,$00,$00,$00,$00,$00,$00
-       01:C177  00 00 00  
-       01:C17A  00 00     
-  291  01:C17C  FF                .db     $ff
-  292                     
-  293  01:C17D  0F 12 15          .db     $0f,$12,$15,$17,$19,$1b,$1d,$1E
-       01:C180  17 19 1B  
-       01:C183  1D 1E     
-  294  01:C185  1E 1E 1D          .db     $1e,$1e,$1d,$1b,$19,$17,$15,$12
-       01:C188  1B 19 17  
-       01:C18B  15 12     
-  295  01:C18D  0F 0C 09          .db     $0f,$0c,$09,$07,$05,$03,$01,$00
-       01:C190  07 05 03  
-       01:C193  01 00     
-  296  01:C195  00 00 01          .db     $00,$00,$01,$03,$05,$07,$09,$0c
-       01:C198  03 05 07  
-       01:C19B  09 0C     
-  297  01:C19D  FF                .db     $ff     
+  159                     
+  160  01:C08C            DrawWaveTask:
+  161  01:C08C  20 33 C5          jsr     DrawWave
+  162  01:C08F  20 5B C3          jsr     plInit
+  163  01:C092  20 A5 C0          jsr     DrawStatusString
+  164                     
+  165  01:C095  20 FC C2          jsr     tkYield
+  166                     
+  167  01:8098                    tkChangeTask_   tklGameMain
+  168  01:C0A0  20 FC C2          jsr     tkYield
+  169  01:C0A3  80 E7             bra     DrawWaveTask
+  170                     
+  171  01:C0A5            DrawStatusString:
+  172                                                                     ;PLAYER1
+  173  01:C0A5  A9 C0             lda #LOW(0+30*32)
+  174  01:C0A7  85 0A         sta <zarg0
+  175  01:C0A9  A9 03         lda #HIGH(0+30*32)
+  176  01:C0AB  85 0B         sta <zarg1
+  177  01:C0AD  A9 19             lda     #LOW(.player1)
+  178  01:C0AF  85 0C             sta     <zarg2
+  179  01:C0B1  A9 C1             lda     #HIGH(.player1)
+  180  01:C0B3  85 0D             sta     <zarg3
+  181  01:C0B5  A9 04             lda     #4
+  182  01:C0B7  85 0E             sta     <zarg4
+  183  01:C0B9  20 A2 C7          jsr     vqPush
+  184                                                                     ;HISCORE
+  185  01:C0BC  A9 E0             lda #LOW(0+31*32)
+  186  01:C0BE  85 0A         sta <zarg0
+  187  01:C0C0  A9 03         lda #HIGH(0+31*32)
+  188  01:C0C2  85 0B         sta <zarg1
+  189  01:C0C4  A9 21             lda     #LOW(.hiscore)
+  190  01:C0C6  85 0C             sta     <zarg2
+  191  01:C0C8  A9 C1             lda     #HIGH(.hiscore)
+  192  01:C0CA  85 0D             sta     <zarg3
+  193  01:C0CC  A9 04             lda     #4
+  194  01:C0CE  85 0E             sta     <zarg4
+  195  01:C0D0  20 A2 C7          jsr     vqPush
+  196                                                                     ;LEFT
+  197  01:C0D3  A9 D6             lda #LOW(22+30*32)
+  198  01:C0D5  85 0A         sta <zarg0
+  199  01:C0D7  A9 03         lda #HIGH(22+30*32)
+  200  01:C0D9  85 0B         sta <zarg1
+  201  01:C0DB  A9 29             lda     #LOW(.left)
+  202  01:C0DD  85 0C             sta     <zarg2
+  203  01:C0DF  A9 C1             lda     #HIGH(.left)
+  204  01:C0E1  85 0D             sta     <zarg3
+  205  01:C0E3  A9 02             lda     #2
+  206  01:C0E5  85 0E             sta     <zarg4
+  207  01:C0E7  20 A2 C7          jsr     vqPush
+  208                                                                     ;TIME
+  209  01:C0EA  A9 F3             lda #LOW(19+31*32)
+  210  01:C0EC  85 0A         sta <zarg0
+  211  01:C0EE  A9 03         lda #HIGH(19+31*32)
+  212  01:C0F0  85 0B         sta <zarg1
+  213  01:C0F2  A9 2D             lda     #LOW(.time)
+  214  01:C0F4  85 0C             sta     <zarg2
+  215  01:C0F6  A9 C1             lda     #HIGH(.time)
+  216  01:C0F8  85 0D             sta     <zarg3
+  217  01:C0FA  A9 04             lda     #4
+  218  01:C0FC  85 0E             sta     <zarg4
+  219  01:C0FE  20 A2 C7          jsr     vqPush
+  220                                                                     ;WAVE
+  221  01:C101  A9 6A             lda #LOW(10+27*32)
+  222  01:C103  85 0A         sta <zarg0
+  223  01:C105  A9 03         lda #HIGH(10+27*32)
+  224  01:C107  85 0B         sta <zarg1
+  225  01:C109  A9 35             lda     #LOW(.wave)
+  226  01:C10B  85 0C             sta     <zarg2
+  227  01:C10D  A9 C1             lda     #HIGH(.wave)
+  228  01:C10F  85 0D             sta     <zarg3
+  229  01:C111  A9 04             lda     #4
+  230  01:C113  85 0E             sta     <zarg4
+  231  01:C115  20 A2 C7          jsr     vqPush
+  232                     
+  233  01:C118  60                rts
+  234  01:C119  25 01     .player1:       dw      $100+37,$100+38,$100+39,$100+40
+       01:C11B  26 01     
+       01:C11D  27 01     
+       01:C11F  28 01     
+  235  01:C121  29 01     .hiscore:       dw      $100+41,$100+42,$100+43,$100+44
+       01:C123  2A 01     
+       01:C125  2B 01     
+       01:C127  2C 01     
+  236  01:C129  2D 01     .left:          dw      $100+45,$100+46
+       01:C12B  2E 01     
+  237  01:C12D  1D 01     .time:          dw      $100+29,$100+18,$100+22,$100+14
+       01:C12F  12 01     
+       01:C131  16 01     
+       01:C133  0E 01     
+  238  01:C135  20 01     .wave:          dw      $100+32,$100+10,$100+31,$100+14
+       01:C137  0A 01     
+       01:C139  1F 01     
+       01:C13B  0E 01     
+  239                     
+  240  01:C13D            WaveClearTask:
+  241  01:C13D  A5 16             lda     <zwave
+  242  01:C13F  1A                inc     a
+  243  01:C140  C9 64             cmp     #100
+  244  01:C142  30 01             bmi     .set
+  245  01:C144  62                cla
+  246  01:C145            .set:
+  247  01:C145  85 16             sta     <zwave
+  248                     
+  249  01:8147                    tkChangeTask_   tklInitWave
+  250  01:C14F  20 FC C2          jsr     tkYield
+  251                     
+  252  01:C152            TimerTask:
+  253                                                             ;TODO: タイマーの減少間隔調整
+  254  01:C152  A5 14             lda     <zframe
+  255  01:C154  29 3F             and     #64-1
+  256  01:C156  D0 26             bne     .yield
+  257                     
+  258  01:C158  F8                sed
+  259  01:C159  A5 17             lda     <ztime
+  260  01:C15B  38                sec
+  261  01:C15C  E9 01             sbc     #1
+  262  01:C15E  85 17             sta     <ztime
+  263  01:C160  A5 18             lda     <ztime+1
+  264  01:C162  E9 00             sbc     #0
+  265  01:C164  85 18             sta     <ztime+1
+  266  01:C166  D8                cld
+  267                     
+  268  01:C167  A9 F7             lda #LOW(23+31*32)
+  269  01:C169  85 0A         sta <zarg0
+  270  01:C16B  A9 03         lda #HIGH(23+31*32)
+  271  01:C16D  85 0B         sta <zarg1
+  272  01:C16F  A9 17             lda     #LOW(ztime)
+  273  01:C171  85 0C             sta     <zarg2
+  274  01:C173  A9 20             lda     #HIGH(ztime)
+  275  01:C175  85 0D             sta     <zarg3
+  276  01:C177  A9 02             lda     #2
+  277  01:C179  85 0E             sta     <zarg4
+  278  01:C17B  20 FF C7          jsr     drawDigits
+  279  01:C17E            .yield:
+  280  01:C17E  20 FC C2          jsr     tkYield
+  281  01:C181  80 CF             bra     TimerTask
+  282                     
+  283                     
+  284                     
+  285                     ;
+  286                     ;       vsync
+  287                     ;
+  288  01:C183            VSyncTask:
+  289  01:C183  20 88 C2      jsr spr_update
+  290  01:C186  20 00 C0      jsr waitVsync
+  291                     
+  292  01:C189  20 C6 C7          jsr     vqDraw
+  293                     
+  294                     ;       scroll
+  295  01:C18C  03 07             st0     #7
+  296  01:C18E  9C 02 00          stz     VdcDataL
+  297  01:C191  9C 03 00          stz     VdcDataH
   298                     
-  299                     
-  300  01:C19E            spr_init:
-  301                     
-  302                             ;; clear satb
-  303  01:C19E  9C 00 22          stz     satb
-  304  01:C1A1  73 00 22          tii     satb,satb+1,512-1
-       01:C1A4  01 22 FF  
-       01:C1A7  01        
-  305                     
-  306                             ;; set satb 0
-  307  01:C1A8  A9 40             lda     #$40
-  308  01:C1AA  8D 00 22          sta     satb+0
-  309  01:C1AD  9C 01 22          stz     satb+1
-  310                     
-  311  01:C1B0  A9 20             lda     #$20
-  312  01:C1B2  8D 02 22          sta     satb+2
-  313  01:C1B5  9C 03 22          stz     satb+3
+  299  01:C194  03 08             st0     #8
+  300  01:C196  A9 EF             lda     #$ef
+  301  01:C198  8D 02 00          sta     VdcDataL
+  302  01:C19B  A9 FF             lda     #$ff
+  303  01:C19D  8D 03 00          sta     VdcDataH
+  304                     
+  305  01:C1A0  20 C1 E0      jsr readPad
+  306                     
+  307  01:C1A3  E6 14             inc     <zframe
+  308                             
+  309  01:C1A5  20 FC C2          jsr     tkYield
+  310  01:C1A8  80 D9             bra     VSyncTask
+  311                     
+  312                     
+  313                     
   314                     
-  315  01:C1B8  9C 04 22          stz     satb+4
-  316  01:C1BB  A9 02             lda     #$2             ;vram address = $4000 -> $200
-  317  01:C1BD  8D 05 22          sta     satb+5
-  318                     
-  319  01:C1C0  A9 80             lda     #$80            ;priority  & color=0
-  320  01:C1C2  8D 06 22          sta     satb+6
-  321  01:C1C5  9C 07 22          stz     satb+7
-  322                     
-  323                     
-  324                             ;; set satb 1
-  325  01:C1C8  A9 40             lda     #$40
-  326  01:C1CA  8D 08 22          sta     satb+8
-  327  01:C1CD  9C 09 22          stz     satb+9
-  328                     
-  329  01:C1D0  A9 20             lda     #$20
-  330  01:C1D2  8D 0A 22          sta     satb+10
-  331  01:C1D5  9C 0B 22          stz     satb+11
+  315                     ;       psg test        
+  316  01:C1AA            initPsgTest:
+  317  01:C1AA  A9 00             lda     #0
+  318  01:C1AC  8D 00 08          sta     PsgChannel
+  319                     
+  320                     ;       write wave data
+  321  01:C1AF  A9 40             lda     #$40
+  322  01:C1B1  8D 04 08          sta     PsgCtrl
+  323  01:C1B4  9C 04 08          stz     PsgCtrl
+  324                     
+  325  01:C1B7  82                clx
+  326  01:C1B8  BD DA C1  .loop:  lda     .wave,x
+  327  01:C1BB  C9 FF             cmp     #$ff
+  328  01:C1BD  F0 06             beq     .loopend
+  329  01:C1BF  8D 06 08          sta     PsgWave
+  330  01:C1C2  E8                inx
+  331  01:C1C3  80 F3             bra     .loop
   332                     
-  333  01:C1D8  9C 0C 22          stz     satb+12
-  334  01:C1DB  A9 02             lda     #$2             ;vram address = $4000 -> $200
-  335  01:C1DD  8D 0D 22          sta     satb+13
-  336                     
-  337  01:C1E0  A9 80             lda     #$80            ;priority  & color=0
-  338  01:C1E2  8D 0E 22          sta     satb+14
-  339  01:C1E5  9C 0F 22          stz     satb+15
-  340                     
-  341  01:C1E8  60                rts
-  342                     
-  343                     
-  344  01:C1E9            spr_update:
-  345  01:C1E9  03 00             st0     #0
-  346  01:C1EB  13 00             st1     #$00
-  347  01:C1ED  23 7F             st2     #$7f
-  348  01:C1EF  03 02             st0     #2
-  349  01:C1F1  E3 00 22          tia     satb,VdcDataL,512
-       01:C1F4  02 00 00  
-       01:C1F7  02        
-  350  01:C1F8  60                rts
-  351                     
-  352                     
-  353                     
-  354                             ;...
-  355                             ;; satb
-  356           2200              .bss
-  357  --:2200            satb    .ds 512 ; the local SATB
+  333  01:C1C5            .loopend:
+  334                     ;       set frequency
+  335  01:C1C5  A9 FE             lda     #$fe
+  336  01:C1C7  8D 02 08          sta     PsgFreqL
+  337  01:C1CA  9C 03 08          stz     PsgFreqH
+  338                     
+  339                     ;       set volume
+  340                             ;lda    #$ff
+  341  01:C1CD  62                cla
+  342  01:C1CE  8D 05 08          sta     PsgChVol
+  343  01:C1D1  8D 01 08          sta     PsgMainVol
+  344                     
+  345  01:C1D4  A9 8F             lda     #$8f
+  346  01:C1D6  8D 04 08          sta     PsgCtrl
+  347                     
+  348  01:C1D9  60                rts
+  349                     
+  350  01:C1DA            .wave:
+  351  01:C1DA  1F 1D 1B          .db     $1f,$1d,$1b,$19,$17,$15,$13,$11
+       01:C1DD  19 17 15  
+       01:C1E0  13 11     
+  352  01:C1E2  0F 0D 0B          .db     $0f,$0d,$0b,$09,$07,$05,$03,$01
+       01:C1E5  09 07 05  
+       01:C1E8  03 01     
+  353  01:C1EA  1F 1D 1B          .db     $1f,$1d,$1b,$19,$17,$15,$13,$11
+       01:C1ED  19 17 15  
+       01:C1F0  13 11     
+  354  01:C1F2  0F 0D 0B          .db     $0f,$0d,$0b,$09,$07,$05,$03,$01
+       01:C1F5  09 07 05  
+       01:C1F8  03 01     
+  355  01:C1FA  FF                .db     $ff     
+  356                     
+  357  01:C1FB  1F 1F 1F          .db     $1f,$1f,$1f,$1f,$1f,$1f,$1f,$1f
+       01:C1FE  1F 1F 1F  
+       01:C201  1F 1F     
+  358  01:C203  00 00 00          .db     $00,$00,$00,$00,$00,$00,$00,$00
+       01:C206  00 00 00  
+       01:C209  00 00     
+  359  01:C20B  00 00 00          .db     $00,$00,$00,$00,$00,$00,$00,$00
+       01:C20E  00 00 00  
+       01:C211  00 00     
+  360  01:C213  00 00 00          .db     $00,$00,$00,$00,$00,$00,$00,$00
+       01:C216  00 00 00  
+       01:C219  00 00     
+  361  01:C21B  FF                .db     $ff
+  362                     
+  363  01:C21C  0F 12 15          .db     $0f,$12,$15,$17,$19,$1b,$1d,$1E
+       01:C21F  17 19 1B  
+       01:C222  1D 1E     
+  364  01:C224  1E 1E 1D          .db     $1e,$1e,$1d,$1b,$19,$17,$15,$12
+       01:C227  1B 19 17  
+       01:C22A  15 12     
+  365  01:C22C  0F 0C 09          .db     $0f,$0c,$09,$07,$05,$03,$01,$00
+       01:C22F  07 05 03  
+       01:C232  01 00     
+  366  01:C234  00 00 01          .db     $00,$00,$01,$03,$05,$07,$09,$0c
+       01:C237  03 05 07  
+       01:C23A  09 0C     
+  367  01:C23C  FF                .db     $ff     
+  368                     
+  369                     
+  370  01:C23D            spr_init:
+  371                     
+  372                             ;; clear satb
+  373  01:C23D  9C 00 22          stz     satb
+  374  01:C240  73 00 22          tii     satb,satb+1,512-1
+       01:C243  01 22 FF  
+       01:C246  01        
+  375                     
+  376                             ;; set satb 0
+  377  01:C247  A9 40             lda     #$40
+  378  01:C249  8D 00 22          sta     satb+0
+  379  01:C24C  9C 01 22          stz     satb+1
+  380                     
+  381  01:C24F  A9 20             lda     #$20
+  382  01:C251  8D 02 22          sta     satb+2
+  383  01:C254  9C 03 22          stz     satb+3
+  384                     
+  385  01:C257  9C 04 22          stz     satb+4
+  386  01:C25A  A9 02             lda     #$2             ;vram address = $4000 -> $200
+  387  01:C25C  8D 05 22          sta     satb+5
+  388                     
+  389  01:C25F  A9 80             lda     #$80            ;priority  & color=0
+  390  01:C261  8D 06 22          sta     satb+6
+  391  01:C264  9C 07 22          stz     satb+7
+  392                     
+  393                     
+  394                             ;; set satb 1
+  395  01:C267  A9 40             lda     #$40
+  396  01:C269  8D 08 22          sta     satb+8
+  397  01:C26C  9C 09 22          stz     satb+9
+  398                     
+  399  01:C26F  A9 20             lda     #$20
+  400  01:C271  8D 0A 22          sta     satb+10
+  401  01:C274  9C 0B 22          stz     satb+11
+  402                     
+  403  01:C277  9C 0C 22          stz     satb+12
+  404  01:C27A  A9 02             lda     #$2             ;vram address = $4000 -> $200
+  405  01:C27C  8D 0D 22          sta     satb+13
+  406                     
+  407  01:C27F  A9 80             lda     #$80            ;priority  & color=0
+  408  01:C281  8D 0E 22          sta     satb+14
+  409  01:C284  9C 0F 22          stz     satb+15
+  410                     
+  411  01:C287  60                rts
+  412                     
+  413                     
+  414  01:C288            spr_update:
+  415  01:C288  03 00             st0     #0
+  416  01:C28A  13 00             st1     #$00
+  417  01:C28C  23 7F             st2     #$7f
+  418  01:C28E  03 02             st0     #2
+  419  01:C290  E3 00 22          tia     satb,VdcDataL,512
+       01:C293  02 00 00  
+       01:C296  02        
+  420  01:C297  60                rts
+  421                     
+  422                     
+  423                     
+  424                             ;...
+  425                             ;; satb
+  426           2200              .bss
+  427  --:2200            satb    .ds 512 ; the local SATB
 #[1]   nibbler.asm
 #[2]   task.asm
    15                             .include "task.asm"
@@ -761,7 +805,7 @@
    14                     
    15  --:2400            tkSp:   ds  TK_MAX_TASK         ;タスクのsp
    16                     
-   17           C1F9          .code
+   17           C298          .code
    18           0001          .bank   MAIN_BANK
    19                     
    20                     
@@ -773,26 +817,17 @@
    26                     ;
    27                                     ;pレジスタも保管すると、割り込み状態も変わってしまって予期せぬ動きに繋がりかね
    28                                     ;実際、禁止していた割り込みが勝手にかかってしまい、おかしな動きになってしまっ�
-   29  01:C1F9            tkInit:
-   30  01:C1F9  9C 19 20      stz ztkTaskNum
+   29  01:C298            tkInit:
+   30  01:C298  9C 19 20      stz ztkTaskNum
    31                     
-   32  01:C1FC  A9 A4         lda #LOW(tklNone)
-   33  01:C1FE  85 0C         sta <zarg2
-   34  01:C200  A9 C2         lda #HIGH(tklNone)
-   35  01:C202  85 0D         sta <zarg3
-   36  01:C204  20 30 C2      jsr tkSetAllTasks
+   32  01:C29B  A9 45         lda #LOW(tklNone)
+   33  01:C29D  85 0C         sta <zarg2
+   34  01:C29F  A9 C3         lda #HIGH(tklNone)
+   35  01:C2A1  85 0D         sta <zarg3
+   36  01:C2A3  20 CF C2      jsr tkSetAllTasks
    37                     
-   38                         tkChangeTask_   0
-                          ;    .if 0=0
-                          ;    stz <ztkChgTask
-                          ;    stz <ztkChgTask+1
-                          ;    .else
-       01:C207  A9 00         lda #LOW(0)
-       01:C209  85 1C         sta <ztkChgTask
-       01:C20B  A9 00         lda #HIGH(0)
-       01:C20D  85 1D         sta <ztkChgTask+1
-                          ;    .endif
-   39  01:C20F  60            rts
+   38  01:82A6                tkChangeTask_   0
+   39  01:C2AE  60            rts
    40                     
    41                     ;
    42                     ;   タスク変更
@@ -801,31 +836,31 @@
    45                     ;   @saveregs       x
    46                     ;   @return         なし
    47                     ;
-   48  01:C210            tkSetTask:
-   49  01:C210  DA            phx
+   48  01:C2AF            tkSetTask:
+   49  01:C2AF  DA            phx
    50                     
-   51  01:C211  8A            txa
-   52  01:C212  1A            inc a
+   51  01:C2B0  8A            txa
+   52  01:C2B1  1A            inc a
    53           0001          .if TK_TASK_STACK_SIZE=16
-   54  01:C213  0A            asl a
-   55  01:C214  0A            asl a
-   56  01:C215  0A            asl a
-   57  01:C216  0A            asl a
+   54  01:C2B2  0A            asl a
+   55  01:C2B3  0A            asl a
+   56  01:C2B4  0A            asl a
+   57  01:C2B5  0A            asl a
    58                         .else
    60                         .endif
-   61  01:C217  9D 00 24      sta tkSp,x
+   61  01:C2B6  9D 00 24      sta tkSp,x
    62                     
-   63  01:C21A  AA            tax
-   64  01:C21B  9E 01 21      stz TK_STACK_AREA+1,x
-   65  01:C21E  9E 02 21      stz TK_STACK_AREA+2,x
-   66  01:C221  9E 03 21      stz TK_STACK_AREA+3,x
-   67  01:C224  A5 0A         lda <zarg0
-   68  01:C226  9D 04 21      sta TK_STACK_AREA+4,x
-   69  01:C229  A5 0B         lda <zarg1
-   70  01:C22B  9D 05 21      sta TK_STACK_AREA+5,x
+   63  01:C2B9  AA            tax
+   64  01:C2BA  9E 01 21      stz TK_STACK_AREA+1,x
+   65  01:C2BD  9E 02 21      stz TK_STACK_AREA+2,x
+   66  01:C2C0  9E 03 21      stz TK_STACK_AREA+3,x
+   67  01:C2C3  A5 0A         lda <zarg0
+   68  01:C2C5  9D 04 21      sta TK_STACK_AREA+4,x
+   69  01:C2C8  A5 0B         lda <zarg1
+   70  01:C2CA  9D 05 21      sta TK_STACK_AREA+5,x
    71                     
-   72  01:C22E  FA            plx
-   73  01:C22F  60            rts
+   72  01:C2CD  FA            plx
+   73  01:C2CE  60            rts
    74                     
    75                     ;
    76                     ;   全てのタスク変更
@@ -833,29 +868,29 @@
    78                     ;   @saveregs       なし
    79                     ;   @return         なし
    80                     ;
-   81  01:C230            tkSetAllTasks:
-   82  01:C230  82            clx
-   83  01:C231  C2            cly
+   81  01:C2CF            tkSetAllTasks:
+   82  01:C2CF  82            clx
+   83  01:C2D0  C2            cly
    84                     
-   85  01:C232            .loop:
-   86  01:C232  B1 0C         lda [zarg2],y
-   87  01:C234  85 0A         sta <zarg0
-   88  01:C236  C8            iny
-   89  01:C237  11 0C         ora [zarg2],y
-   90  01:C239  F0 0D         beq .taskend
+   85  01:C2D1            .loop:
+   86  01:C2D1  B1 0C         lda [zarg2],y
+   87  01:C2D3  85 0A         sta <zarg0
+   88  01:C2D5  C8            iny
+   89  01:C2D6  11 0C         ora [zarg2],y
+   90  01:C2D8  F0 0D         beq .taskend
    91                     
-   92  01:C23B  B1 0C         lda [zarg2],y
-   93  01:C23D  85 0B         sta <zarg1
-   94  01:C23F  20 10 C2      jsr tkSetTask
+   92  01:C2DA  B1 0C         lda [zarg2],y
+   93  01:C2DC  85 0B         sta <zarg1
+   94  01:C2DE  20 AF C2      jsr tkSetTask
    95                     
-   96  01:C242  C8            iny
-   97  01:C243  E8            inx
-   98  01:C244  E0 04         cpx #TK_MAX_TASK
-   99  01:C246  D0 EA         bne .loop
-  100  01:C248            .taskend:
-  101  01:C248  86 19         stx <ztkTaskNum
+   96  01:C2E1  C8            iny
+   97  01:C2E2  E8            inx
+   98  01:C2E3  E0 04         cpx #TK_MAX_TASK
+   99  01:C2E5  D0 EA         bne .loop
+  100  01:C2E7            .taskend:
+  101  01:C2E7  86 19         stx <ztkTaskNum
   102                     
-  103  01:C24A  60            rts
+  103  01:C2E9  60            rts
   104                     
   105                     
   106                     
@@ -865,189 +900,143 @@
   110                     ;   @saveregs       なし
   111                     ;   @return         なし
   112                     ;
-  113  01:C24B            tkDispatch:
+  113  01:C2EA            tkDispatch:
   114                                         ;タスクがない場合
-  115  01:C24B  A5 19         lda <ztkTaskNum
-  116  01:C24D  F0 20         beq tkDispatch_end
+  115  01:C2EA  A5 19         lda <ztkTaskNum
+  116  01:C2EC  F0 20         beq tkDispatch_end
   117                     
   118                                         ;このルーチン開始時のspを保管
-  119  01:C24F  BA            tsx
-  120  01:C250  86 1A         stx <ztkSaveSp
+  119  01:C2EE  BA            tsx
+  120  01:C2EF  86 1A         stx <ztkSaveSp
   121                     
-  122  01:C252  C2            cly             ;y=タスク番号
+  122  01:C2F1  C2            cly             ;y=タスク番号
   123                     
-  124  01:C253            tkDispatch_loop:
+  124  01:C2F2            tkDispatch_loop:
   125                                         ;タスクを実行
   126                                         ;タスクのspを復元
-  127  01:C253  BE 00 24      ldx tkSp,y
-  128  01:C256  9A            txs
-  129  01:C257  84 1B         sty <ztkCurTask ;現在のタスク番号を保管
+  127  01:C2F2  BE 00 24      ldx tkSp,y
+  128  01:C2F5  9A            txs
+  129  01:C2F6  84 1B         sty <ztkCurTask ;現在のタスク番号を保管
   130                                         ;タスクのレジスタを復元
-  131  01:C259  7A            ply
-  132  01:C25A  FA            plx
-  133  01:C25B  68            pla
-  134  01:C25C  60            rts             ;タスクの実行アドレスにジャンプ
+  131  01:C2F8  7A            ply
+  132  01:C2F9  FA            plx
+  133  01:C2FA  68            pla
+  134  01:C2FB  60            rts             ;タスクの実行アドレスにジャンプ
   135                     
   136                                         ;タスク切り替え
-  137  01:C25D            tkYield:
+  137  01:C2FC            tkYield:
   138                                         ;タスクのレジスタを保管
-  139  01:C25D  48            pha
-  140  01:C25E  DA            phx
-  141  01:C25F  5A            phy
+  139  01:C2FC  48            pha
+  140  01:C2FD  DA            phx
+  141  01:C2FE  5A            phy
   142                                         ;タスクのspを保管
-  143  01:C260  A4 1B         ldy <ztkCurTask ;y=現在のタスク番号
-  144  01:C262  BA            tsx
-  145  01:C263  8A            txa
-  146  01:C264  99 00 24      sta tkSp,y      
+  143  01:C2FF  A4 1B         ldy <ztkCurTask ;y=現在のタスク番号
+  144  01:C301  BA            tsx
+  145  01:C302  8A            txa
+  146  01:C303  99 00 24      sta tkSp,y      
   147                                         ;次のタスク
-  148  01:C267            tkNextTask:
-  149  01:C267  C8            iny
+  148  01:C306            tkNextTask:
+  149  01:C306  C8            iny
   150                     ;    cpy #TK_MAX_TASK
-  151  01:C268  C4 19         cpy <ztkTaskNum
-  152  01:C26A  D0 E7         bne tkDispatch_loop
+  151  01:C307  C4 19         cpy <ztkTaskNum
+  152  01:C309  D0 E7         bne tkDispatch_loop
   153                                         ;tkDispatch開始時のspを復元
-  154  01:C26C  A6 1A         ldx <ztkSaveSp
-  155  01:C26E  9A            txs
+  154  01:C30B  A6 1A         ldx <ztkSaveSp
+  155  01:C30D  9A            txs
   156                     
-  157  01:C26F            tkDispatch_end:
-  158  01:C26F  60            rts
+  157  01:C30E            tkDispatch_end:
+  158  01:C30E  60            rts
   159                     
   160                     ;
   161                     ;
   162                     ;
-  163  01:C270            tkChangeTasks:
-  164  01:C270  A5 1C         lda <ztkChgTask
-  165  01:C272  24 1D         bit <ztkChgTask+1
-  166  01:C274  D0 01         bne .chg
-  167  01:C276  60            rts
-  168  01:C277            .chg:
-  169  01:C277  85 0C         sta <zarg2
-  170  01:C279  A5 1D         lda <ztkChgTask+1
-  171  01:C27B  85 0D         sta <zarg3
-  172  01:C27D  20 30 C2      jsr tkSetAllTasks
-  173                     
-  174                         tkChangeTask_   0
-                          ;    .if 0=0
-                          ;    stz <ztkChgTask
-                          ;    stz <ztkChgTask+1
-                          ;    .else
-       01:C280  A9 00         lda #LOW(0)
-       01:C282  85 1C         sta <ztkChgTask
-       01:C284  A9 00         lda #HIGH(0)
-       01:C286  85 1D         sta <ztkChgTask+1
-                          ;    .endif
-  175  01:C288  60            rts
-  176                     ;
-  177                     ;   実行中のタスクの変更
-  178                     ;   ※タスク内からの呼び出し専用
-  179                     ;   @args           zarg0,1 = タスク開始アドレス
-  180                     ;   @saveregs       なし
-  181                     ;   @return         なし
-  182                     ;
-  183  01:C289            tkLink:
-  184                                         ;タスクのレジスタを保管
-  185  01:C289  48            pha
-  186  01:C28A  DA            phx
-  187  01:C28B  5A            phy
-  188                                         ;タスクのspを保管
-  189  01:C28C  A4 1B         ldy <ztkCurTask ;y=現在のタスク番号
-  190  01:C28E  BA            tsx
-  191  01:C28F  8A            txa
-  192  01:C290  99 00 24      sta tkSp,y      
-  193                                         ;タスクの開始アドレスを変更
-  194  01:C293  A5 0A         lda <zarg0
-  195  01:C295  9D 04 21      sta TK_STACK_AREA+4,x
-  196  01:C298  A5 0B         lda <zarg1
-  197  01:C29A  9D 05 21      sta TK_STACK_AREA+5,x
-  198                     
-  199  01:C29D  80 C8         bra tkNextTask
+  163  01:C30F            tkChangeTasks:
+  164  01:C30F  A5 1C         lda <ztkChgTask
+  165                     ;    bit <ztkChgTask+1
+  166  01:C311  05 1D         ora <ztkChgTask+1
+  167  01:C313  D0 01         bne .chg
+  168  01:C315  60            rts
+  169  01:C316            .chg:
+  170  01:C316  A5 1C         lda <ztkChgTask
+  171  01:C318  85 0C         sta <zarg2
+  172  01:C31A  A5 1D         lda <ztkChgTask+1
+  173  01:C31C  85 0D         sta <zarg3
+  174  01:C31E  20 CF C2      jsr tkSetAllTasks
+  175                     
+  176  01:8321                tkChangeTask_   0
+  177  01:C329  60            rts
+  178                     ;
+  179                     ;   実行中のタスクの変更
+  180                     ;   ※タスク内からの呼び出し専用
+  181                     ;   @args           zarg0,1 = タスク開始アドレス
+  182                     ;   @saveregs       なし
+  183                     ;   @return         なし
+  184                     ;
+  185  01:C32A            tkLink:
+  186                                         ;タスクのレジスタを保管
+  187  01:C32A  48            pha
+  188  01:C32B  DA            phx
+  189  01:C32C  5A            phy
+  190                                         ;タスクのspを保管
+  191  01:C32D  A4 1B         ldy <ztkCurTask ;y=現在のタスク番号
+  192  01:C32F  BA            tsx
+  193  01:C330  8A            txa
+  194  01:C331  99 00 24      sta tkSp,y      
+  195                                         ;タスクの開始アドレスを変更
+  196  01:C334  A5 0A         lda <zarg0
+  197  01:C336  9D 04 21      sta TK_STACK_AREA+4,x
+  198  01:C339  A5 0B         lda <zarg1
+  199  01:C33B  9D 05 21      sta TK_STACK_AREA+5,x
   200                     
-  201                     
+  201  01:C33E  80 C6         bra tkNextTask
   202                     
   203                     
-  204                     ;
-  205                     ;   何もしないタスク
+  204                     
+  205                     
   206                     ;
-  207  01:C29F            tkDummyTask:
-  208  01:C29F  20 5D C2      jsr tkYield
-  209  01:C2A2  80 FB         bra tkDummyTask
-  210                     
-  211                     
+  207                     ;   何もしないタスク
+  208                     ;
+  209  01:C340            tkDummyTask:
+  210  01:C340  20 FC C2      jsr tkYield
+  211  01:C343  80 FB         bra tkDummyTask
   212                     
-  213                     ;
-  214                     ;   タスクリスト
+  213                     
+  214                     
   215                     ;
-  216                     ;
-  217                     tkTaskAddress_  .macro
-  218                     ;    .if \1!=0
-  219                         dw  \1-1
-  220                     ;    .else
-  221                     ;    dw  0
-  222                     ;    .endif
-  223                         .endm
-  224                     
-  225                     tkEndTaskList_  .macro
-  226                         dw  0
-  227                         .endm
-  228                     
-  229                     
-  230  01:C2A4            tklNone:
-  231                         tkEndTaskList_
-       01:C2A4  00 00         dw  0
-  232                     
-  233  01:C2A6            tklInitWave:
-  234                         tkTaskAddress_  DrawWaveTask
-                          ;    .if DrawWaveTask!=0
-       01:C2A6  89 C0         dw  DrawWaveTask-1
-                          ;    .else
-                          ;    dw  0
-                          ;    .endif
-  235                         tkTaskAddress_  VSyncTask
-                          ;    .if VSyncTask!=0
-       01:C2A8  E3 C0         dw  VSyncTask-1
-                          ;    .else
-                          ;    dw  0
-                          ;    .endif
-  236                         tkEndTaskList_
-       01:C2AA  00 00         dw  0
-  237                     
-  238  01:C2AC            tklGameMain:
-  239                         tkTaskAddress_  plTask
-                          ;    .if plTask!=0
-       01:C2AC  3A C4         dw  plTask-1
-                          ;    .else
-                          ;    dw  0
-                          ;    .endif
-  240                         tkTaskAddress_  TimerTask
-                          ;    .if TimerTask!=0
-       01:C2AE  B2 C0         dw  TimerTask-1
-                          ;    .else
-                          ;    dw  0
-                          ;    .endif
-  241                         tkTaskAddress_  VSyncTask
-                          ;    .if VSyncTask!=0
-       01:C2B0  E3 C0         dw  VSyncTask-1
-                          ;    .else
-                          ;    dw  0
-                          ;    .endif
-  242                         tkEndTaskList_
-       01:C2B2  00 00         dw  0
-  243                     
-  244  01:C2B4            tklClearWave:
-  245                         tkTaskAddress_  WaveClearTask
-                          ;    .if WaveClearTask!=0
-       01:C2B4  9D C0         dw  WaveClearTask-1
-                          ;    .else
-                          ;    dw  0
-                          ;    .endif
-  246                         tkTaskAddress_  VSyncTask
-                          ;    .if VSyncTask!=0
-       01:C2B6  E3 C0         dw  VSyncTask-1
-                          ;    .else
-                          ;    dw  0
-                          ;    .endif
-  247                         tkEndTaskList_
-       01:C2B8  00 00         dw  0
+  216                     ;   タスクリスト
+  217                     ;
+  218                     ;
+  219                     tkTaskAddress_  .macro
+  220                     ;    .if \1!=0
+  221                         dw  \1-1
+  222                     ;    .else
+  223                     ;    dw  0
+  224                     ;    .endif
+  225                         .endm
+  226                     
+  227                     tkEndTaskList_  .macro
+  228                         dw  0
+  229                         .endm
+  230                     
+  231                     
+  232  01:C345            tklNone:
+  233  01:8345                tkEndTaskList_
+  234                     
+  235  01:C347            tklInitWave:
+  236  01:8347                tkTaskAddress_  DrawWaveTask
+  237  01:8349                tkTaskAddress_  VSyncTask
+  238  01:834B                tkEndTaskList_
+  239                     
+  240  01:C34D            tklGameMain:
+  241  01:834D                tkTaskAddress_  plTask
+  242  01:834F                tkTaskAddress_  TimerTask
+  243  01:8351                tkTaskAddress_  VSyncTask
+  244  01:8353                tkEndTaskList_
+  245                     
+  246  01:C355            tklClearWave:
+  247  01:8355                tkTaskAddress_  WaveClearTask
+  248  01:8357                tkTaskAddress_  VSyncTask
+  249  01:8359                tkEndTaskList_
 #[1]   nibbler.asm
    16                     ;        .include "chrdriver.asm"
 #[2]   player.asm
@@ -1065,7 +1054,7 @@
    11                     
    12  --:2028            zplTailStop:    ds  1
    13                     
-   14           C2BA          .code
+   14           C35B          .code
    15           0001          .bank   MAIN_BANK
    16                     
    17                     ;
@@ -1074,45 +1063,45 @@
    20                     ;   @args       なし
    21                     ;   @saveregs   なし
    22                     ;   @return     なし
-   23  01:C2BA            plInit:
+   23  01:C35B            plInit:
    24           200C      .tmp_fldadr_l   equ     zarg2       ;フィールドアドレス
    25           200D      .tmp_fldadr_h   equ     zarg3
    26                     
-   27  01:C2BA  64 28         stz <zplTailStop
+   27  01:C35B  64 28         stz <zplTailStop
    28                     
    29                                             ;頭の座標
-   30  01:C2BC  82            clx
-   31  01:C2BD  A9 80         lda     #(5*3+1)*8
-   32  01:C2BF  85 1E         sta     <zplx
-   33  01:C2C1  A9 C8         lda     #(8*3+1)*8
-   34  01:C2C3  85 20         sta     <zply
-   35  01:C2C5  A9 02         lda     #2
-   36  01:C2C7  85 26         sta     <zplspeed
-   37  01:C2C9  A9 20         lda     #%00100000
-   38  01:C2CB  20 F1 C2      jsr     plSetDir
+   30  01:C35D  82            clx
+   31  01:C35E  A9 80         lda     #(5*3+1)*8
+   32  01:C360  85 1E         sta     <zplx
+   33  01:C362  A9 C8         lda     #(8*3+1)*8
+   34  01:C364  85 20         sta     <zply
+   35  01:C366  A9 02         lda     #2
+   36  01:C368  85 26         sta     <zplspeed
+   37  01:C36A  A9 20         lda     #%00100000
+   38  01:C36C  20 92 C3      jsr     plSetDir
    39                                             ;尻尾の座標
-   40  01:C2CE  A2 01         ldx #1
-   41  01:C2D0  A9 50         lda     #(3*3+1)*8
-   42  01:C2D2  95 1E         sta     <zplx,x
-   43  01:C2D4  A9 C8         lda     #(8*3+1)*8
-   44  01:C2D6  95 20         sta     <zply,x
-   45  01:C2D8  A9 02         lda     #2
-   46  01:C2DA  95 26         sta     <zplspeed,x
-   47  01:C2DC  A9 20         lda     #%00100000
-   48  01:C2DE  20 F1 C2      jsr     plSetDir
+   40  01:C36F  A2 01         ldx #1
+   41  01:C371  A9 50         lda     #(3*3+1)*8
+   42  01:C373  95 1E         sta     <zplx,x
+   43  01:C375  A9 C8         lda     #(8*3+1)*8
+   44  01:C377  95 20         sta     <zply,x
+   45  01:C379  A9 02         lda     #2
+   46  01:C37B  95 26         sta     <zplspeed,x
+   47  01:C37D  A9 20         lda     #%00100000
+   48  01:C37F  20 92 C3      jsr     plSetDir
    49                                             ;胴体
    50                                             ;TODO: 胴体の絵を描いてない
-   51  01:C2E1  20 02 C3      jsr plGetBatFldAdr
-   52  01:C2E4  C2            cly
-   53  01:C2E5            .loop:
-   54  01:C2E5  B1 0C         lda [.tmp_fldadr_l],y
-   55  01:C2E7  09 02         ora #%00000010
-   56  01:C2E9  91 0C         sta [.tmp_fldadr_l],y
-   57  01:C2EB  C8            iny
-   58  01:C2EC  C0 06         cpy #6
-   59  01:C2EE  D0 F5         bne .loop
+   51  01:C382  20 A3 C3      jsr plGetBatFldAdr
+   52  01:C385  C2            cly
+   53  01:C386            .loop:
+   54  01:C386  B1 0C         lda [.tmp_fldadr_l],y
+   55  01:C388  09 02         ora #%00000010
+   56  01:C38A  91 0C         sta [.tmp_fldadr_l],y
+   57  01:C38C  C8            iny
+   58  01:C38D  C0 06         cpy #6
+   59  01:C38F  D0 F5         bne .loop
    60                     
-   61  01:C2F0  60            rts
+   61  01:C391  60            rts
    62                     
    63                     ;
    64                     ;   移動方向（とその逆方向）をセット
@@ -1121,19 +1110,19 @@
    67                     ;               x = キャラクタインデックス
    68                     ;   @saveregs   x
    69                     ;   @return     なし
-   70  01:C2F1            plSetDir:
-   71  01:C2F1  29 F0         and     #$f0        ;下位4ビットは必ずクリアしておく（方向転換判定で誤判定の元となる）
-   72  01:C2F3  95 22         sta     <zpldir,x
+   70  01:C392            plSetDir:
+   71  01:C392  29 F0         and     #$f0        ;下位4ビットは必ずクリアしておく（方向転換判定で誤判定の元となる）
+   72  01:C394  95 22         sta     <zpldir,x
    73                     
-   74  01:C2F5  89 A0         bit     #%10100000
-   75  01:C2F7  F0 04         beq     .du
-   76  01:C2F9  49 A0         eor     #%10100000
-   77  01:C2FB  80 02         bra     .set
-   78  01:C2FD            .du:
-   79  01:C2FD  49 50         eor     #%01010000
-   80  01:C2FF            .set:
-   81  01:C2FF  95 24         sta     <zpldirr,x
-   82  01:C301  60            rts
+   74  01:C396  89 A0         bit     #%10100000
+   75  01:C398  F0 04         beq     .du
+   76  01:C39A  49 A0         eor     #%10100000
+   77  01:C39C  80 02         bra     .set
+   78  01:C39E            .du:
+   79  01:C39E  49 50         eor     #%01010000
+   80  01:C3A0            .set:
+   81  01:C3A0  95 24         sta     <zpldirr,x
+   82  01:C3A2  60            rts
    83                     
    84                     
    85                     ;
@@ -1143,35 +1132,35 @@
    89                     ;   @saveregs   x
    90                     ;   @return     zarg0,1 = BATアドレス
    91                     ;               zarg2,3 = フィールドアドレス
-   92  01:C302            plGetBatFldAdr:
+   92  01:C3A3            plGetBatFldAdr:
    93           200A      .arg_batadr_l     equ     zarg0
    94           200B      .arg_batadr_h     equ     zarg1
    95           200C      .arg_fldadr_l     equ     zarg2
    96           200D      .arg_fldadr_h     equ     zarg3
    97                     
-   98  01:C302  B5 1E         lda     <zplx,x
-   99  01:C304  4A            lsr     a
-  100  01:C305  4A            lsr     a
-  101  01:C306  4A            lsr     a
-  102  01:C307  85 0A         sta     <.arg_batadr_l
-  103  01:C309  64 0B         stz     <.arg_batadr_h
-  104  01:C30B  B5 20         lda     <zply,x
-  105  01:C30D  29 F8         and     #$f8
-  106  01:C30F  0A            asl     a
-  107  01:C310  26 0B         rol     <.arg_batadr_h
-  108  01:C312  0A            asl     a
-  109  01:C313  26 0B         rol     <.arg_batadr_h
-  110  01:C315  04 0A         tsb     <.arg_batadr_l
+   98  01:C3A3  B5 1E         lda     <zplx,x
+   99  01:C3A5  4A            lsr     a
+  100  01:C3A6  4A            lsr     a
+  101  01:C3A7  4A            lsr     a
+  102  01:C3A8  85 0A         sta     <.arg_batadr_l
+  103  01:C3AA  64 0B         stz     <.arg_batadr_h
+  104  01:C3AC  B5 20         lda     <zply,x
+  105  01:C3AE  29 F8         and     #$f8
+  106  01:C3B0  0A            asl     a
+  107  01:C3B1  26 0B         rol     <.arg_batadr_h
+  108  01:C3B3  0A            asl     a
+  109  01:C3B4  26 0B         rol     <.arg_batadr_h
+  110  01:C3B6  04 0A         tsb     <.arg_batadr_l
   111                     
-  112  01:C317  A5 0A         lda <.arg_batadr_l
-  113  01:C319  18            clc
-  114  01:C31A  69 04         adc #LOW(VMap)
-  115  01:C31C  85 0C         sta <.arg_fldadr_l
-  116  01:C31E  A5 0B         lda <.arg_batadr_h
-  117  01:C320  69 24         adc #HIGH(VMap)
-  118  01:C322  85 0D         sta <.arg_fldadr_h
+  112  01:C3B8  A5 0A         lda <.arg_batadr_l
+  113  01:C3BA  18            clc
+  114  01:C3BB  69 04         adc #LOW(VMap)
+  115  01:C3BD  85 0C         sta <.arg_fldadr_l
+  116  01:C3BF  A5 0B         lda <.arg_batadr_h
+  117  01:C3C1  69 24         adc #HIGH(VMap)
+  118  01:C3C3  85 0D         sta <.arg_fldadr_h
   119                     
-  120  01:C324  60            rts
+  120  01:C3C5  60            rts
   121                     
   122                     ;
   123                     ;       ヘビの頭の動き
@@ -1179,7 +1168,7 @@
   125                     ;       @args           x = キャラクタインデックス
   126                     ;       @saveregs       x
   127                     ;       @return         その場で停止すべき時は cf=1
-  128  01:C325            plHeadAction:
+  128  01:C3C6            plHeadAction:
   129           200C      .tmp_fldadr_l   equ     zarg2       ;フィールドアドレス
   130           200D      .tmp_fldadr_h   equ     zarg3
   131           2005      .tmp_fldv       equ     ztmp2       ;フィールド上の値
@@ -1188,143 +1177,143 @@
   134           2003      .tmp_dead_flg   equ ztmp0
   135                     
   136                                             ;グリッドの中間にいる場合は何もしない
-  137  01:C325  B5 1E         lda <zplx,x
-  138  01:C327  15 20         ora <zply,x
-  139  01:C329  29 07         and #$07
-  140  01:C32B  F0 02         beq .act
-  141  01:C32D  18            clc
-  142  01:C32E  60            rts
+  137  01:C3C6  B5 1E         lda <zplx,x
+  138  01:C3C8  15 20         ora <zply,x
+  139  01:C3CA  29 07         and #$07
+  140  01:C3CC  F0 02         beq .act
+  141  01:C3CE  18            clc
+  142  01:C3CF  60            rts
   143                                             ;尻尾を停止しているなら解除
-  144  01:C32F            .act:
-  145  01:C32F  A5 28         lda <zplTailStop
-  146  01:C331  F0 03         beq .act2
-  147  01:C333  3A            dec a
-  148  01:C334  85 28         sta <zplTailStop
-  149  01:C336            .act2:
+  144  01:C3D0            .act:
+  145  01:C3D0  A5 28         lda <zplTailStop
+  146  01:C3D2  F0 03         beq .act2
+  147  01:C3D4  3A            dec a
+  148  01:C3D5  85 28         sta <zplTailStop
+  149  01:C3D7            .act2:
   150                     
   151                     
-  152  01:C336  20 02 C3      jsr plGetBatFldAdr
+  152  01:C3D7  20 A3 C3      jsr plGetBatFldAdr
   153                                             ;フィールド上の現在位置の値
-  154  01:C339  B2 0C         lda     [.tmp_fldadr_l]
-  155  01:C33B  85 05         sta     <.tmp_fldv
+  154  01:C3DA  B2 0C         lda     [.tmp_fldadr_l]
+  155  01:C3DC  85 05         sta     <.tmp_fldv
   156                     
   157                     ;    lda <.tmp_fldv
-  158  01:C33D  29 0F         and #$0f
-  159  01:C33F  F0 0C         beq .controller
+  158  01:C3DE  29 0F         and #$0f
+  159  01:C3E0  F0 0C         beq .controller
   160                                             ;現在位置に尻尾があったら死亡
-  161  01:C341  C9 09         cmp #9
-  162  01:C343  30 5A         bmi .dead
+  161  01:C3E2  C9 09         cmp #9
+  162  01:C3E4  30 5A         bmi .dead
   163                     
-  164  01:C345  C9 0F         cmp #$0f
-  165  01:C347  D0 04         bne .controller
+  164  01:C3E6  C9 0F         cmp #$0f
+  165  01:C3E8  D0 04         bne .controller
   166                                             ;現在位置にドットがあるなら尻尾を停止させる（胴体を伸ばす）
-  167  01:C349  E6 28         inc <zplTailStop
+  167  01:C3EA  E6 28         inc <zplTailStop
   168                     
-  169  01:C34B  C6 15         dec <zdotnum        ;ドット数減少
+  169  01:C3EC  C6 15         dec <zdotnum        ;ドット数減少
   170                     
-  171  01:C34D            .controller:
+  171  01:C3EE            .controller:
   172                                             ;
   173                                             ;コントローラーが押されている場合の方向転換判定 ldru
-  174  01:C34D  A5 00         lda     <zpad
-  175  01:C34F  29 F0         and     #$f0
+  174  01:C3EE  A5 00         lda     <zpad
+  175  01:C3F0  29 F0         and     #$f0
   176                                             ;押されていない
-  177  01:C351  F0 10         beq     .notpushed
+  177  01:C3F2  F0 10         beq     .notpushed
   178                                             ;移動方向および逆方向が押されていても押されていないとみなす
-  179  01:C353  85 06         sta     <.tmp_pad
-  180  01:C355  B5 22         lda     <zpldir,x
-  181  01:C357  15 24         ora     <zpldirr,x
-  182  01:C359  14 06         trb     <.tmp_pad
-  183  01:C35B  F0 06         beq     .notpushed
+  179  01:C3F4  85 06         sta     <.tmp_pad
+  180  01:C3F6  B5 22         lda     <zpldir,x
+  181  01:C3F8  15 24         ora     <zpldirr,x
+  182  01:C3FA  14 06         trb     <.tmp_pad
+  183  01:C3FC  F0 06         beq     .notpushed
   184                                             ;移動方向以外かつ逆方向以外が押されていて、そっちに移動可能なら変更
-  185  01:C35D  A5 06         lda     <.tmp_pad
-  186  01:C35F  24 05         bit     <.tmp_fldv
-  187  01:C361  D0 1A         bne     .changed
+  185  01:C3FE  A5 06         lda     <.tmp_pad
+  186  01:C400  24 05         bit     <.tmp_fldv
+  187  01:C402  D0 1A         bne     .changed
   188                                             ;コントローラーが押されていない場合の方向転換判定
-  189  01:C363            .notpushed:
+  189  01:C404            .notpushed:
   190                                             ;直進可能ならそのまま進む
-  191  01:C363  A5 05         lda     <.tmp_fldv
-  192  01:C365  34 22         bit     <zpldir,x
-  193  01:C367  D0 17         bne     .notchanged
+  191  01:C404  A5 05         lda     <.tmp_fldv
+  192  01:C406  34 22         bit     <zpldir,x
+  193  01:C408  D0 17         bne     .notchanged
   194                                             ;直進と後退以外の移動可能方向？
-  195  01:C369  4A            lsr     a
-  196  01:C36A  4A            lsr     a
-  197  01:C36B  4A            lsr     a
-  198  01:C36C  4A            lsr     a
-  199  01:C36D  A8            tay
-  200  01:C36E  B9 A5 C3      lda     .DirCountTbl,y
+  195  01:C40A  4A            lsr     a
+  196  01:C40B  4A            lsr     a
+  197  01:C40C  4A            lsr     a
+  198  01:C40D  4A            lsr     a
+  199  01:C40E  A8            tay
+  200  01:C40F  B9 46 C4      lda     .DirCountTbl,y
   201                                             ;直角
-  202  01:C371  C9 02         cmp     #2
-  203  01:C373  F0 04         beq     .dc2
+  202  01:C412  C9 02         cmp     #2
+  203  01:C414  F0 04         beq     .dc2
   204                                             ;この時点で移動可能方向は3以外はありえない
   205                                             ;直進できないので移動可能方向は1,2,3のいずれか
   206                                             ;2の場合は分岐しており、1（つまり行き止まり）は存在しない
   207                                             ;よって3のみ（つまり丁字路で直進方向が塞がっている状態）
   208                     ;    cmp     #3
   209                     ;    bne     .notchanged
-  210  01:C375  38            sec                 ;丁字路の場合は一時停止
-  211  01:C376  64 03         stz <.tmp_dead_flg  ;死んでいない
-  212  01:C378  60            rts
+  210  01:C416  38            sec                 ;丁字路の場合は一時停止
+  211  01:C417  64 03         stz <.tmp_dead_flg  ;死んでいない
+  212  01:C419  60            rts
   213                                             ;直角に曲がる
-  214  01:C379            .dc2:
-  215  01:C379  A5 05         lda     <.tmp_fldv
-  216  01:C37B  55 24         eor     <zpldirr,x  ;2方向のうち進行方向の逆を打ち消して残った方向が進むべき方向
+  214  01:C41A            .dc2:
+  215  01:C41A  A5 05         lda     <.tmp_fldv
+  216  01:C41C  55 24         eor     <zpldirr,x  ;2方向のうち進行方向の逆を打ち消して残った方向が進むべき方向
   217                     
   218                                             ;進行方向を変更
-  219  01:C37D            .changed:
-  220  01:C37D  20 F1 C2      jsr     plSetDir
-  221  01:C380            .notchanged:
+  219  01:C41E            .changed:
+  220  01:C41E  20 92 C3      jsr     plSetDir
+  221  01:C421            .notchanged:
   222                     
-  223  01:C380            .draw:
+  223  01:C421            .draw:
   224                                             ;胴体
   225                                             ;フィールドに胴体フラグをセット
-  226  01:C380  A9 0F         lda #$0f
-  227  01:C382  14 05         trb <.tmp_fldv
-  228  01:C384  B5 22         lda <zpldir,x
-  229  01:C386  4A            lsr a
-  230  01:C387  4A            lsr a
-  231  01:C388  4A            lsr a
-  232  01:C389  4A            lsr a
-  233  01:C38A  05 05         ora <.tmp_fldv
-  234  01:C38C  92 0C         sta [.tmp_fldadr_l]
+  226  01:C421  A9 0F         lda #$0f
+  227  01:C423  14 05         trb <.tmp_fldv
+  228  01:C425  B5 22         lda <zpldir,x
+  229  01:C427  4A            lsr a
+  230  01:C428  4A            lsr a
+  231  01:C429  4A            lsr a
+  232  01:C42A  4A            lsr a
+  233  01:C42B  05 05         ora <.tmp_fldv
+  234  01:C42D  92 0C         sta [.tmp_fldadr_l]
   235                                             ;描画
   236                                             ;TODO: 移動方向に合わせてタイルを変える
-  237  01:C38E  A9 B5         lda #LOW(BodyPartsTiles)
-  238  01:C390  85 0C         sta <zarg2
-  239  01:C392  A9 C3         lda #HIGH(BodyPartsTiles)
-  240  01:C394  85 0D         sta <zarg3
-  241  01:C396  A9 01         lda #1
-  242  01:C398  85 0E         sta <zarg4
-  243  01:C39A  20 01 C7      jsr vqPush
+  237  01:C42F  A9 56         lda #LOW(BodyPartsTiles)
+  238  01:C431  85 0C         sta <zarg2
+  239  01:C433  A9 C4         lda #HIGH(BodyPartsTiles)
+  240  01:C435  85 0D         sta <zarg3
+  241  01:C437  A9 01         lda #1
+  242  01:C439  85 0E         sta <zarg4
+  243  01:C43B  20 A2 C7      jsr vqPush
   244                     
-  245  01:C39D  18            clc                 ;指定方向に進行
-  246  01:C39E  60            rts
+  245  01:C43E  18            clc                 ;指定方向に進行
+  246  01:C43F  60            rts
   247                     
   248                                             ;死亡
   249                                             ;TODO: 死亡時の処理を実装
-  250  01:C39F            .dead:
-  251  01:C39F  A9 01         lda #1
-  252  01:C3A1  85 03         sta <.tmp_dead_flg  ;死んだ
-  253  01:C3A3  38            sec
-  254  01:C3A4  60            rts
+  250  01:C440            .dead:
+  251  01:C440  A9 01         lda #1
+  252  01:C442  85 03         sta <.tmp_dead_flg  ;死んだ
+  253  01:C444  38            sec
+  254  01:C445  60            rts
   255                     ;
   256                     ;       移動可能方向の数（インデックス値のセットされたビットの数）
   257                     ;
-  258  01:C3A5            .DirCountTbl:
-  259  01:C3A5  00 01 01      db      0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4
-       01:C3A8  02 01 02  
-       01:C3AB  02 03 01  
-       01:C3AE  02 02 03  
-       01:C3B1  02 03 03  
-       01:C3B4  04        
+  258  01:C446            .DirCountTbl:
+  259  01:C446  00 01 01      db      0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4
+       01:C449  02 01 02  
+       01:C44C  02 03 01  
+       01:C44F  02 02 03  
+       01:C452  02 03 03  
+       01:C455  04        
   260                     
   261                     
   262                     
   263           1000      PatternAddress  equ $1000
-  264  01:C3B5            BodyPartsTiles:
-  265  01:C3B5  3E 01         dw  (PatternAddress+62*16)/16
+  264  01:C456            BodyPartsTiles:
+  265  01:C456  3E 01         dw  (PatternAddress+62*16)/16
   266                     
-  267  01:C3B7            BlankPartsTiles:
-  268  01:C3B7  30 01         dw  (PatternAddress+48*16)/16
+  267  01:C458            BlankPartsTiles:
+  268  01:C458  30 01         dw  (PatternAddress+48*16)/16
   269                     
   270                     
   271                     ;
@@ -1334,53 +1323,53 @@
   275                     ;       @saveregs       x
   276                     ;       @return         その場で停止すべき時は cf=1
   277                     ;
-  278  01:C3B9            plTailAction:
+  278  01:C45A            plTailAction:
   279           200C      .tmp_fldadr_l   equ     zarg2       ;フィールドアドレス
   280           200D      .tmp_fldadr_h   equ     zarg3
   281                     
   282                                             ;尻尾を停止させる指示が出ている場合は何もしない
-  283  01:C3B9  A5 28         lda <zplTailStop
-  284  01:C3BB  D0 2C         bne .notmove
+  283  01:C45A  A5 28         lda <zplTailStop
+  284  01:C45C  D0 2C         bne .notmove
   285                     
   286                                             ;グリッドの中間にいる場合は何もしない
-  287  01:C3BD  B5 1E         lda <zplx,x
-  288  01:C3BF  15 20         ora <zply,x
-  289  01:C3C1  29 07         and #$07
-  290  01:C3C3  F0 02         beq .move
-  291  01:C3C5  18            clc
-  292  01:C3C6  60            rts
+  287  01:C45E  B5 1E         lda <zplx,x
+  288  01:C460  15 20         ora <zply,x
+  289  01:C462  29 07         and #$07
+  290  01:C464  F0 02         beq .move
+  291  01:C466  18            clc
+  292  01:C467  60            rts
   293                     
-  294  01:C3C7            .move:
-  295  01:C3C7  20 02 C3      jsr plGetBatFldAdr
+  294  01:C468            .move:
+  295  01:C468  20 A3 C3      jsr plGetBatFldAdr
   296                                             ;フィールド上の現在位置の値
   297                                             ;頭が移動した方向を尻尾の移動方向とする
-  298  01:C3CA  B2 0C         lda [.tmp_fldadr_l]
-  299  01:C3CC  48            pha
-  300  01:C3CD  0A            asl a
-  301  01:C3CE  0A            asl a
-  302  01:C3CF  0A            asl a
-  303  01:C3D0  0A            asl a
-  304  01:C3D1  95 22         sta <zpldir,x
+  298  01:C46B  B2 0C         lda [.tmp_fldadr_l]
+  299  01:C46D  48            pha
+  300  01:C46E  0A            asl a
+  301  01:C46F  0A            asl a
+  302  01:C470  0A            asl a
+  303  01:C471  0A            asl a
+  304  01:C472  95 22         sta <zpldir,x
   305                                             ;頭が移動した方向をクリア
-  306  01:C3D3  68            pla
-  307  01:C3D4  29 F0         and #$f0
-  308  01:C3D6  92 0C         sta [.tmp_fldadr_l]
+  306  01:C474  68            pla
+  307  01:C475  29 F0         and #$f0
+  308  01:C477  92 0C         sta [.tmp_fldadr_l]
   309                     
   310                                             ;描画
-  311  01:C3D8  A9 B7         lda #LOW(BlankPartsTiles)
-  312  01:C3DA  85 0C         sta <zarg2
-  313  01:C3DC  A9 C3         lda #HIGH(BlankPartsTiles)
-  314  01:C3DE  85 0D         sta <zarg3
-  315  01:C3E0  A9 01         lda #1
-  316  01:C3E2  85 0E         sta <zarg4
-  317  01:C3E4  20 01 C7      jsr vqPush
+  311  01:C479  A9 58         lda #LOW(BlankPartsTiles)
+  312  01:C47B  85 0C         sta <zarg2
+  313  01:C47D  A9 C4         lda #HIGH(BlankPartsTiles)
+  314  01:C47F  85 0D         sta <zarg3
+  315  01:C481  A9 01         lda #1
+  316  01:C483  85 0E         sta <zarg4
+  317  01:C485  20 A2 C7      jsr vqPush
   318                     
-  319  01:C3E7  18            clc
-  320  01:C3E8  60            rts
+  319  01:C488  18            clc
+  320  01:C489  60            rts
   321                     
-  322  01:C3E9            .notmove:
-  323  01:C3E9  38            sec
-  324  01:C3EA  60            rts
+  322  01:C48A            .notmove:
+  323  01:C48A  38            sec
+  324  01:C48B  60            rts
   325                     
   326                     
   327                     
@@ -1389,117 +1378,108 @@
   330                     ;       @args           x = キャラクタインデックス
   331                     ;       @saveregs       x,y
   332                     ;       @return         なし
-  333  01:C3EB            plMove:
-  334  01:C3EB  B5 22         lda     <zpldir,x         ;bits of zpldir = LDRU----
-  335  01:C3ED  0A            asl     a
-  336  01:C3EE  B0 11         bcs     .moveleft
-  337  01:C3F0  0A            asl     a
-  338  01:C3F1  B0 17         bcs     .movedown
-  339  01:C3F3  0A            asl     a
-  340  01:C3F4  B0 1D         bcs     .moveright
-  341  01:C3F6  10 22         bpl     .notmove
-  342  01:C3F8            .moveup:
-  343  01:C3F8  B5 20         lda     <zply,x
-  344  01:C3FA  38            sec
-  345  01:C3FB  F5 26         sbc     <zplspeed,x
-  346  01:C3FD  95 20         sta     <zply,x
-  347  01:C3FF  80 19         bra     .moved
-  348  01:C401            .moveleft:
-  349  01:C401  B5 1E         lda     <zplx,x
-  350  01:C403  38            sec
-  351  01:C404  F5 26         sbc     <zplspeed,x
-  352  01:C406  95 1E         sta     <zplx,x
-  353  01:C408  80 10         bra     .moved
-  354  01:C40A            .movedown:
-  355  01:C40A  B5 20         lda     <zply,x
-  356  01:C40C  18            clc
-  357  01:C40D  75 26         adc     <zplspeed,x
-  358  01:C40F  95 20         sta     <zply,x
-  359  01:C411  80 07         bra     .moved
-  360  01:C413            .moveright:
-  361  01:C413  B5 1E         lda     <zplx,x
-  362  01:C415  18            clc
-  363  01:C416  75 26         adc     <zplspeed,x
-  364  01:C418  95 1E         sta     <zplx,x
-  365  01:C41A            .notmove:
-  366  01:C41A            .moved:
+  333  01:C48C            plMove:
+  334  01:C48C  B5 22         lda     <zpldir,x         ;bits of zpldir = LDRU----
+  335  01:C48E  0A            asl     a
+  336  01:C48F  B0 11         bcs     .moveleft
+  337  01:C491  0A            asl     a
+  338  01:C492  B0 17         bcs     .movedown
+  339  01:C494  0A            asl     a
+  340  01:C495  B0 1D         bcs     .moveright
+  341  01:C497  10 22         bpl     .notmove
+  342  01:C499            .moveup:
+  343  01:C499  B5 20         lda     <zply,x
+  344  01:C49B  38            sec
+  345  01:C49C  F5 26         sbc     <zplspeed,x
+  346  01:C49E  95 20         sta     <zply,x
+  347  01:C4A0  80 19         bra     .moved
+  348  01:C4A2            .moveleft:
+  349  01:C4A2  B5 1E         lda     <zplx,x
+  350  01:C4A4  38            sec
+  351  01:C4A5  F5 26         sbc     <zplspeed,x
+  352  01:C4A7  95 1E         sta     <zplx,x
+  353  01:C4A9  80 10         bra     .moved
+  354  01:C4AB            .movedown:
+  355  01:C4AB  B5 20         lda     <zply,x
+  356  01:C4AD  18            clc
+  357  01:C4AE  75 26         adc     <zplspeed,x
+  358  01:C4B0  95 20         sta     <zply,x
+  359  01:C4B2  80 07         bra     .moved
+  360  01:C4B4            .moveright:
+  361  01:C4B4  B5 1E         lda     <zplx,x
+  362  01:C4B6  18            clc
+  363  01:C4B7  75 26         adc     <zplspeed,x
+  364  01:C4B9  95 1E         sta     <zplx,x
+  365  01:C4BB            .notmove:
+  366  01:C4BB            .moved:
   367                                             ;スプライト座標設定
-  368  01:C41A  8A            txa
-  369  01:C41B  0A            asl a
-  370  01:C41C  0A            asl a
-  371  01:C41D  0A            asl a
-  372  01:C41E  A8            tay
+  368  01:C4BB  8A            txa
+  369  01:C4BC  0A            asl a
+  370  01:C4BD  0A            asl a
+  371  01:C4BE  0A            asl a
+  372  01:C4BF  A8            tay
   373                     
-  374  01:C41F  B5 1E         lda     <zplx,x
-  375  01:C421  18            clc
-  376  01:C422  69 1C         adc     #$20-4
-  377  01:C424  99 02 22      sta     satb+2,y
-  378  01:C427  62            cla
-  379  01:C428  99 03 22      sta     satb+3,y
+  374  01:C4C0  B5 1E         lda     <zplx,x
+  375  01:C4C2  18            clc
+  376  01:C4C3  69 1C         adc     #$20-4
+  377  01:C4C5  99 02 22      sta     satb+2,y
+  378  01:C4C8  62            cla
+  379  01:C4C9  99 03 22      sta     satb+3,y
   380                     
-  381  01:C42B  B5 20         lda     <zply,x
-  382  01:C42D  18            clc
-  383  01:C42E  69 4C         adc     #$40-4+16   ;+16 はスクロールカウンタの差分
-  384  01:C430  99 00 22      sta     satb+0,y
-  385  01:C433  A9 00         lda     #0
-  386  01:C435  69 00         adc     #0
-  387  01:C437  99 01 22      sta     satb+1,y
+  381  01:C4CC  B5 20         lda     <zply,x
+  382  01:C4CE  18            clc
+  383  01:C4CF  69 4C         adc     #$40-4+16   ;+16 はスクロールカウンタの差分
+  384  01:C4D1  99 00 22      sta     satb+0,y
+  385  01:C4D4  A9 00         lda     #0
+  386  01:C4D6  69 00         adc     #0
+  387  01:C4D8  99 01 22      sta     satb+1,y
   388                     
-  389  01:C43A  60            rts
+  389  01:C4DB  60            rts
   390                     
   391                     
   392                     ;
   393                     ;   task test
   394                     ;
-  395  01:C43B            plTask:
+  395  01:C4DC            plTask:
   396           2003      .tmp_dead_flg   equ ztmp0
   397                     
   398                                         ;頭
-  399  01:C43B  82                clx
-  400  01:C43C  20 25 C3          jsr     plHeadAction
-  401  01:C43F  B0 0F             bcs     .skipmove
-  402  01:C441  20 EB C3          jsr     plMove
+  399  01:C4DC  82                clx
+  400  01:C4DD  20 C6 C3          jsr     plHeadAction
+  401  01:C4E0  B0 0F             bcs     .skipmove
+  402  01:C4E2  20 8C C4          jsr     plMove
   403                                         ;尻尾
-  404  01:C444  A2 01         ldx #1
-  405  01:C446  20 B9 C3      jsr plTailAction
-  406  01:C449  B0 0A         bcs .yield
-  407  01:C44B  20 EB C3      jsr plMove
-  408  01:C44E  80 05         bra .yield
+  404  01:C4E5  A2 01         ldx #1
+  405  01:C4E7  20 5A C4      jsr plTailAction
+  406  01:C4EA  B0 0A         bcs .yield
+  407  01:C4EC  20 8C C4      jsr plMove
+  408  01:C4EF  80 05         bra .yield
   409                     
-  410  01:C450            .skipmove:
-  411  01:C450  83 FF 03      tst #$ff,<.tmp_dead_flg
-  412  01:C453  D0 09         bne .dead
+  410  01:C4F1            .skipmove:
+  411  01:C4F1  83 FF 03      tst #$ff,<.tmp_dead_flg
+  412  01:C4F4  D0 09         bne .dead
   413                     
-  414  01:C455            .yield:
-  415  01:C455  A5 15         lda <zdotnum
-  416  01:C457  F0 12         beq .clear
+  414  01:C4F6            .yield:
+  415  01:C4F6  A5 15         lda <zdotnum
+  416  01:C4F8  F0 12         beq .clear
   417                     
-  418  01:C459  20 5D C2      jsr tkYield
-  419  01:C45C  80 DD         bra plTask
+  418  01:C4FA  20 FC C2      jsr tkYield
+  419  01:C4FD  80 DD         bra plTask
   420                     
-  421  01:C45E            .dead:
+  421  01:C4FF            .dead:
   422                                         ;TODO: 死亡時の処理
   423                                         ;タスクの処理の変更は、plTaskの中から呼び出さないとだめ（spが変わってしまって�
-  424  01:C45E  64 28         stz <zplTailStop
+  424  01:C4FF  64 28         stz <zplTailStop
   425                     
-  426  01:C460  A9 75         lda #LOW(plDeadTask-1)
-  427  01:C462  85 0A         sta <zarg0
-  428  01:C464  A9 C4         lda #HIGH(plDeadTask-1)
-  429  01:C466  85 0B         sta <zarg1
-  430  01:C468  20 89 C2      jsr tkLink
+  426  01:C501  A9 16         lda #LOW(plDeadTask-1)
+  427  01:C503  85 0A         sta <zarg0
+  428  01:C505  A9 C5         lda #HIGH(plDeadTask-1)
+  429  01:C507  85 0B         sta <zarg1
+  430  01:C509  20 2A C3      jsr tkLink
   431                     
-  432  01:C46B            .clear:
-  433                             tkChangeTask_   tklClearWave
-                          ;    .if tklClearWave=0
-                          ;    stz <ztkChgTask
-                          ;    stz <ztkChgTask+1
-                          ;    .else
-       01:C46B  A9 B4         lda #LOW(tklClearWave)
-       01:C46D  85 1C         sta <ztkChgTask
-       01:C46F  A9 C2         lda #HIGH(tklClearWave)
-       01:C471  85 1D         sta <ztkChgTask+1
-                          ;    .endif
-  434  01:C473  20 5D C2      jsr tkYield
+  432  01:C50C            .clear:
+  433  01:850C                    tkChangeTask_   tklClearWave
+  434  01:C514  20 FC C2      jsr tkYield
   435                     
   436                     
   437                     ;
@@ -1507,27 +1487,18 @@
   439                     ;
   440                     ;   TODO:
   441                     
-  442  01:C476            plDeadTask:
-  443  01:C476  A2 01         ldx #1
-  444  01:C478  20 B9 C3      jsr plTailAction
-  445  01:C47B  B5 22         lda <zpldir,x
-  446  01:C47D  F0 08         beq .over
-  447  01:C47F  20 EB C3      jsr plMove
-  448  01:C482  20 5D C2      jsr tkYield
-  449  01:C485  80 EF         bra plDeadTask
+  442  01:C517            plDeadTask:
+  443  01:C517  A2 01         ldx #1
+  444  01:C519  20 5A C4      jsr plTailAction
+  445  01:C51C  B5 22         lda <zpldir,x
+  446  01:C51E  F0 08         beq .over
+  447  01:C520  20 8C C4      jsr plMove
+  448  01:C523  20 FC C2      jsr tkYield
+  449  01:C526  80 EF         bra plDeadTask
   450                     
-  451  01:C487            .over:
-  452                             tkChangeTask_   tklInitWave
-                          ;    .if tklInitWave=0
-                          ;    stz <ztkChgTask
-                          ;    stz <ztkChgTask+1
-                          ;    .else
-       01:C487  A9 A6         lda #LOW(tklInitWave)
-       01:C489  85 1C         sta <ztkChgTask
-       01:C48B  A9 C2         lda #HIGH(tklInitWave)
-       01:C48D  85 1D         sta <ztkChgTask+1
-                          ;    .endif
-  453  01:C48F  20 5D C2      jsr tkYield
+  451  01:C528            .over:
+  452  01:8528                    tkChangeTask_   tklInitWave
+  453  01:C530  20 FC C2      jsr tkYield
   454                     ;    lda #LOW(tkDummyTask-1)
   455                     ;    sta <zarg0
   456                     ;    lda #HIGH(tkDummyTask-1)
@@ -1544,7 +1515,7 @@
    25                     
 #[2]   bgpattern.asm
    26                             .include "bgpattern.asm"
-    1           C492              .code
+    1           C533              .code
     2                     ;        .bank   MAIN_BANK+3
     3           0004          .bank   BGPATTERN_BANK
     4           4000              .org    $4000
@@ -3296,57 +3267,57 @@
     7                     ;   @args       zwave = wave番号
     8                     ;   @saveregs   なし
     9                     ;   @return     なし
-   10  01:C492            DrawWave:
+   10  01:C533            DrawWave:
    11           200A      .arg_wavemap_l  equ zarg0   ;waveマップデータアドレス
    12           200B      .arg_wavemap_h  equ zarg1
    13           2003      .tmp_mul_h  equ ztmp0
    14                     
    15                                                 ;zwave*81 の計算
-   16  01:C492  64 03         stz <.tmp_mul_h
-   17  01:C494  A5 16         lda <zwave
-   18  01:C496  0A            asl a
-   19  01:C497  26 03         rol <.tmp_mul_h
-   20  01:C499  0A            asl a
-   21  01:C49A  26 03         rol <.tmp_mul_h
-   22  01:C49C  0A            asl a
-   23  01:C49D  26 03         rol <.tmp_mul_h
-   24  01:C49F  0A            asl a
-   25  01:C4A0  26 03         rol <.tmp_mul_h
+   16  01:C533  64 03         stz <.tmp_mul_h
+   17  01:C535  A5 16         lda <zwave
+   18  01:C537  0A            asl a
+   19  01:C538  26 03         rol <.tmp_mul_h
+   20  01:C53A  0A            asl a
+   21  01:C53B  26 03         rol <.tmp_mul_h
+   22  01:C53D  0A            asl a
+   23  01:C53E  26 03         rol <.tmp_mul_h
+   24  01:C540  0A            asl a
+   25  01:C541  26 03         rol <.tmp_mul_h
    26                                                 ;zwave*16 を一旦保存
-   27  01:C4A2  85 0A         sta <.arg_wavemap_l
-   28  01:C4A4  A6 03         ldx <.tmp_mul_h
-   29  01:C4A6  86 0B         stx <.arg_wavemap_h
+   27  01:C543  85 0A         sta <.arg_wavemap_l
+   28  01:C545  A6 03         ldx <.tmp_mul_h
+   29  01:C547  86 0B         stx <.arg_wavemap_h
    30                     
-   31  01:C4A8  0A            asl a
-   32  01:C4A9  26 03         rol <.tmp_mul_h
-   33  01:C4AB  0A            asl a
-   34  01:C4AC  26 03         rol <.tmp_mul_h
+   31  01:C549  0A            asl a
+   32  01:C54A  26 03         rol <.tmp_mul_h
+   33  01:C54C  0A            asl a
+   34  01:C54D  26 03         rol <.tmp_mul_h
    35                                                 ;arg = zwave*16+zwave*64 = zwave*80
-   36  01:C4AE  18            clc
-   37  01:C4AF  65 0A         adc <.arg_wavemap_l
-   38  01:C4B1  85 0A         sta <.arg_wavemap_l
-   39  01:C4B3  A5 0B         lda <.arg_wavemap_h
-   40  01:C4B5  65 03         adc <.tmp_mul_h
-   41  01:C4B7  85 0B         sta <.arg_wavemap_h
+   36  01:C54F  18            clc
+   37  01:C550  65 0A         adc <.arg_wavemap_l
+   38  01:C552  85 0A         sta <.arg_wavemap_l
+   39  01:C554  A5 0B         lda <.arg_wavemap_h
+   40  01:C556  65 03         adc <.tmp_mul_h
+   41  01:C558  85 0B         sta <.arg_wavemap_h
    42                                                 ;arg = zwave*80 + zwave = zwave*81
-   43  01:C4B9  A5 0A         lda <.arg_wavemap_l
-   44  01:C4BB  18            clc
-   45  01:C4BC  65 16         adc <zwave
-   46  01:C4BE  85 0A         sta <.arg_wavemap_l
-   47  01:C4C0  A5 0B         lda <.arg_wavemap_h
-   48  01:C4C2  69 00         adc #0
-   49  01:C4C4  85 0B         sta <.arg_wavemap_h
+   43  01:C55A  A5 0A         lda <.arg_wavemap_l
+   44  01:C55C  18            clc
+   45  01:C55D  65 16         adc <zwave
+   46  01:C55F  85 0A         sta <.arg_wavemap_l
+   47  01:C561  A5 0B         lda <.arg_wavemap_h
+   48  01:C563  69 00         adc #0
+   49  01:C565  85 0B         sta <.arg_wavemap_h
    50                                                 ;arg = zwave*81 + WaveMap
-   51  01:C4C6  A5 0A         lda <.arg_wavemap_l
-   52  01:C4C8  18            clc
-   53  01:C4C9  69 00         adc #LOW(WaveMap)
-   54  01:C4CB  85 0A         sta <.arg_wavemap_l
-   55  01:C4CD  A5 0B         lda <.arg_wavemap_h
-   56  01:C4CF  69 80         adc #HIGH(WaveMap)
-   57  01:C4D1  85 0B         sta <.arg_wavemap_h
+   51  01:C567  A5 0A         lda <.arg_wavemap_l
+   52  01:C569  18            clc
+   53  01:C56A  69 00         adc #LOW(WaveMap)
+   54  01:C56C  85 0A         sta <.arg_wavemap_l
+   55  01:C56E  A5 0B         lda <.arg_wavemap_h
+   56  01:C570  69 80         adc #HIGH(WaveMap)
+   57  01:C572  85 0B         sta <.arg_wavemap_h
    58                     
-   59  01:C4D3  20 D7 C4      jsr DrawWaveByWaveMapAdr
-   60  01:C4D6  60            rts
+   59  01:C574  20 78 C5      jsr DrawWaveByWaveMapAdr
+   60  01:C577  60            rts
    61                     
    62                     ;
    63                     ;   Wave描画
@@ -3354,7 +3325,7 @@
    65                     ;   @args       zarg0,1 = Waveマップアドレス
    66                     ;   @saveregs   なし
    67                     ;   @return     なし
-   68  01:C4D7            DrawWaveByWaveMapAdr:
+   68  01:C578            DrawWaveByWaveMapAdr:
    69           200A      .arg_wavemap_l  equ zarg0   ;マップデータアドレス
    70           200B      .arg_wavemap_h  equ zarg1
    71                     
@@ -3363,75 +3334,75 @@
    74           200E      .tmp_vmap_ptr_l equ zarg4   ;仮想vramアドレス
    75           200F      .tmp_vmap_ptr_h equ zarg5
    76                     
-   77  01:C4D7  64 15         stz <zdotnum
+   77  01:C578  64 15         stz <zdotnum
    78                     
-   79  01:C4D9  64 0C         stz <.tmp_vram_l
-   80  01:C4DB  64 0D         stz <.tmp_vram_h
+   79  01:C57A  64 0C         stz <.tmp_vram_l
+   80  01:C57C  64 0D         stz <.tmp_vram_h
    81                     
-   82  01:C4DD  A9 04         lda #LOW(VMap)
-   83  01:C4DF  85 0E         sta <.tmp_vmap_ptr_l
-   84  01:C4E1  A9 24         lda #HIGH(VMap)
-   85  01:C4E3  85 0F         sta <.tmp_vmap_ptr_h
+   82  01:C57E  A9 04         lda #LOW(VMap)
+   83  01:C580  85 0E         sta <.tmp_vmap_ptr_l
+   84  01:C582  A9 24         lda #HIGH(VMap)
+   85  01:C584  85 0F         sta <.tmp_vmap_ptr_h
    86                     
-   87  01:C4E5  C2            cly                 ;y=マップデータのインデックス
-   88  01:C4E6            .loop_nextrow:
-   89  01:C4E6  A2 09         ldx #9              ;x=行カウンタ
-   90  01:C4E8            .loop_nextgrid:
+   87  01:C586  C2            cly                 ;y=マップデータのインデックス
+   88  01:C587            .loop_nextrow:
+   89  01:C587  A2 09         ldx #9              ;x=行カウンタ
+   90  01:C589            .loop_nextgrid:
    91                                             ;grid描画
-   92  01:C4E8  DA            phx
-   93  01:C4E9  5A            phy
-   94  01:C4EA  B1 0A         lda [.arg_wavemap_l],y
-   95  01:C4EC  20 32 C5      jsr DrawMapGrid
-   96  01:C4EF  7A            ply
-   97  01:C4F0  FA            plx
+   92  01:C589  DA            phx
+   93  01:C58A  5A            phy
+   94  01:C58B  B1 0A         lda [.arg_wavemap_l],y
+   95  01:C58D  20 D3 C5      jsr DrawMapGrid
+   96  01:C590  7A            ply
+   97  01:C591  FA            plx
    98                                             ;全grid済なら終了
-   99  01:C4F1  C8            iny
-  100  01:C4F2  C0 51         cpy #9*9
-  101  01:C4F4  F0 3B         beq .loop_end
+   99  01:C592  C8            iny
+  100  01:C593  C0 51         cpy #9*9
+  101  01:C595  F0 3B         beq .loop_end
   102                                             ;1行終了？
-  103  01:C4F6  CA            dex
-  104  01:C4F7  F0 1C         beq .nextrow
+  103  01:C597  CA            dex
+  104  01:C598  F0 1C         beq .nextrow
   105                                             ;同一行の右隣に移動
-  106  01:C4F9  A5 0C         lda <.tmp_vram_l
-  107  01:C4FB  18            clc
-  108  01:C4FC  69 03         adc #3
-  109  01:C4FE  85 0C         sta <.tmp_vram_l
-  110  01:C500  A5 0D         lda <.tmp_vram_h
-  111  01:C502  69 00         adc #0
-  112  01:C504  85 0D         sta <.tmp_vram_h
+  106  01:C59A  A5 0C         lda <.tmp_vram_l
+  107  01:C59C  18            clc
+  108  01:C59D  69 03         adc #3
+  109  01:C59F  85 0C         sta <.tmp_vram_l
+  110  01:C5A1  A5 0D         lda <.tmp_vram_h
+  111  01:C5A3  69 00         adc #0
+  112  01:C5A5  85 0D         sta <.tmp_vram_h
   113                     
-  114  01:C506  A5 0E         lda <.tmp_vmap_ptr_l
-  115  01:C508  18            clc
-  116  01:C509  69 03         adc #3
-  117  01:C50B  85 0E         sta <.tmp_vmap_ptr_l
-  118  01:C50D  A5 0F         lda <.tmp_vmap_ptr_h
-  119  01:C50F  69 00         adc #0
-  120  01:C511  85 0F         sta <.tmp_vmap_ptr_h
+  114  01:C5A7  A5 0E         lda <.tmp_vmap_ptr_l
+  115  01:C5A9  18            clc
+  116  01:C5AA  69 03         adc #3
+  117  01:C5AC  85 0E         sta <.tmp_vmap_ptr_l
+  118  01:C5AE  A5 0F         lda <.tmp_vmap_ptr_h
+  119  01:C5B0  69 00         adc #0
+  120  01:C5B2  85 0F         sta <.tmp_vmap_ptr_h
   121                     
-  122  01:C513  80 D3         bra .loop_nextgrid
+  122  01:C5B4  80 D3         bra .loop_nextgrid
   123                     
   124                                             ;次の行の左端に移動
-  125  01:C515            .nextrow:
-  126  01:C515  A5 0C         lda <.tmp_vram_l
-  127  01:C517  18            clc
-  128  01:C518  69 48         adc #3*32-3*8
-  129  01:C51A  85 0C         sta <.tmp_vram_l
-  130  01:C51C  A5 0D         lda <.tmp_vram_h
-  131  01:C51E  69 00         adc #0
-  132  01:C520  85 0D         sta <.tmp_vram_h
+  125  01:C5B6            .nextrow:
+  126  01:C5B6  A5 0C         lda <.tmp_vram_l
+  127  01:C5B8  18            clc
+  128  01:C5B9  69 48         adc #3*32-3*8
+  129  01:C5BB  85 0C         sta <.tmp_vram_l
+  130  01:C5BD  A5 0D         lda <.tmp_vram_h
+  131  01:C5BF  69 00         adc #0
+  132  01:C5C1  85 0D         sta <.tmp_vram_h
   133                     
-  134  01:C522  A5 0E         lda <.tmp_vmap_ptr_l
-  135  01:C524  18            clc
-  136  01:C525  69 48         adc #3*32-3*8
-  137  01:C527  85 0E         sta <.tmp_vmap_ptr_l
-  138  01:C529  A5 0F         lda <.tmp_vmap_ptr_h
-  139  01:C52B  69 00         adc #0
-  140  01:C52D  85 0F         sta <.tmp_vmap_ptr_h
+  134  01:C5C3  A5 0E         lda <.tmp_vmap_ptr_l
+  135  01:C5C5  18            clc
+  136  01:C5C6  69 48         adc #3*32-3*8
+  137  01:C5C8  85 0E         sta <.tmp_vmap_ptr_l
+  138  01:C5CA  A5 0F         lda <.tmp_vmap_ptr_h
+  139  01:C5CC  69 00         adc #0
+  140  01:C5CE  85 0F         sta <.tmp_vmap_ptr_h
   141                     
-  142  01:C52F  80 B5         bra .loop_nextrow
+  142  01:C5D0  80 B5         bra .loop_nextrow
   143                     
-  144  01:C531            .loop_end:
-  145  01:C531  60            rts
+  144  01:C5D2            .loop_end:
+  145  01:C5D2  60            rts
   146                     
   147                     
   148                     
@@ -3443,7 +3414,7 @@
   154                     ;               zarg4,5 = Virtual Map address
   155                     ;   @saveregs   なし
   156                     ;   @return     なし
-  157  01:C532            DrawMapGrid:
+  157  01:C5D3            DrawMapGrid:
   158           200C      .arg_vram_l     equ zarg2   ;vram(BAT)アドレス
   159           200D      .arg_vram_h     equ zarg3
   160           200E      .arg_vmap_ptr_l equ zarg4   ;仮想vramアドレス
@@ -3457,103 +3428,103 @@
   168           2007      .tmp_dotcombi   equ ztmp4
   169           2008      .tmp_vmap_value equ ztmp5
   170                     
-  171  01:C532  A8            tay
+  171  01:C5D3  A8            tay
   172                                             ;x=gridデータのインデックス
   173                                             ;grid番号x9
-  174  01:C533  29 0F         and #$0f
-  175  01:C535  85 03         sta <.tmp_x9
-  176  01:C537  0A            asl a
-  177  01:C538  0A            asl a
-  178  01:C539  0A            asl a
-  179  01:C53A  65 03         adc <.tmp_x9
-  180  01:C53C  AA            tax
+  174  01:C5D4  29 0F         and #$0f
+  175  01:C5D6  85 03         sta <.tmp_x9
+  176  01:C5D8  0A            asl a
+  177  01:C5D9  0A            asl a
+  178  01:C5DA  0A            asl a
+  179  01:C5DB  65 03         adc <.tmp_x9
+  180  01:C5DD  AA            tax
   181                                             ;ドット配置
-  182  01:C53D  98            tya
-  183  01:C53E  4A            lsr a
-  184  01:C53F  4A            lsr a
-  185  01:C540  4A            lsr a
-  186  01:C541  4A            lsr a
-  187  01:C542  A8            tay
-  188  01:C543  B9 EC C6      lda DotCombination,y
-  189  01:C546  85 07         sta <.tmp_dotcombi
+  182  01:C5DE  98            tya
+  183  01:C5DF  4A            lsr a
+  184  01:C5E0  4A            lsr a
+  185  01:C5E1  4A            lsr a
+  186  01:C5E2  4A            lsr a
+  187  01:C5E3  A8            tay
+  188  01:C5E4  B9 8D C7      lda DotCombination,y
+  189  01:C5E7  85 07         sta <.tmp_dotcombi
   190                     
   191                                             ;vram(BAT)アドレス初期値
-  192  01:C548  A5 0C         lda <.arg_vram_l
-  193  01:C54A  85 03         sta <.tmp_vram_l
-  194  01:C54C  A5 0D         lda <.arg_vram_h
-  195  01:C54E  85 04         sta <.tmp_vram_h
+  192  01:C5E9  A5 0C         lda <.arg_vram_l
+  193  01:C5EB  85 03         sta <.tmp_vram_l
+  194  01:C5ED  A5 0D         lda <.arg_vram_h
+  195  01:C5EF  85 04         sta <.tmp_vram_h
   196                     
-  197  01:C550  C2            cly                 ;y=仮想vramのインデックス
+  197  01:C5F1  C2            cly                 ;y=仮想vramのインデックス
   198                                             ;gridの行数
-  199  01:C551  A9 03         lda #3
-  200  01:C553  85 05         sta <.tmp_looprow
+  199  01:C5F2  A9 03         lda #3
+  200  01:C5F4  85 05         sta <.tmp_looprow
   201                     
-  202  01:C555            .loop_row:
+  202  01:C5F6            .loop_row:
   203                                             ;vram(BAT)アドレスセット
-  204  01:C555  03 00         st0 #0
-  205  01:C557  A5 03         lda <.tmp_vram_l
-  206  01:C559  8D 02 00      sta VdcDataL
-  207  01:C55C  A5 04         lda <.tmp_vram_h
-  208  01:C55E  8D 03 00      sta VdcDataH
-  209  01:C561  03 02         st0 #2
+  204  01:C5F6  03 00         st0 #0
+  205  01:C5F8  A5 03         lda <.tmp_vram_l
+  206  01:C5FA  8D 02 00      sta VdcDataL
+  207  01:C5FD  A5 04         lda <.tmp_vram_h
+  208  01:C5FF  8D 03 00      sta VdcDataH
+  209  01:C602  03 02         st0 #2
   210                                             ;gridの水平方向のキャラ数
-  211  01:C563  A9 03         lda #3
-  212  01:C565  85 06         sta <.tmp_loopchar
-  213  01:C567            .loop_char:
-  214  01:C567  BD 5C C6      lda VMapGrids,x
-  215  01:C56A  85 08         sta <.tmp_vmap_value
+  211  01:C604  A9 03         lda #3
+  212  01:C606  85 06         sta <.tmp_loopchar
+  213  01:C608            .loop_char:
+  214  01:C608  BD FD C6      lda VMapGrids,x
+  215  01:C60B  85 08         sta <.tmp_vmap_value
   216                     
-  217  01:C56C  BD CC C5      lda MapGrids,x
-  218  01:C56F  D0 0B         bne .setchar
+  217  01:C60D  BD 6D C6      lda MapGrids,x
+  218  01:C610  D0 0B         bne .setchar
   219                                                 ;空白かつドットが配置されているならドットのタイルをセット
-  220  01:C571  7F 07 08      bbr7    <.tmp_dotcombi,.setchar
+  220  01:C612  7F 07 08      bbr7    <.tmp_dotcombi,.setchar
   221                     
-  222  01:C574  E6 15         inc <zdotnum            ;ドット数を増加
+  222  01:C615  E6 15         inc <zdotnum            ;ドット数を増加
   223                     
-  224  01:C576  A9 0F         lda #$0f
-  225  01:C578  04 08         tsb <.tmp_vmap_value
-  226  01:C57A  A9 1A         lda #$0d*2                  ;TODO: ドットのタイル番号
+  224  01:C617  A9 0F         lda #$0f
+  225  01:C619  04 08         tsb <.tmp_vmap_value
+  226  01:C61B  A9 1A         lda #$0d*2                  ;TODO: ドットのタイル番号
   227                     
-  228  01:C57C            .setchar
+  228  01:C61D            .setchar
   229                                             ;タイルをvram(BAT)に書き込み
-  230  01:C57C  5A            phy
-  231  01:C57D  A8            tay
-  232  01:C57E  B9 B0 C5      lda MapPartsTiles,y
-  233  01:C581  8D 02 00      sta VdcDataL
-  234  01:C584  B9 B1 C5      lda MapPartsTiles+1,y
-  235  01:C587  8D 03 00      sta VdcDataH
-  236  01:C58A  7A            ply
+  230  01:C61D  5A            phy
+  231  01:C61E  A8            tay
+  232  01:C61F  B9 51 C6      lda MapPartsTiles,y
+  233  01:C622  8D 02 00      sta VdcDataL
+  234  01:C625  B9 52 C6      lda MapPartsTiles+1,y
+  235  01:C628  8D 03 00      sta VdcDataH
+  236  01:C62B  7A            ply
   237                                             ;仮想vramに書き込み
-  238  01:C58B  A5 08         lda <.tmp_vmap_value
-  239  01:C58D  91 0E         sta [.arg_vmap_ptr_l],y
+  238  01:C62C  A5 08         lda <.tmp_vmap_value
+  239  01:C62E  91 0E         sta [.arg_vmap_ptr_l],y
   240                     
-  241  01:C58F  06 07         asl <.tmp_dotcombi
-  242  01:C591  E8            inx
-  243  01:C592  C8            iny
+  241  01:C630  06 07         asl <.tmp_dotcombi
+  242  01:C632  E8            inx
+  243  01:C633  C8            iny
   244                     
-  245  01:C593  C6 06         dec <.tmp_loopchar
-  246  01:C595  D0 D0         bne .loop_char
+  245  01:C634  C6 06         dec <.tmp_loopchar
+  246  01:C636  D0 D0         bne .loop_char
   247                     
-  248  01:C597  C6 05         dec <.tmp_looprow
-  249  01:C599  F0 14         beq .end_loop
+  248  01:C638  C6 05         dec <.tmp_looprow
+  249  01:C63A  F0 14         beq .end_loop
   250                                             ;次の行にvramアドレスを移動
-  251  01:C59B  A5 03         lda <.tmp_vram_l
-  252  01:C59D  18            clc
-  253  01:C59E  69 20         adc #32
-  254  01:C5A0  85 03         sta <.tmp_vram_l
-  255  01:C5A2  A5 04         lda <.tmp_vram_h
-  256  01:C5A4  69 00         adc #0
-  257  01:C5A6  85 04         sta <.tmp_vram_h
+  251  01:C63C  A5 03         lda <.tmp_vram_l
+  252  01:C63E  18            clc
+  253  01:C63F  69 20         adc #32
+  254  01:C641  85 03         sta <.tmp_vram_l
+  255  01:C643  A5 04         lda <.tmp_vram_h
+  256  01:C645  69 00         adc #0
+  257  01:C647  85 04         sta <.tmp_vram_h
   258                                             ;次の行に仮想vramインデックスを移動
-  259  01:C5A8  98            tya
-  260  01:C5A9  18            clc
-  261  01:C5AA  69 1D         adc #32-3
-  262  01:C5AC  A8            tay
+  259  01:C649  98            tya
+  260  01:C64A  18            clc
+  261  01:C64B  69 1D         adc #32-3
+  262  01:C64D  A8            tay
   263                     
-  264  01:C5AD  80 A6         bra .loop_row
+  264  01:C64E  80 A6         bra .loop_row
   265                     
-  266  01:C5AF            .end_loop:
-  267  01:C5AF  60            rts
+  266  01:C650            .end_loop:
+  267  01:C650  60            rts
   268                     
   269                     
   270                     ;
@@ -3567,7 +3538,7 @@
 #[1]   nibbler.asm
 #[2]   mapdata.asm
    29                             .include "mapdata.asm"
-    1           C5B0          .code
+    1           C651          .code
     2           0001          .bank   MAIN_BANK
     3                     
     4                     
@@ -3576,21 +3547,21 @@
     7                     ;   gridを構成するタイルのキャラクター番号（BATの下12ビットの値）
     8                     ;
     9           1300      MapPartsPatternAddress  equ $1000+48*16
-   10  01:C5B0            MapPartsTiles:
-   11  01:C5B0  30 01         dw  (MapPartsPatternAddress+$00*16)/16  ;空白
-   12  01:C5B2  31 01         dw  (MapPartsPatternAddress+$01*16)/16  ;左上┌
-   13  01:C5B4  32 01         dw  (MapPartsPatternAddress+$02*16)/16  ;右上┐
-   14  01:C5B6  33 01         dw  (MapPartsPatternAddress+$03*16)/16  ;左下└
-   15  01:C5B8  34 01         dw  (MapPartsPatternAddress+$04*16)/16  ;右下┐
-   16  01:C5BA  35 01         dw  (MapPartsPatternAddress+$05*16)/16  ;左│
-   17  01:C5BC  36 01         dw  (MapPartsPatternAddress+$06*16)/16  ;右│
-   18  01:C5BE  37 01         dw  (MapPartsPatternAddress+$07*16)/16  ;上─
-   19  01:C5C0  38 01         dw  (MapPartsPatternAddress+$08*16)/16  ;下─
-   20  01:C5C2  39 01         dw  (MapPartsPatternAddress+$09*16)/16  ;左上・
-   21  01:C5C4  3A 01         dw  (MapPartsPatternAddress+$0a*16)/16  ;右上・
-   22  01:C5C6  3B 01         dw  (MapPartsPatternAddress+$0b*16)/16  ;左下・
-   23  01:C5C8  3C 01         dw  (MapPartsPatternAddress+$0c*16)/16  ;右下・
-   24  01:C5CA  3D 01         dw  (MapPartsPatternAddress+$0d*16)/16  ;ドット
+   10  01:C651            MapPartsTiles:
+   11  01:C651  30 01         dw  (MapPartsPatternAddress+$00*16)/16  ;空白
+   12  01:C653  31 01         dw  (MapPartsPatternAddress+$01*16)/16  ;左上┌
+   13  01:C655  32 01         dw  (MapPartsPatternAddress+$02*16)/16  ;右上┐
+   14  01:C657  33 01         dw  (MapPartsPatternAddress+$03*16)/16  ;左下└
+   15  01:C659  34 01         dw  (MapPartsPatternAddress+$04*16)/16  ;右下┐
+   16  01:C65B  35 01         dw  (MapPartsPatternAddress+$05*16)/16  ;左│
+   17  01:C65D  36 01         dw  (MapPartsPatternAddress+$06*16)/16  ;右│
+   18  01:C65F  37 01         dw  (MapPartsPatternAddress+$07*16)/16  ;上─
+   19  01:C661  38 01         dw  (MapPartsPatternAddress+$08*16)/16  ;下─
+   20  01:C663  39 01         dw  (MapPartsPatternAddress+$09*16)/16  ;左上・
+   21  01:C665  3A 01         dw  (MapPartsPatternAddress+$0a*16)/16  ;右上・
+   22  01:C667  3B 01         dw  (MapPartsPatternAddress+$0b*16)/16  ;左下・
+   23  01:C669  3C 01         dw  (MapPartsPatternAddress+$0c*16)/16  ;右下・
+   24  01:C66B  3D 01         dw  (MapPartsPatternAddress+$0d*16)/16  ;ドット
    25                     
    26                     ;
    27                     ;   マップのgridの中身
@@ -3601,119 +3572,71 @@
    32                         db  \1*2,\2*2,\3*2
    33                         .endm
    34                     
-   35  01:C5CC            MapGrids:
-   36  01:C5CC            MapGrid_00:
-   37                         MapGridData  $01,$07,$02
-       01:C5CC  02 0E 04      db  $01*2,$07*2,$02*2
-   38                         MapGridData  $05,$00,$06
-       01:C5CF  0A 00 0C      db  $05*2,$00*2,$06*2
-   39                         MapGridData  $03,$08,$04
-       01:C5D2  06 10 08      db  $03*2,$08*2,$04*2
-   40  01:C5D5            MapGrid_01:
-   41                         MapGridData  $05,$00,$06
-       01:C5D5  0A 00 0C      db  $05*2,$00*2,$06*2
-   42                         MapGridData  $05,$00,$06
-       01:C5D8  0A 00 0C      db  $05*2,$00*2,$06*2
-   43                         MapGridData  $03,$08,$04
-       01:C5DB  06 10 08      db  $03*2,$08*2,$04*2
-   44  01:C5DE            MapGrid_02:
-   45                         MapGridData  $01,$07,$07
-       01:C5DE  02 0E 0E      db  $01*2,$07*2,$07*2
-   46                         MapGridData  $05,$00,$00
-       01:C5E1  0A 00 00      db  $05*2,$00*2,$00*2
-   47                         MapGridData  $03,$08,$08
-       01:C5E4  06 10 10      db  $03*2,$08*2,$08*2
-   48  01:C5E7            MapGrid_03:
-   49                         MapGridData  $05,$00,$0a
-       01:C5E7  0A 00 14      db  $05*2,$00*2,$0a*2
-   50                         MapGridData  $05,$00,$00
-       01:C5EA  0A 00 00      db  $05*2,$00*2,$00*2
-   51                         MapGridData  $03,$08,$08
-       01:C5ED  06 10 10      db  $03*2,$08*2,$08*2
-   52  01:C5F0            MapGrid_04:
-   53                         MapGridData  $01,$07,$02
-       01:C5F0  02 0E 04      db  $01*2,$07*2,$02*2
-   54                         MapGridData  $05,$00,$06
-       01:C5F3  0A 00 0C      db  $05*2,$00*2,$06*2
-   55                         MapGridData  $05,$00,$06
-       01:C5F6  0A 00 0C      db  $05*2,$00*2,$06*2
-   56  01:C5F9            MapGrid_05:
-   57                         MapGridData  $05,$00,$06
-       01:C5F9  0A 00 0C      db  $05*2,$00*2,$06*2
-   58                         MapGridData  $05,$00,$06
-       01:C5FC  0A 00 0C      db  $05*2,$00*2,$06*2
-   59                         MapGridData  $05,$00,$06
-       01:C5FF  0A 00 0C      db  $05*2,$00*2,$06*2
-   60  01:C602            MapGrid_06:
-   61                         MapGridData  $01,$07,$07
-       01:C602  02 0E 0E      db  $01*2,$07*2,$07*2
-   62                         MapGridData  $05,$00,$00
-       01:C605  0A 00 00      db  $05*2,$00*2,$00*2
-   63                         MapGridData  $05,$00,$0c
-       01:C608  0A 00 18      db  $05*2,$00*2,$0c*2
-   64  01:C60B            MapGrid_07:
-   65                         MapGridData  $05,$00,$0a
-       01:C60B  0A 00 14      db  $05*2,$00*2,$0a*2
-   66                         MapGridData  $05,$00,$00
-       01:C60E  0A 00 00      db  $05*2,$00*2,$00*2
-   67                         MapGridData  $05,$00,$0c
-       01:C611  0A 00 18      db  $05*2,$00*2,$0c*2
-   68  01:C614            MapGrid_08:
-   69                         MapGridData  $07,$07,$02
-       01:C614  0E 0E 04      db  $07*2,$07*2,$02*2
-   70                         MapGridData  $00,$00,$06
-       01:C617  00 00 0C      db  $00*2,$00*2,$06*2
-   71                         MapGridData  $08,$08,$04
-       01:C61A  10 10 08      db  $08*2,$08*2,$04*2
-   72  01:C61D            MapGrid_09:
-   73                         MapGridData  $09,$00,$06
-       01:C61D  12 00 0C      db  $09*2,$00*2,$06*2
-   74                         MapGridData  $00,$00,$06
-       01:C620  00 00 0C      db  $00*2,$00*2,$06*2
-   75                         MapGridData  $08,$08,$04
-       01:C623  10 10 08      db  $08*2,$08*2,$04*2
-   76  01:C626            MapGrid_0a:
-   77                         MapGridData  $07,$07,$07
-       01:C626  0E 0E 0E      db  $07*2,$07*2,$07*2
-   78                         MapGridData  $00,$00,$00
-       01:C629  00 00 00      db  $00*2,$00*2,$00*2
-   79                         MapGridData  $08,$08,$08
-       01:C62C  10 10 10      db  $08*2,$08*2,$08*2
-   80  01:C62F            MapGrid_0b:
-   81                         MapGridData  $09,$00,$0a
-       01:C62F  12 00 14      db  $09*2,$00*2,$0a*2
-   82                         MapGridData  $00,$00,$00
-       01:C632  00 00 00      db  $00*2,$00*2,$00*2
-   83                         MapGridData  $08,$08,$08
-       01:C635  10 10 10      db  $08*2,$08*2,$08*2
-   84  01:C638            MapGrid_0c:
-   85                         MapGridData  $07,$07,$02
-       01:C638  0E 0E 04      db  $07*2,$07*2,$02*2
-   86                         MapGridData  $00,$00,$06
-       01:C63B  00 00 0C      db  $00*2,$00*2,$06*2
-   87                         MapGridData  $0b,$00,$06
-       01:C63E  16 00 0C      db  $0b*2,$00*2,$06*2
-   88  01:C641            MapGrid_0d:
-   89                         MapGridData  $09,$00,$06
-       01:C641  12 00 0C      db  $09*2,$00*2,$06*2
-   90                         MapGridData  $00,$00,$06
-       01:C644  00 00 0C      db  $00*2,$00*2,$06*2
-   91                         MapGridData  $0b,$00,$06
-       01:C647  16 00 0C      db  $0b*2,$00*2,$06*2
-   92  01:C64A            MapGrid_0e:
-   93                         MapGridData  $07,$07,$07
-       01:C64A  0E 0E 0E      db  $07*2,$07*2,$07*2
-   94                         MapGridData  $00,$00,$00
-       01:C64D  00 00 00      db  $00*2,$00*2,$00*2
-   95                         MapGridData  $0b,$00,$0c
-       01:C650  16 00 18      db  $0b*2,$00*2,$0c*2
-   96  01:C653            MapGrid_0f:
-   97                         MapGridData  $09,$00,$0a
-       01:C653  12 00 14      db  $09*2,$00*2,$0a*2
-   98                         MapGridData  $00,$00,$00
-       01:C656  00 00 00      db  $00*2,$00*2,$00*2
-   99                         MapGridData  $0b,$00,$0c
-       01:C659  16 00 18      db  $0b*2,$00*2,$0c*2
+   35  01:C66D            MapGrids:
+   36  01:C66D            MapGrid_00:
+   37  01:866D                MapGridData  $01,$07,$02
+   38  01:8670                MapGridData  $05,$00,$06
+   39  01:8673                MapGridData  $03,$08,$04
+   40  01:C676            MapGrid_01:
+   41  01:8676                MapGridData  $05,$00,$06
+   42  01:8679                MapGridData  $05,$00,$06
+   43  01:867C                MapGridData  $03,$08,$04
+   44  01:C67F            MapGrid_02:
+   45  01:867F                MapGridData  $01,$07,$07
+   46  01:8682                MapGridData  $05,$00,$00
+   47  01:8685                MapGridData  $03,$08,$08
+   48  01:C688            MapGrid_03:
+   49  01:8688                MapGridData  $05,$00,$0a
+   50  01:868B                MapGridData  $05,$00,$00
+   51  01:868E                MapGridData  $03,$08,$08
+   52  01:C691            MapGrid_04:
+   53  01:8691                MapGridData  $01,$07,$02
+   54  01:8694                MapGridData  $05,$00,$06
+   55  01:8697                MapGridData  $05,$00,$06
+   56  01:C69A            MapGrid_05:
+   57  01:869A                MapGridData  $05,$00,$06
+   58  01:869D                MapGridData  $05,$00,$06
+   59  01:86A0                MapGridData  $05,$00,$06
+   60  01:C6A3            MapGrid_06:
+   61  01:86A3                MapGridData  $01,$07,$07
+   62  01:86A6                MapGridData  $05,$00,$00
+   63  01:86A9                MapGridData  $05,$00,$0c
+   64  01:C6AC            MapGrid_07:
+   65  01:86AC                MapGridData  $05,$00,$0a
+   66  01:86AF                MapGridData  $05,$00,$00
+   67  01:86B2                MapGridData  $05,$00,$0c
+   68  01:C6B5            MapGrid_08:
+   69  01:86B5                MapGridData  $07,$07,$02
+   70  01:86B8                MapGridData  $00,$00,$06
+   71  01:86BB                MapGridData  $08,$08,$04
+   72  01:C6BE            MapGrid_09:
+   73  01:86BE                MapGridData  $09,$00,$06
+   74  01:86C1                MapGridData  $00,$00,$06
+   75  01:86C4                MapGridData  $08,$08,$04
+   76  01:C6C7            MapGrid_0a:
+   77  01:86C7                MapGridData  $07,$07,$07
+   78  01:86CA                MapGridData  $00,$00,$00
+   79  01:86CD                MapGridData  $08,$08,$08
+   80  01:C6D0            MapGrid_0b:
+   81  01:86D0                MapGridData  $09,$00,$0a
+   82  01:86D3                MapGridData  $00,$00,$00
+   83  01:86D6                MapGridData  $08,$08,$08
+   84  01:C6D9            MapGrid_0c:
+   85  01:86D9                MapGridData  $07,$07,$02
+   86  01:86DC                MapGridData  $00,$00,$06
+   87  01:86DF                MapGridData  $0b,$00,$06
+   88  01:C6E2            MapGrid_0d:
+   89  01:86E2                MapGridData  $09,$00,$06
+   90  01:86E5                MapGridData  $00,$00,$06
+   91  01:86E8                MapGridData  $0b,$00,$06
+   92  01:C6EB            MapGrid_0e:
+   93  01:86EB                MapGridData  $07,$07,$07
+   94  01:86EE                MapGridData  $00,$00,$00
+   95  01:86F1                MapGridData  $0b,$00,$0c
+   96  01:C6F4            MapGrid_0f:
+   97  01:86F4                MapGridData  $09,$00,$0a
+   98  01:86F7                MapGridData  $00,$00,$00
+   99  01:86FA                MapGridData  $0b,$00,$0c
   100                     
   101                     ;
   102                     ;   マップのgridの中身（仮想vram用）
@@ -3725,119 +3648,71 @@
   108                         db  \1*16,\2*16,\3*16
   109                         .endm
   110                     
-  111  01:C65C            VMapGrids:
-  112  01:C65C            VMapGrid_00:
-  113                         VMapGridData  %0000,%0000,%0000
-       01:C65C  00 00 00      db  %0000*16,%0000*16,%0000*16
-  114                         VMapGridData  %0000,%0000,%0000
-       01:C65F  00 00 00      db  %0000*16,%0000*16,%0000*16
-  115                         VMapGridData  %0000,%0000,%0000
-       01:C662  00 00 00      db  %0000*16,%0000*16,%0000*16
-  116  01:C665            VMapGrid_01:
-  117                         VMapGridData  %0000,%0101,%0000
-       01:C665  00 50 00      db  %0000*16,%0101*16,%0000*16
-  118                         VMapGridData  %0000,%0001,%0000
-       01:C668  00 10 00      db  %0000*16,%0001*16,%0000*16
-  119                         VMapGridData  %0000,%0000,%0000
-       01:C66B  00 00 00      db  %0000*16,%0000*16,%0000*16
-  120  01:C66E            VMapGrid_02:
-  121                         VMapGridData  %0000,%0000,%0000
-       01:C66E  00 00 00      db  %0000*16,%0000*16,%0000*16
-  122                         VMapGridData  %0000,%0010,%1010
-       01:C671  00 20 A0      db  %0000*16,%0010*16,%1010*16
-  123                         VMapGridData  %0000,%0000,%0000
-       01:C674  00 00 00      db  %0000*16,%0000*16,%0000*16
-  124  01:C677            VMapGrid_03:
-  125                         VMapGridData  %0000,%0101,%0000
-       01:C677  00 50 00      db  %0000*16,%0101*16,%0000*16
-  126                         VMapGridData  %0000,%0011,%1010
-       01:C67A  00 30 A0      db  %0000*16,%0011*16,%1010*16
-  127                         VMapGridData  %0000,%0000,%0000
-       01:C67D  00 00 00      db  %0000*16,%0000*16,%0000*16
-  128  01:C680            VMapGrid_04:
-  129                         VMapGridData  %0000,%0000,%0000
-       01:C680  00 00 00      db  %0000*16,%0000*16,%0000*16
-  130                         VMapGridData  %0000,%0100,%0000
-       01:C683  00 40 00      db  %0000*16,%0100*16,%0000*16
-  131                         VMapGridData  %0000,%0101,%0000
-       01:C686  00 50 00      db  %0000*16,%0101*16,%0000*16
-  132  01:C689            VMapGrid_05:
-  133                         VMapGridData  %0000,%0101,%0000
-       01:C689  00 50 00      db  %0000*16,%0101*16,%0000*16
-  134                         VMapGridData  %0000,%0101,%0000
-       01:C68C  00 50 00      db  %0000*16,%0101*16,%0000*16
-  135                         VMapGridData  %0000,%0101,%0000
-       01:C68F  00 50 00      db  %0000*16,%0101*16,%0000*16
-  136  01:C692            VMapGrid_06:
-  137                         VMapGridData  %0000,%0000,%0000
-       01:C692  00 00 00      db  %0000*16,%0000*16,%0000*16
-  138                         VMapGridData  %0000,%0110,%1010
-       01:C695  00 60 A0      db  %0000*16,%0110*16,%1010*16
-  139                         VMapGridData  %0000,%0101,%0000
-       01:C698  00 50 00      db  %0000*16,%0101*16,%0000*16
-  140  01:C69B            VMapGrid_07:
-  141                         VMapGridData  %0000,%0101,%0000
-       01:C69B  00 50 00      db  %0000*16,%0101*16,%0000*16
-  142                         VMapGridData  %0000,%0111,%1010
-       01:C69E  00 70 A0      db  %0000*16,%0111*16,%1010*16
-  143                         VMapGridData  %0000,%0101,%0000
-       01:C6A1  00 50 00      db  %0000*16,%0101*16,%0000*16
-  144  01:C6A4            VMapGrid_08:
-  145                         VMapGridData  %0000,%0000,%0000
-       01:C6A4  00 00 00      db  %0000*16,%0000*16,%0000*16
-  146                         VMapGridData  %1010,%1000,%0000
-       01:C6A7  A0 80 00      db  %1010*16,%1000*16,%0000*16
-  147                         VMapGridData  %0000,%0000,%0000
-       01:C6AA  00 00 00      db  %0000*16,%0000*16,%0000*16
-  148  01:C6AD            VMapGrid_09:
-  149                         VMapGridData  %0000,%0101,%0000
-       01:C6AD  00 50 00      db  %0000*16,%0101*16,%0000*16
-  150                         VMapGridData  %1010,%1001,%0000
-       01:C6B0  A0 90 00      db  %1010*16,%1001*16,%0000*16
-  151                         VMapGridData  %0000,%0000,%0000
-       01:C6B3  00 00 00      db  %0000*16,%0000*16,%0000*16
-  152  01:C6B6            VMapGrid_0a:
-  153                         VMapGridData  %0000,%0000,%0000
-       01:C6B6  00 00 00      db  %0000*16,%0000*16,%0000*16
-  154                         VMapGridData  %1010,%1010,%1010
-       01:C6B9  A0 A0 A0      db  %1010*16,%1010*16,%1010*16
-  155                         VMapGridData  %0000,%0000,%0000
-       01:C6BC  00 00 00      db  %0000*16,%0000*16,%0000*16
-  156  01:C6BF            VMapGrid_0b:
-  157                         VMapGridData  %0000,%0101,%0000
-       01:C6BF  00 50 00      db  %0000*16,%0101*16,%0000*16
-  158                         VMapGridData  %1010,%1011,%1010
-       01:C6C2  A0 B0 A0      db  %1010*16,%1011*16,%1010*16
-  159                         VMapGridData  %0000,%0000,%0000
-       01:C6C5  00 00 00      db  %0000*16,%0000*16,%0000*16
-  160  01:C6C8            VMapGrid_0c:
-  161                         VMapGridData  %0000,%0000,%0000
-       01:C6C8  00 00 00      db  %0000*16,%0000*16,%0000*16
-  162                         VMapGridData  %1010,%1100,%0000
-       01:C6CB  A0 C0 00      db  %1010*16,%1100*16,%0000*16
-  163                         VMapGridData  %0000,%0101,%0000
-       01:C6CE  00 50 00      db  %0000*16,%0101*16,%0000*16
-  164  01:C6D1            VMapGrid_0d:
-  165                         VMapGridData  %0000,%0101,%0000
-       01:C6D1  00 50 00      db  %0000*16,%0101*16,%0000*16
-  166                         VMapGridData  %1010,%1101,%0000
-       01:C6D4  A0 D0 00      db  %1010*16,%1101*16,%0000*16
-  167                         VMapGridData  %0000,%0101,%0000
-       01:C6D7  00 50 00      db  %0000*16,%0101*16,%0000*16
-  168  01:C6DA            VMapGrid_0e:
-  169                         VMapGridData  %0000,%0000,%0000
-       01:C6DA  00 00 00      db  %0000*16,%0000*16,%0000*16
-  170                         VMapGridData  %1010,%1110,%1010
-       01:C6DD  A0 E0 A0      db  %1010*16,%1110*16,%1010*16
-  171                         VMapGridData  %0000,%0101,%0000
-       01:C6E0  00 50 00      db  %0000*16,%0101*16,%0000*16
-  172  01:C6E3            VMapGrid_0f:
-  173                         VMapGridData  %0000,%0101,%0000
-       01:C6E3  00 50 00      db  %0000*16,%0101*16,%0000*16
-  174                         VMapGridData  %1010,%1111,%1010
-       01:C6E6  A0 F0 A0      db  %1010*16,%1111*16,%1010*16
-  175                         VMapGridData  %0000,%0101,%0000
-       01:C6E9  00 50 00      db  %0000*16,%0101*16,%0000*16
+  111  01:C6FD            VMapGrids:
+  112  01:C6FD            VMapGrid_00:
+  113  01:86FD                VMapGridData  %0000,%0000,%0000
+  114  01:8700                VMapGridData  %0000,%0000,%0000
+  115  01:8703                VMapGridData  %0000,%0000,%0000
+  116  01:C706            VMapGrid_01:
+  117  01:8706                VMapGridData  %0000,%0101,%0000
+  118  01:8709                VMapGridData  %0000,%0001,%0000
+  119  01:870C                VMapGridData  %0000,%0000,%0000
+  120  01:C70F            VMapGrid_02:
+  121  01:870F                VMapGridData  %0000,%0000,%0000
+  122  01:8712                VMapGridData  %0000,%0010,%1010
+  123  01:8715                VMapGridData  %0000,%0000,%0000
+  124  01:C718            VMapGrid_03:
+  125  01:8718                VMapGridData  %0000,%0101,%0000
+  126  01:871B                VMapGridData  %0000,%0011,%1010
+  127  01:871E                VMapGridData  %0000,%0000,%0000
+  128  01:C721            VMapGrid_04:
+  129  01:8721                VMapGridData  %0000,%0000,%0000
+  130  01:8724                VMapGridData  %0000,%0100,%0000
+  131  01:8727                VMapGridData  %0000,%0101,%0000
+  132  01:C72A            VMapGrid_05:
+  133  01:872A                VMapGridData  %0000,%0101,%0000
+  134  01:872D                VMapGridData  %0000,%0101,%0000
+  135  01:8730                VMapGridData  %0000,%0101,%0000
+  136  01:C733            VMapGrid_06:
+  137  01:8733                VMapGridData  %0000,%0000,%0000
+  138  01:8736                VMapGridData  %0000,%0110,%1010
+  139  01:8739                VMapGridData  %0000,%0101,%0000
+  140  01:C73C            VMapGrid_07:
+  141  01:873C                VMapGridData  %0000,%0101,%0000
+  142  01:873F                VMapGridData  %0000,%0111,%1010
+  143  01:8742                VMapGridData  %0000,%0101,%0000
+  144  01:C745            VMapGrid_08:
+  145  01:8745                VMapGridData  %0000,%0000,%0000
+  146  01:8748                VMapGridData  %1010,%1000,%0000
+  147  01:874B                VMapGridData  %0000,%0000,%0000
+  148  01:C74E            VMapGrid_09:
+  149  01:874E                VMapGridData  %0000,%0101,%0000
+  150  01:8751                VMapGridData  %1010,%1001,%0000
+  151  01:8754                VMapGridData  %0000,%0000,%0000
+  152  01:C757            VMapGrid_0a:
+  153  01:8757                VMapGridData  %0000,%0000,%0000
+  154  01:875A                VMapGridData  %1010,%1010,%1010
+  155  01:875D                VMapGridData  %0000,%0000,%0000
+  156  01:C760            VMapGrid_0b:
+  157  01:8760                VMapGridData  %0000,%0101,%0000
+  158  01:8763                VMapGridData  %1010,%1011,%1010
+  159  01:8766                VMapGridData  %0000,%0000,%0000
+  160  01:C769            VMapGrid_0c:
+  161  01:8769                VMapGridData  %0000,%0000,%0000
+  162  01:876C                VMapGridData  %1010,%1100,%0000
+  163  01:876F                VMapGridData  %0000,%0101,%0000
+  164  01:C772            VMapGrid_0d:
+  165  01:8772                VMapGridData  %0000,%0101,%0000
+  166  01:8775                VMapGridData  %1010,%1101,%0000
+  167  01:8778                VMapGridData  %0000,%0101,%0000
+  168  01:C77B            VMapGrid_0e:
+  169  01:877B                VMapGridData  %0000,%0000,%0000
+  170  01:877E                VMapGridData  %1010,%1110,%1010
+  171  01:8781                VMapGridData  %0000,%0101,%0000
+  172  01:C784            VMapGrid_0f:
+  173  01:8784                VMapGridData  %0000,%0101,%0000
+  174  01:8787                VMapGridData  %1010,%1111,%1010
+  175  01:878A                VMapGridData  %0000,%0101,%0000
   176                     
   177                     
   178                     ;
@@ -3846,15 +3721,15 @@
   181                     ;   右下に対応するビットがないが、右下にドットが置かれることはないので有無を表すビットを�
   182                     ;   左上、右上、左下もドットが置かれることはないが、マップ描画処理の都合上、対応するビッ�
   183                     ;
-  184  01:C6EC            DotCombination:
-  185  01:C6EC  00            db  %00000000   ;0
-  186  01:C6ED  08            db  %00001000   ;1　中央
-  187  01:C6EE  40            db  %01000000   ;2　上
-  188  01:C6EF  01            db  %00000001   ;3　下
-  189  01:C6F0  10            db  %00010000   ;4　左
-  190  01:C6F1  04            db  %00000100   ;5　右
-  191  01:C6F2  41            db  %01000001   ;6　上下
-  192  01:C6F3  14            db  %00010100   ;7　左右
+  184  01:C78D            DotCombination:
+  185  01:C78D  00            db  %00000000   ;0
+  186  01:C78E  08            db  %00001000   ;1　中央
+  187  01:C78F  40            db  %01000000   ;2　上
+  188  01:C790  01            db  %00000001   ;3　下
+  189  01:C791  10            db  %00010000   ;4　左
+  190  01:C792  04            db  %00000100   ;5　右
+  191  01:C793  41            db  %01000001   ;6　上下
+  192  01:C794  14            db  %00010100   ;7　左右
   193                     
   194                     
   195                     ;
@@ -3865,7 +3740,7 @@
   200                     ;   ドット配置は DotCombination のインデックス
   201                     ;   壁配置は MapGrids のインデックス
   202                     ;
-  203           C6F4          .code
+  203           C795          .code
   204           0006          .bank   WAVEMAP_BANK
   205           8000          org $8000   
   206                     
@@ -3956,14 +3831,14 @@
    25                     ;   @args       なし
    26                     ;   @saveregs   なし
    27                     ;   @return     なし
-   28  01:C6F4            vqInit:
+   28  01:C795            vqInit:
    29                                             ;キューをクリア
-   30  01:C6F4  9C 64 27      stz vqArea
-   31  01:C6F7  73 64 27      tii vqArea,vqArea+1,vqArea_size-1
-       01:C6FA  65 27 4F  
-       01:C6FD  00        
-   32  01:C6FE  64 29         stz <zvqIndex
-   33  01:C700  60            rts
+   30  01:C795  9C 64 27      stz vqArea
+   31  01:C798  73 64 27      tii vqArea,vqArea+1,vqArea_size-1
+       01:C79B  65 27 4F  
+       01:C79E  00        
+   32  01:C79F  64 29         stz <zvqIndex
+   33  01:C7A1  60            rts
    34                     
    35                     ;   キューにデータを追加
    36                     ;   @args       zarg0,1 = vramアドレス
@@ -3971,183 +3846,185 @@
    38                     ;               zarg4   = 長さ
    39                     ;   @saveregs   x
    40                     ;   @return     なし
-   41  01:C701            vqPush:
+   41  01:C7A2            vqPush:
    42           200A      .tmp_vramadr_l  equ zarg0
    43           200B      .tmp_vramadr_h  equ zarg1
    44           200C      .tmp_src_l      equ zarg2
    45           200D      .tmp_src_h      equ zarg3
    46           200E      .tmp_len        equ zarg4
-   47  01:C701  A4 29         ldy <zvqIndex
+   47  01:C7A2  A4 29         ldy <zvqIndex
    48                     
-   49  01:C703  AD 0A 20      lda .tmp_vramadr_l
-   50  01:C706  99 64 27      sta vqDstL,y
-   51  01:C709  AD 0B 20      lda .tmp_vramadr_h
-   52  01:C70C  99 74 27      sta vqDstH,y
+   49  01:C7A4  AD 0A 20      lda .tmp_vramadr_l
+   50  01:C7A7  99 64 27      sta vqDstL,y
+   51  01:C7AA  AD 0B 20      lda .tmp_vramadr_h
+   52  01:C7AD  99 74 27      sta vqDstH,y
    53                     
-   54  01:C70F  AD 0C 20      lda .tmp_src_l
-   55  01:C712  99 84 27      sta vqSrcL,y
-   56  01:C715  AD 0D 20      lda .tmp_src_h
-   57  01:C718  99 94 27      sta vqSrcH,y
+   54  01:C7B0  AD 0C 20      lda .tmp_src_l
+   55  01:C7B3  99 84 27      sta vqSrcL,y
+   56  01:C7B6  AD 0D 20      lda .tmp_src_h
+   57  01:C7B9  99 94 27      sta vqSrcH,y
    58                     
-   59  01:C71B  AD 0E 20      lda .tmp_len
-   60  01:C71E  99 A4 27      sta vqWLen,y
+   59  01:C7BC  AD 0E 20      lda .tmp_len
+   60  01:C7BF  99 A4 27      sta vqWLen,y
    61                     
-   62  01:C721  C8            iny
-   63  01:C722  84 29         sty <zvqIndex
+   62  01:C7C2  C8            iny
+   63  01:C7C3  84 29         sty <zvqIndex
    64                     
-   65  01:C724  60            rts
+   65  01:C7C5  60            rts
    66                     
    67                     ;   キューの内容を描画
    68                     ;   VRAMを更新するのでvblank中に呼び出すこと
    69                     ;   @args       なし
    70                     ;   @saveregs   なし
    71                     ;   @return     なし
-   72  01:C725            vqDraw:
+   72  01:C7C6            vqDraw:
    73           2003      .tmp_src_l  equ ztmp0
    74           2004      .tmp_src_h  equ ztmp1
    75                     
-   76  01:C725  A6 29         ldx <zvqIndex
-   77  01:C727  D0 01         bne .loop_queue
-   78  01:C729  60            rts
+   76  01:C7C6  A6 29         ldx <zvqIndex
+   77  01:C7C8  D0 01         bne .loop_queue
+   78  01:C7CA  60            rts
    79                     
-   80  01:C72A            .loop_queue:
-   81  01:C72A  CA            dex
+   80  01:C7CB            .loop_queue:
+   81  01:C7CB  CA            dex
    82                     
-   83  01:C72B  03 00         st0 #0
-   84  01:C72D  BD 64 27      lda vqDstL,x
-   85  01:C730  8D 02 00      sta VdcDataL
-   86  01:C733  BD 74 27      lda vqDstH,x
-   87  01:C736  8D 03 00      sta VdcDataH
+   83  01:C7CC  03 00         st0 #0
+   84  01:C7CE  BD 64 27      lda vqDstL,x
+   85  01:C7D1  8D 02 00      sta VdcDataL
+   86  01:C7D4  BD 74 27      lda vqDstH,x
+   87  01:C7D7  8D 03 00      sta VdcDataH
    88                     
-   89  01:C739  BD 84 27      lda vqSrcL,x
-   90  01:C73C  85 03         sta <.tmp_src_l
-   91  01:C73E  BD 94 27      lda vqSrcH,x
-   92  01:C741  85 04         sta <.tmp_src_h
+   89  01:C7DA  BD 84 27      lda vqSrcL,x
+   90  01:C7DD  85 03         sta <.tmp_src_l
+   91  01:C7DF  BD 94 27      lda vqSrcH,x
+   92  01:C7E2  85 04         sta <.tmp_src_h
    93                     
-   94  01:C743  03 02         st0 #2
-   95  01:C745  C2            cly
+   94  01:C7E4  03 02         st0 #2
+   95  01:C7E6  C2            cly
    96                     
-   97  01:C746            .loop_copy:
-   98  01:C746  B1 03         lda [.tmp_src_l],y
-   99  01:C748  8D 02 00      sta VdcDataL
-  100  01:C74B  C8            iny
-  101  01:C74C  B1 03         lda [.tmp_src_l],y
-  102  01:C74E  8D 03 00      sta VdcDataH
-  103  01:C751  C8            iny
+   97  01:C7E7            .loop_copy:
+   98  01:C7E7  B1 03         lda [.tmp_src_l],y
+   99  01:C7E9  8D 02 00      sta VdcDataL
+  100  01:C7EC  C8            iny
+  101  01:C7ED  B1 03         lda [.tmp_src_l],y
+  102  01:C7EF  8D 03 00      sta VdcDataH
+  103  01:C7F2  C8            iny
   104                     
-  105  01:C752  DE A4 27      dec vqWLen,x
-  106  01:C755  D0 EF         bne .loop_copy
+  105  01:C7F3  DE A4 27      dec vqWLen,x
+  106  01:C7F6  D0 EF         bne .loop_copy
   107                     
-  108  01:C757  E0 00         cpx #0
-  109  01:C759  D0 CF         bne .loop_queue
+  108  01:C7F8  E0 00         cpx #0
+  109  01:C7FA  D0 CF         bne .loop_queue
   110                     
-  111  01:C75B  64 29         stz <zvqIndex
-  112  01:C75D  60            rts
+  111  01:C7FC  64 29         stz <zvqIndex
+  112  01:C7FE  60            rts
 #[1]   nibbler.asm
 #[2]   digits.asm
    31                         .include "digits.asm"
-    1           C75E          .code
+    1           C7FF          .code
     2           0001          .bank   MAIN_BANK
     3                     
     4                     ;
-    5                     ;   数値描画
-    6                     ;
-    7                     ;   @args       zarg0,1 = BAT address
-    8                     ;               zarg2,3 = 数値データアドレス
-    9                     ;               zarg4   = 数値データの長さ（バイト）
-   10                     ;   @saveregs   なし
-   11                     ;   @return     なし
-   12  01:C75E            drawDigits:
-   13           200A      .arg_batadr_l   equ zarg0
-   14           200B      .arg_batadr_h   equ zarg1
-   15           200C      .arg_adr_l  equ zarg2
-   16           200D      .arg_adr_h  equ zarg3
-   17           200E      .arg_len    equ zarg4
-   18                                             ;BCDを1バイト1桁の文字列に変換
-   19  01:C75E  A4 0E         ldy <.arg_len
-   20  01:C760  88            dey                 ;Y = 数値データのインデックス
-   21  01:C761  82            clx                 ;X = 描画データバッファのインデックス
-   22                     
-   23                                             ;上位の桁が0の場合は0ではなく空白を描画
-   24  01:C762            .blankloop:
-   25                                             ;BCDの上位桁
-   26  01:C762  B1 0C         lda [.arg_adr_l],y
-   27  01:C764  4A            lsr a
-   28  01:C765  4A            lsr a
-   29  01:C766  4A            lsr a
-   30  01:C767  4A            lsr a
-   31  01:C768  D0 1F         bne .drawh
-   32  01:C76A  A9 30         lda #48             ;TODO: 空白が48
-   33  01:C76C  9D B4 27      sta dgBuffer,x
-   34  01:C76F  E8            inx
-   35                                             ;BCDの下位桁
-   36  01:C770  B1 0C         lda [.arg_adr_l],y
-   37  01:C772  29 0F         and #$0f
-   38  01:C774  D0 1B         bne .drawl
-   39  01:C776  A9 30         lda #48             ;TODO: 空白が48
-   40  01:C778  9D B4 27      sta dgBuffer,x
-   41  01:C77B  E8            inx
-   42                     
-   43  01:C77C  C0 00         cpy #0
-   44  01:C77E  F0 1C         beq .convert
-   45  01:C780  88            dey
-   46  01:C781  80 DF         bra .blankloop
-   47                     
-   48                                             ;数値の描画
-   49  01:C783            .drawloop:
-   50                                             ;BCDの上位桁
-   51  01:C783  B1 0C         lda [.arg_adr_l],y
-   52  01:C785  4A            lsr a
-   53  01:C786  4A            lsr a
-   54  01:C787  4A            lsr a
-   55  01:C788  4A            lsr a
-   56  01:C789            .drawh:
-   57  01:C789  9D B4 27      sta dgBuffer,x
-   58  01:C78C  E8            inx
-   59                                             ;BCDの下位桁
-   60  01:C78D  B1 0C         lda [.arg_adr_l],y
-   61  01:C78F  29 0F         and #$0f
-   62  01:C791            .drawl:
-   63  01:C791  9D B4 27      sta dgBuffer,x
-   64  01:C794  E8            inx
-   65  01:C795  C0 00         cpy #0
-   66  01:C797  F0 03         beq .convert
-   67  01:C799  88            dey
-   68  01:C79A  80 E7         bra .drawloop
-   69                     
-   70                                             ;文字列をBATデータに変換
-   71  01:C79C            .convert:
-   72  01:C79C  A5 0E         lda <.arg_len
-   73  01:C79E  0A            asl a
-   74  01:C79F  AA            tax
-   75  01:C7A0  0A            asl a
-   76  01:C7A1  A8            tay
-   77  01:C7A2            .convloop:
-   78  01:C7A2  88            dey
-   79  01:C7A3  88            dey
-   80  01:C7A4  CA            dex
-   81                                             ;TODO: 数字のVRAMアドレスが $1000〜 であること
-   82  01:C7A5  BD B4 27      lda dgBuffer,x
-   83  01:C7A8  99 B4 27      sta dgBuffer,y
-   84  01:C7AB  A9 01         lda #1
-   85  01:C7AD  99 B5 27      sta dgBuffer+1,y
-   86                     
-   87  01:C7B0  E0 00         cpx #0
-   88  01:C7B2  D0 EE         bne .convloop
-   89                     
-   90  01:C7B4  A9 B4         lda #LOW(dgBuffer)
-   91  01:C7B6  85 0C         sta <zarg2
-   92  01:C7B8  A9 27         lda #HIGH(dgBuffer)
-   93  01:C7BA  85 0D         sta <zarg3
-   94  01:C7BC  06 0E         asl <.arg_len
-   95  01:C7BE  20 01 C7      jsr vqPush
-   96                     
-   97  01:C7C1  60            rts
-   98                     
-   99           27B4          .bss
-  100  --:27B4            dgBuffer    ds  16
-  101                     
-  102           C7C2          .code
+    5                     ;   BCD数値描画
+    6                     ;   上位桁の0は空白で表示
+    7                     ;
+    8                     ;   @args       zarg0,1 = BAT address
+    9                     ;               zarg2,3 = 数値データアドレス
+   10                     ;               zarg4   = 数値データの長さ（バイト）
+   11                     ;   @saveregs   なし
+   12                     ;   @return     なし
+   13  01:C7FF            drawDigits:
+   14           200A      .arg_batadr_l   equ zarg0
+   15           200B      .arg_batadr_h   equ zarg1
+   16           200C      .arg_adr_l  equ zarg2
+   17           200D      .arg_adr_h  equ zarg3
+   18           200E      .arg_len    equ zarg4
+   19                                             ;BCDを1バイト1桁の文字列に変換
+   20  01:C7FF  A4 0E         ldy <.arg_len
+   21  01:C801  88            dey                 ;Y = 数値データのインデックス
+   22  01:C802  82            clx                 ;X = 描画データバッファのインデックス
+   23                     
+   24                                             ;上位の桁が0の場合は0ではなく空白を描画
+   25  01:C803            .blankloop:
+   26                                             ;BCDの上位桁
+   27  01:C803  B1 0C         lda [.arg_adr_l],y
+   28  01:C805  4A            lsr a
+   29  01:C806  4A            lsr a
+   30  01:C807  4A            lsr a
+   31  01:C808  4A            lsr a
+   32  01:C809  D0 1F         bne .drawh
+   33  01:C80B  A9 30         lda #48             ;TODO: 空白が48
+   34  01:C80D  9D B4 27      sta dgBuffer,x
+   35  01:C810  E8            inx
+   36                                             ;BCDの下位桁
+   37  01:C811  B1 0C         lda [.arg_adr_l],y
+   38  01:C813  29 0F         and #$0f
+   39  01:C815  D0 1B         bne .drawl
+   40  01:C817  A9 30         lda #48             ;TODO: 空白が48
+   41  01:C819  9D B4 27      sta dgBuffer,x
+   42  01:C81C  E8            inx
+   43                     
+   44  01:C81D  C0 00         cpy #0
+   45  01:C81F  F0 1C         beq .convert
+   46  01:C821  88            dey
+   47  01:C822  80 DF         bra .blankloop
+   48                     
+   49                                             ;数値の描画
+   50  01:C824            .drawloop:
+   51                                             ;BCDの上位桁
+   52  01:C824  B1 0C         lda [.arg_adr_l],y
+   53  01:C826  4A            lsr a
+   54  01:C827  4A            lsr a
+   55  01:C828  4A            lsr a
+   56  01:C829  4A            lsr a
+   57  01:C82A            .drawh:
+   58  01:C82A  9D B4 27      sta dgBuffer,x
+   59  01:C82D  E8            inx
+   60                                             ;BCDの下位桁
+   61  01:C82E  B1 0C         lda [.arg_adr_l],y
+   62  01:C830  29 0F         and #$0f
+   63  01:C832            .drawl:
+   64  01:C832  9D B4 27      sta dgBuffer,x
+   65  01:C835  E8            inx
+   66  01:C836  C0 00         cpy #0
+   67  01:C838  F0 03         beq .convert
+   68  01:C83A  88            dey
+   69  01:C83B  80 E7         bra .drawloop
+   70                     
+   71                                             ;文字列をBATデータに変換
+   72  01:C83D            .convert:
+   73  01:C83D  A5 0E         lda <.arg_len
+   74  01:C83F  0A            asl a
+   75  01:C840  AA            tax
+   76  01:C841  0A            asl a
+   77  01:C842  A8            tay
+   78  01:C843            .convloop:
+   79  01:C843  88            dey
+   80  01:C844  88            dey
+   81  01:C845  CA            dex
+   82                                             ;TODO: 数字のVRAMアドレスが $1000〜 であること
+   83  01:C846  BD B4 27      lda dgBuffer,x
+   84  01:C849  99 B4 27      sta dgBuffer,y
+   85  01:C84C  A9 01         lda #1
+   86  01:C84E  99 B5 27      sta dgBuffer+1,y
+   87                     
+   88  01:C851  E0 00         cpx #0
+   89  01:C853  D0 EE         bne .convloop
+   90                     
+   91  01:C855  A9 B4         lda #LOW(dgBuffer)
+   92  01:C857  85 0C         sta <zarg2
+   93  01:C859  A9 27         lda #HIGH(dgBuffer)
+   94  01:C85B  85 0D         sta <zarg3
+   95  01:C85D  06 0E         asl <.arg_len
+   96  01:C85F  20 A2 C7      jsr vqPush
+   97                     
+   98  01:C862  60            rts
+   99                     
+  100           27B4          .bss
+  101                                             ;BCD変換バッファ
+  102  --:27B4            dgBuffer    ds  32
+  103                     
+  104           C863          .code
 #[1]   nibbler.asm
    32                             
    33                             
