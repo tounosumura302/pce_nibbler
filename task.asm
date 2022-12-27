@@ -239,7 +239,7 @@ tklInitWave:
 
 tklGameMain:
     tkTaskAddress_  plTask
-    tkTaskAddress_  TimerTask
+    tkTaskAddress_  StatusTask
     tkTaskAddress_  VSyncTask
     tkEndTaskList_
 

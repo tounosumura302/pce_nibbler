@@ -16,6 +16,8 @@ zarg2:	ds	1
 zarg3:	ds	1
 zarg4:	ds	1
 zarg5:	ds	1
+zarg6:	ds	1
+zarg7:	ds	1
 
 
 	;; scroll counter
@@ -28,6 +30,8 @@ zframe:	.ds	1
 zdotnum:	ds	1
 zwave:	ds	1
 ztime:	ds	2
+
+zscore:	ds	5
 
 ;--- CODE area ----------
 
@@ -110,6 +114,13 @@ main:
 	sta	<ztime
 	lda	#$9
 	sta	<ztime+1
+
+	lda	#$0
+	sta	<zscore
+	stz	<zscore+1
+	stz	<zscore+2
+	stz	<zscore+3
+	stz	<zscore+4
 
 	tkChangeTask_	tklInitWave
 
@@ -249,11 +260,11 @@ WaveClearTask:
 	tkChangeTask_	tklInitWave
 	jsr	tkYield
 
-TimerTask:
+StatusTask:
 					;TODO: タイマーの減少間隔調整
 	lda	<zframe
 	and	#64-1
-	bne	.yield
+	bne	.score
 
 	sed
 	lda	<ztime
@@ -269,18 +280,53 @@ TimerTask:
     sta <zarg0
     lda #HIGH(23+31*32)
     sta <zarg1
-	lda	#LOW(ztime)
+	lda	#LOW(timerBuffer)
 	sta	<zarg2
-	lda	#HIGH(ztime)
+	lda	#HIGH(timerBuffer)
 	sta	<zarg3
 	lda	#2
 	sta	<zarg4
+	lda	#LOW(ztime)
+	sta	<zarg5
+	lda	#HIGH(ztime)
+	sta	<zarg6
+	stz	<zarg7
+	jsr	drawDigits
+;.yield:
+;	jsr	tkYield
+;	bra	TimerTask
+;
+;ScoreTask:
+.score:
+	tst	#$0f,<zframe
+	bne	.yield
+
+	lda #LOW(5+30*32)
+    sta <zarg0
+    lda #HIGH(5+30*32)
+    sta <zarg1
+	lda	#LOW(scoreBuffer)
+	sta	<zarg2
+	lda	#HIGH(scoreBuffer)
+	sta	<zarg3
+	lda	#5
+	sta	<zarg4
+	lda	#LOW(zscore)
+	sta	<zarg5
+	lda	#HIGH(zscore)
+	sta	<zarg6
+	lda	#3
+	sta	<zarg7
 	jsr	drawDigits
 .yield:
 	jsr	tkYield
-	bra	TimerTask
+	bra	StatusTask
 
+	.bss
+timerBuffer	ds	2*2*2
+scoreBuffer	ds	(10+3)*2*2
 
+	.code
 
 ;
 ;       vsync
