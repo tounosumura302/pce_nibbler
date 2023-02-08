@@ -21,7 +21,7 @@ MapPartsTiles:
     dw  (MapPartsPatternAddress+$0a*16)/16  ;右上・
     dw  (MapPartsPatternAddress+$0b*16)/16  ;左下・
     dw  (MapPartsPatternAddress+$0c*16)/16  ;右下・
-    dw  (MapPartsPatternAddress+$0d*16)/16  ;ドット
+    dw  (MapPartsPatternAddress+$0d*16)/16 + $1000  ;ドット
 
 ;
 ;   マップのgridの中身

@@ -32,6 +32,9 @@ zwave:	ds	1
 ztime:	ds	2
 
 zscore:	ds	5
+zhiscore:	ds	5
+
+zleft:	ds	1
 
 ;--- CODE area ----------
 
@@ -122,42 +125,19 @@ main:
 	stz	<zscore+3
 	stz	<zscore+4
 
+	lda	#$0
+	sta	<zhiscore
+	stz	<zhiscore+1
+	stz	<zhiscore+2
+	stz	<zhiscore+3
+	lda	#$90
+	sta	<zhiscore+4
+
+	lda	#2
+	sta	<zleft
+
 	tkChangeTask_	tklInitWave
 
-	.if	0
-	; draw background (test)
-
-	lda	#LOW(WaveMap_01)
-	sta	<zarg0
-	lda	#HIGH(WaveMap_01)
-	sta	<zarg1
-	jsr	DrawWave
-
-
-	st0	#0
-	lda #LOW(0+30*32)
-    sta VdcDataL
-    lda #HIGH(0+30*32)
-    sta VdcDataH
-	st0	#2
-	lda	#LOW(($1000+52*16)/16)
-	sta	VdcDataL
-	lda	#HIGH(($1000+52*16)/16)
-	sta	VdcDataH
-	lda	#LOW(($1000+53*16)/16)
-	sta	VdcDataL
-	lda	#HIGH(($1000+53*16)/16)
-	sta	VdcDataH
-	lda	#LOW(($1000+54*16)/16)
-	sta	VdcDataL
-	lda	#HIGH(($1000+54*16)/16)
-	sta	VdcDataH
-	lda	#LOW(($1000+55*16)/16)
-	sta	VdcDataL
-	lda	#HIGH(($1000+55*16)/16)
-	sta	VdcDataH
-
-	.endif
 
 	;; initialize sprite
 ;	jsr	plInit
@@ -241,6 +221,42 @@ DrawStatusString:
 	sta	<zarg4
 	jsr	vqPush
 
+
+	lda #LOW(25+30*32)
+    sta <zarg0
+    lda #HIGH(25+30*32)
+    sta <zarg1
+	lda	#LOW(leftBuffer)
+	sta	<zarg2
+	lda	#HIGH(leftBuffer)
+	sta	<zarg3
+	lda	#1
+	sta	<zarg4
+	lda	#LOW(zleft)
+	sta	<zarg5
+	lda	#HIGH(zleft)
+	sta	<zarg6
+	stz	<zarg7
+	jsr	drawDigits
+
+	lda #LOW(5+31*32)
+    sta <zarg0
+    lda #HIGH(5+31*32)
+    sta <zarg1
+	lda	#LOW(hiscoreBuffer)
+	sta	<zarg2
+	lda	#HIGH(hiscoreBuffer)
+	sta	<zarg3
+	lda	#5
+	sta	<zarg4
+	lda	#LOW(zhiscore)
+	sta	<zarg5
+	lda	#HIGH(zhiscore)
+	sta	<zarg6
+	lda	#3
+	sta	<zarg7
+	jsr	drawDigits
+
 	rts
 .player1:	dw	$100+37,$100+38,$100+39,$100+40
 .hiscore:	dw	$100+41,$100+42,$100+43,$100+44
@@ -263,7 +279,7 @@ WaveClearTask:
 StatusTask:
 					;TODO: タイマーの減少間隔調整
 	lda	<zframe
-	and	#64-1
+	and	#32-1
 	bne	.score
 
 	sed
@@ -324,7 +340,9 @@ StatusTask:
 
 	.bss
 timerBuffer	ds	2*2*2
+leftBuffer	ds	1*2*2
 scoreBuffer	ds	(10+3)*2*2
+hiscoreBuffer	ds	(10+3)*2*2
 
 	.code
 

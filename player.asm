@@ -8,6 +8,9 @@ zply:   ds  2       ;y座標
 zpldir: ds  2       ;移動方向(LDRU----)
 zpldirr:    ds  2   ;移動方向の逆方向(LDRU----)
 zplspeed:   ds  2   ;移動速度
+;zpldirchg:  ds  2
+zplbodytilel:   ds  2
+zplbodytileh:   ds  2
 
 zplTailStop:    ds  1
 
@@ -147,7 +150,8 @@ plHeadAction:
     dec a
     sta <zplTailStop
 .act2:
-
+;                        ;方向転換フラグをクリアしておく
+;    stz <zpldirchg,x
 
     jsr plGetBatFldAdr
                         ;フィールド上の現在位置の値
@@ -218,6 +222,9 @@ plHeadAction:
                         ;進行方向を変更
 .changed:
     jsr     plSetDir
+;                        ;変更フラグ
+;    lda #8
+;    sta <zpldirchg,x
 .notchanged:
 
 .draw:
@@ -234,9 +241,12 @@ plHeadAction:
     sta [.tmp_fldadr_l]
                         ;描画
                         ;TODO: 移動方向に合わせてタイルを変える
-    lda #LOW(BodyPartsTiles)
+    lda <zplbodytilel,x
+;    adc #LOW(BodyPartsTiles)
     sta <zarg2
-    lda #HIGH(BodyPartsTiles)
+    lda <zplbodytileh,x
+;    lda #HIGH(BodyPartsTiles)
+;    adc #0
     sta <zarg3
     lda #1
     sta <zarg4
@@ -244,6 +254,7 @@ plHeadAction:
 
     clc                 ;指定方向に進行
     rts
+
 
                         ;死亡
                         ;TODO: 死亡時の処理を実装
@@ -263,6 +274,10 @@ plHeadAction:
 PatternAddress  equ $1000
 BodyPartsTiles:
     dw  (PatternAddress+62*16)/16
+    dw  (PatternAddress+63*16)/16
+    dw  (PatternAddress+64*16)/16
+    dw  (PatternAddress+65*16)/16
+    dw  (PatternAddress+66*16)/16
 
 BlankPartsTiles:
     dw  (PatternAddress+48*16)/16
@@ -380,7 +395,7 @@ plMove:
 
     lda     <zply,x
     clc
-    adc     #$40-4+16   ;+16 はスクロールカウンタの差分
+    adc     #$40-4+16+1   ;+16 はスクロールカウンタの差分
     sta     satb+0,y
     lda     #0
     adc     #0
