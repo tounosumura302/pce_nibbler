@@ -8,9 +8,8 @@ zply:   ds  2       ;y座標
 zpldir: ds  2       ;移動方向(LDRU----)
 zpldirr:    ds  2   ;移動方向の逆方向(LDRU----)
 zplspeed:   ds  2   ;移動速度
-;zpldirchg:  ds  2
-zplbodytilel:   ds  2
-zplbodytileh:   ds  2
+zplbodytilel:   ds  2   ;胴体のキャラクタ番号を保存したアドレス（下位8ビット）
+zplbodytileh:   ds  2   ;胴体のキャラクタ番号を保存したアドレス（上位8ビット）
 
 zplTailStop:    ds  1
 
@@ -71,9 +70,11 @@ plInit:
 ;   @saveregs   x
 ;   @return     なし
 plSetDir:
+
     and     #$f0        ;下位4ビットは必ずクリアしておく（方向転換判定で誤判定の元となる）
     sta     <zpldir,x
 
+    pha
     bit     #%10100000
     beq     .du
     eor     #%10100000
@@ -82,8 +83,55 @@ plSetDir:
     eor     #%01010000
 .set:
     sta     <zpldirr,x
+    pla
+                        ;胴体のキャラクタを求めておく
+;    lsr a
+;    lsr a
+;    lsr a
+;    adc #LOW(BodyPartsTiles)
+;    sta <zplbodytilel,x
+;    lda #HIGH(BodyPartsTiles)
+;    adc #0
+;    sta <zplbodytileh,x
+    lsr a
+    lsr a
+    lsr a
+    lsr a
+    tay
+    lda .dir2index,y
+    adc #LOW(.BodyPartsTiles)
+    sta <zplbodytilel,x
+    lda #HIGH(.BodyPartsTiles)
+    adc #0
+    sta <zplbodytileh,x
+
     rts
 
+                                ;方向のビット(LDRU)を .BodyPartsTiles のインデックスに変換
+                                ;ビットは1つしかセットされてないことが前提
+.dir2index:
+    db  0
+    db  0   ;U
+    db  2   ;R
+    db  0
+    db  4   ;D
+    db  0
+    db  0
+    db  0
+    db  6   ;L
+
+                                ;胴体のキャラクタ番号
+PatternAddress  equ $1000
+BodyPartsL  equ (PatternAddress+62*16)/16
+BodyPartsD  equ (PatternAddress+63*16)/16
+BodyPartsR  equ (PatternAddress+64*16)/16
+BodyPartsU  equ (PatternAddress+65*16)/16
+
+.BodyPartsTiles:
+    dw  BodyPartsU
+    dw  BodyPartsR
+    dw  BodyPartsD
+    dw  BodyPartsL
 
 ;
 ;   BATアドレス&フィールドアドレス
@@ -129,8 +177,10 @@ plGetBatFldAdr:
 ;       @saveregs       x
 ;       @return         その場で停止すべき時は cf=1
 plHeadAction:
-.tmp_fldadr_l   equ     zarg2       ;フィールドアドレス
-.tmp_fldadr_h   equ     zarg3
+;.tmp_fldadr_l   equ     zarg2       ;フィールドアドレス
+;.tmp_fldadr_h   equ     zarg3
+.tmp_fldadr_l   equ     ztmp0       ;フィールドアドレス
+.tmp_fldadr_h   equ     ztmp1
 .tmp_fldv       equ     ztmp2       ;フィールド上の値
 .tmp_pad        equ     ztmp3       ;コントローラーの値
 
@@ -154,6 +204,11 @@ plHeadAction:
 ;    stz <zpldirchg,x
 
     jsr plGetBatFldAdr
+                        ;zarg2,3 の値をコピーしておく（他のサブルーチン呼び出しで競合することがあるため）
+    lda <zarg2
+    sta <.tmp_fldadr_l
+    lda <zarg3
+    sta <.tmp_fldadr_h
                         ;フィールド上の現在位置の値
     lda     [.tmp_fldadr_l]
     sta     <.tmp_fldv
@@ -222,13 +277,24 @@ plHeadAction:
                         ;進行方向を変更
 .changed:
     jsr     plSetDir
-;                        ;変更フラグ
-;    lda #8
-;    sta <zpldirchg,x
+                        ;胴体のキャラクタ
+    lda #LOW(BodyCornerPartsTiles)
+    sta <zarg2
+    lda #HIGH(BodyCornerPartsTiles)
+    sta <zarg3
+    bra .draw
+                        ;進行方向はそのまま
 .notchanged:
-
+                        ;胴体のキャラクタ
+    lda <zplbodytilel,x
+    sta <zarg2
+    lda <zplbodytileh,x
+    sta <zarg3
+                        ;胴体の描画
 .draw:
-                        ;胴体
+    lda #1
+    sta <zarg4
+    jsr vqPush
                         ;フィールドに胴体フラグをセット
     lda #$0f
     trb <.tmp_fldv
@@ -239,18 +305,6 @@ plHeadAction:
     lsr a
     ora <.tmp_fldv
     sta [.tmp_fldadr_l]
-                        ;描画
-                        ;TODO: 移動方向に合わせてタイルを変える
-    lda <zplbodytilel,x
-;    adc #LOW(BodyPartsTiles)
-    sta <zarg2
-    lda <zplbodytileh,x
-;    lda #HIGH(BodyPartsTiles)
-;    adc #0
-    sta <zarg3
-    lda #1
-    sta <zarg4
-    jsr vqPush
 
     clc                 ;指定方向に進行
     rts
@@ -269,18 +323,12 @@ plHeadAction:
 .DirCountTbl:
     db      0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4
 
-
-
-PatternAddress  equ $1000
-BodyPartsTiles:
-    dw  (PatternAddress+62*16)/16
-    dw  (PatternAddress+63*16)/16
-    dw  (PatternAddress+64*16)/16
-    dw  (PatternAddress+65*16)/16
+BodyCornerPartsTiles:
     dw  (PatternAddress+66*16)/16
 
 BlankPartsTiles:
     dw  (PatternAddress+48*16)/16
+
 
 
 ;

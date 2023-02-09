@@ -619,8 +619,23 @@ bp_body_r:
 bp_body_u:
     dw $00fe,$00fe,$00fe,$10ee,$38c6,$10ee,$00fe,$00fe
     dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+
+bp_body_corner_ul:
 ;        dw $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff
 ;        dw $00,$00,$00,$00,$00,$00,$00,$00
+
+    dw $0000,$00ff,$00ff,$00ff,$00ff,$00ff,$00ff,$00ff
+    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+
+bp_body_corner_ur:
+    dw $0000,$00fe,$00fe,$00fe,$00fe,$00fe,$00fe,$00fe
+    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+bp_body_corner_dl:
+    dw $00fe,$00ff,$00ff,$00ff,$00ff,$00ff,$00ff,$00ff
+    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+bp_body_corner_dr:
+    dw $00fe,$00fe,$00fe,$00fe,$00fe,$00fe,$00fe,$00fe
+    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
 
 BgPattern_end:
 BgPattern_size  equ BgPattern_end-BgPattern
