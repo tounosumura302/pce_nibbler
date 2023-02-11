@@ -11,6 +11,10 @@ zplspeed:   ds  2   ;移動速度
 zplbodytilel:   ds  2   ;胴体のキャラクタ番号を保存したアドレス（下位8ビット）
 zplbodytileh:   ds  2   ;胴体のキャラクタ番号を保存したアドレス（上位8ビット）
 
+zplprevdir: ds  2       ;移動方向(----LDRU)
+zplbodycornertilel: ds  2
+zplbodycornertileh: ds  2
+
 zplTailStop:    ds  1
 
     .code
@@ -75,6 +79,7 @@ plSetDir:
     sta     <zpldir,x
 
     pha
+
     bit     #%10100000
     beq     .du
     eor     #%10100000
@@ -83,16 +88,9 @@ plSetDir:
     eor     #%01010000
 .set:
     sta     <zpldirr,x
+
     pla
                         ;胴体のキャラクタを求めておく
-;    lsr a
-;    lsr a
-;    lsr a
-;    adc #LOW(BodyPartsTiles)
-;    sta <zplbodytilel,x
-;    lda #HIGH(BodyPartsTiles)
-;    adc #0
-;    sta <zplbodytileh,x
     lsr a
     lsr a
     lsr a
@@ -105,6 +103,51 @@ plSetDir:
     adc #0
     sta <zplbodytileh,x
 
+;
+;   胴体の曲がった箇所のキャラクタ番号
+;   オリジナルは胴体幅が7ドットなので、曲がる向きに応じてキャラクタを使い分けないと綺麗につながらない
+;
+; 0123
+; ┌┐└┘
+;
+; 3210
+; LDRU
+;
+; L8 -> D 12 0  U 9 2
+; D4 -> L 12 3  R 6 2
+; R2 -> D  6 1  U 3 3
+; U1 -> L  9 1  R 3 0
+;
+; x=pd|nd を求める
+; xをyに変換
+;   x 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
+;   y  -  -  -  3  -  -  1  -  -  2  -  -  0  -  -  -
+; pdがUかDなら、yをビット反転
+;   y = 0123
+;       ┌┐└┘
+; y*2をtilesのアドレスに加算 -> 表示するタイルのアドレス
+;
+
+    tya
+    pha
+
+    ora <zplprevdir,x
+    tay
+    lda .dir2corner,y
+    tst #%0101,<zplprevdir,x
+    beq .LR
+    eor #%11
+.LR:
+    asl a
+    adc #LOW(.BodyCornerPartsTiles)
+    sta <zplbodycornertilel,x
+    lda #HIGH(.BodyCornerPartsTiles)
+    adc #0
+    sta <zplbodycornertileh,x
+
+    pla
+    sta <zplprevdir,x
+
     rts
 
                                 ;方向のビット(LDRU)を .BodyPartsTiles のインデックスに変換
@@ -113,12 +156,24 @@ plSetDir:
     db  0
     db  0   ;U
     db  2   ;R
-    db  0
+    db  10  ;UR
     db  4   ;D
     db  0
-    db  0
+    db  14   ;DR
     db  0
     db  6   ;L
+    db  8   ;LU
+    db  0
+    db  0
+    db  12   ;LD
+
+;   x 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
+;   y  -  -  -  3  -  -  1  -  -  2  -  -  0  -  -  -
+.dir2corner:
+    db  0,0,0,3
+    db  0,0,1,0
+    db  0,2,0,0
+    db  0,0,0,0
 
                                 ;胴体のキャラクタ番号
 PatternAddress  equ $1000
@@ -127,11 +182,26 @@ BodyPartsD  equ (PatternAddress+63*16)/16
 BodyPartsR  equ (PatternAddress+64*16)/16
 BodyPartsU  equ (PatternAddress+65*16)/16
 
+BodyPartsLU equ (PatternAddress+66*16)/16
+BodyPartsRU equ (PatternAddress+67*16)/16
+BodyPartsLD equ (PatternAddress+68*16)/16
+BodyPartsRD equ (PatternAddress+69*16)/16
+
 .BodyPartsTiles:
     dw  BodyPartsU
     dw  BodyPartsR
     dw  BodyPartsD
     dw  BodyPartsL
+    dw  BodyPartsLU
+    dw  BodyPartsRU
+    dw  BodyPartsLD
+    dw  BodyPartsRD
+
+.BodyCornerPartsTiles:
+    dw  (PatternAddress+66*16)/16
+    dw  (PatternAddress+67*16)/16
+    dw  (PatternAddress+68*16)/16
+    dw  (PatternAddress+69*16)/16
 
 ;
 ;   BATアドレス&フィールドアドレス
@@ -278,9 +348,11 @@ plHeadAction:
 .changed:
     jsr     plSetDir
                         ;胴体のキャラクタ
-    lda #LOW(BodyCornerPartsTiles)
+;    lda #LOW(BodyCornerPartsTiles)
+    lda <zplbodycornertilel,x
     sta <zarg2
-    lda #HIGH(BodyCornerPartsTiles)
+;    lda #HIGH(BodyCornerPartsTiles)
+    lda <zplbodycornertileh,x
     sta <zarg3
     bra .draw
                         ;進行方向はそのまま
@@ -323,8 +395,8 @@ plHeadAction:
 .DirCountTbl:
     db      0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4
 
-BodyCornerPartsTiles:
-    dw  (PatternAddress+66*16)/16
+;BodyCornerPartsTiles:
+;    dw  (PatternAddress+66*16)/16
 
 BlankPartsTiles:
     dw  (PatternAddress+48*16)/16
