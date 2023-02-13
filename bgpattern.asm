@@ -640,6 +640,32 @@ bp_body_corner_dr:
 BgPattern_end:
 BgPattern_size  equ BgPattern_end-BgPattern
 
+
+BodyPatterns:
+
+BodyPatternL:
+    dw $0000,$00ff,$00ff,$807f,$c13e,$807f,$00ff,$00ff
+    dw $0000,$00ff,$02fd,$07f8,$8f70,$07f8,$02fd,$00ff
+    dw $0000,$08f7,$1ce3,$3ec1,$7f80,$3ec1,$1ce3,$08f7
+    dw $0000,$00ff,$20df,$708f,$f807,$708f,$20df,$00ff
+BodyPatternD:
+    dw $38c6,$10ee,$00fe,$00fe,$00fe,$00fe,$00fe,$10ee
+    dw $10ee,$38c6,$7c82,$38c6,$10ee,$00fe,$00fe,$00fe
+    dw $00fe,$10ee,$38c6,$7c82,$fe00,$7c82,$38c6,$10ee
+    dw $10ee,$00fe,$00fe,$00fe,$10ee,$38c6,$7c82,$38c6
+BodyPatternR:
+    dw $0000,$00ff,$00ff,$807f,$c13e,$807f,$00ff,$00ff
+    dw $0000,$00ff,$20df,$708f,$f807,$708f,$20df,$00ff
+    dw $0000,$08f7,$1ce3,$3ec1,$7f80,$3ec1,$1ce3,$08f7
+    dw $0000,$00ff,$02fd,$07f8,$8f70,$07f8,$02fd,$00ff
+BodyPatternU:
+    dw $38c6,$10ee,$00fe,$00fe,$00fe,$00fe,$00fe,$10ee
+    dw $10ee,$00fe,$00fe,$00fe,$10ee,$38c6,$7c82,$38c6
+    dw $00fe,$10ee,$38c6,$7c82,$fe00,$7c82,$38c6,$10ee
+    dw $10ee,$38c6,$7c82,$38c6,$10ee,$00fe,$00fe,$00fe
+
+
+
 ; ┌─┐
 ; │ │
 ; └─┘

@@ -8,14 +8,20 @@ zply:   ds  2       ;y座標
 zpldir: ds  2       ;移動方向(LDRU----)
 zpldirr:    ds  2   ;移動方向の逆方向(LDRU----)
 zplspeed:   ds  2   ;移動速度
+
 zplbodytilel:   ds  2   ;胴体のキャラクタ番号を保存したアドレス（下位8ビット）
 zplbodytileh:   ds  2   ;胴体のキャラクタ番号を保存したアドレス（上位8ビット）
 
-zplprevdir: ds  2       ;移動方向(----LDRU)
-zplbodycornertilel: ds  2
-zplbodycornertileh: ds  2
+zplprevdir: ds  2       ;過去の移動方向(----LDRU)
+zplbodycornertilel: ds  2   ;胴体の曲がった箇所のキャラクタ番号を保存したアドレス（下位8ビット）
+zplbodycornertileh: ds  2   ;胴体の曲がった箇所のキャラクタ番号を保存したアドレス（上位8ビット）
+
+zplheadtilel: ds  2   ;頭のキャラクタ番号を保存したアドレス（下位8ビット）
+zplheadtileh: ds  2   ;頭のキャラクタ番号を保存したアドレス（上位8ビット）
 
 zplTailStop:    ds  1
+
+zplcount:       ds  1
 
     .code
     .bank   MAIN_BANK
@@ -31,7 +37,7 @@ plInit:
 .tmp_fldadr_h   equ     zarg3
 
     stz <zplTailStop
-
+    stz <zplcount
                         ;頭の座標
     clx
     lda     #(5*3+1)*8
@@ -97,11 +103,21 @@ plSetDir:
     lsr a
     tay
     lda .dir2index,y
+
     adc #LOW(.BodyPartsTiles)
     sta <zplbodytilel,x
     lda #HIGH(.BodyPartsTiles)
     adc #0
     sta <zplbodytileh,x
+
+    phy
+    lda .dir2index,y
+    tay
+    lda .HeadPartsTiles,y
+    sta <zplheadtilel,x
+    lda .HeadPartsTiles+1,y
+    sta <zplheadtileh,x
+    ply
 
 ;
 ;   胴体の曲がった箇所のキャラクタ番号
@@ -156,16 +172,18 @@ plSetDir:
     db  0
     db  0   ;U
     db  2   ;R
-    db  10  ;UR
+;    db  10  ;UR
+    db  0
     db  4   ;D
     db  0
-    db  14   ;DR
+;    db  14   ;DR
+    db  0
     db  0
     db  6   ;L
-    db  8   ;LU
-    db  0
-    db  0
-    db  12   ;LD
+;    db  8   ;LU
+;    db  0
+;    db  0
+;    db  12   ;LD
 
 ;   x 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
 ;   y  -  -  -  3  -  -  1  -  -  2  -  -  0  -  -  -
@@ -188,21 +206,27 @@ BodyPartsLD equ (PatternAddress+68*16)/16
 BodyPartsRD equ (PatternAddress+69*16)/16
 
 .BodyPartsTiles:
-    dw  BodyPartsU
-    dw  BodyPartsR
-    dw  BodyPartsD
-    dw  BodyPartsL
-    dw  BodyPartsLU
-    dw  BodyPartsRU
-    dw  BodyPartsLD
-    dw  BodyPartsRD
+    dw  BodyPartsU | $2000
+    dw  BodyPartsR | $2000
+    dw  BodyPartsD | $2000
+    dw  BodyPartsL | $2000
+;    dw  BodyPartsLU
+;    dw  BodyPartsRU
+;    dw  BodyPartsLD
+;    dw  BodyPartsRD
 
 .BodyCornerPartsTiles:
-    dw  (PatternAddress+66*16)/16
-    dw  (PatternAddress+67*16)/16
-    dw  (PatternAddress+68*16)/16
-    dw  (PatternAddress+69*16)/16
+    dw  (PatternAddress+66*16)/16 | $2000
+    dw  (PatternAddress+67*16)/16 | $2000
+    dw  (PatternAddress+68*16)/16 | $2000
+    dw  (PatternAddress+69*16)/16 | $2000
 
+SpritePatternAddress  equ $4000
+.HeadPartsTiles:
+    dw  (SpritePatternAddress+00*64)/32
+    dw  (SpritePatternAddress+01*64)/32
+    dw  (SpritePatternAddress+02*64)/32
+    dw  (SpritePatternAddress+03*64)/32
 ;
 ;   BATアドレス&フィールドアドレス
 ;
@@ -378,6 +402,7 @@ plHeadAction:
     ora <.tmp_fldv
     sta [.tmp_fldadr_l]
 
+
     clc                 ;指定方向に進行
     rts
 
@@ -521,7 +546,89 @@ plMove:
     adc     #0
     sta     satb+1,y
 
+    lda <zplheadtilel,x
+    sta satb+4,y
+    lda <zplheadtileh,x
+    sta satb+5,y
+
     rts
+
+
+;
+;
+;
+;       胴体のパターン書き換え
+;       @args           なし
+;       @saveregs       なし
+;       @return         なし
+plWriteBodyPattern:
+                            ;パターンデータの書き換えサイズ（ワード）
+                            ;書き換えるのは２プレーン分のみ
+    lda #8
+    sta <zarg4
+                            ;パターンデータ（４種類）の選択
+    lda <zplcount
+    and #%0110
+    asl a
+    asl a
+    asl a
+                            ;Lのパターンアドレス
+    adc #LOW(BodyPatterns)
+    sta <zarg2
+    lda #HIGH(BodyPatterns)
+    adc #0
+    sta <zarg3
+                            ;LのVRAMアドレス
+    lda #LOW(PatternAddress+62*16)
+    sta <zarg0
+    lda #HIGH(PatternAddress+62*16)
+    sta <zarg1
+    jsr vqPush
+                            ;Dのパターンアドレス
+    lda <zarg2
+    clc
+    adc #64
+    sta <zarg2
+    lda <zarg3
+    adc #0
+    sta <zarg3
+                            ;DのVRAMアドレス
+    lda #LOW(PatternAddress+63*16)
+    sta <zarg0
+    lda #HIGH(PatternAddress+63*16)
+    sta <zarg1
+    jsr vqPush
+                            ;Rのパターンアドレス
+    lda <zarg2
+    clc
+    adc #64
+    sta <zarg2
+    lda <zarg3
+    adc #0
+    sta <zarg3
+                            ;RのVRAMアドレス
+    lda #LOW(PatternAddress+64*16)
+    sta <zarg0
+    lda #HIGH(PatternAddress+64*16)
+    sta <zarg1
+    jsr vqPush
+                            ;Uのパターンアドレス
+    lda <zarg2
+    clc
+    adc #64
+    sta <zarg2
+    lda <zarg3
+    adc #0
+    sta <zarg3
+                            ;UのVRAMアドレス
+    lda #LOW(PatternAddress+65*16)
+    sta <zarg0
+    lda #HIGH(PatternAddress+65*16)
+    sta <zarg1
+    jsr vqPush
+
+    rts
+
 
 
 ;
@@ -535,6 +642,14 @@ plTask:
 	jsr	plHeadAction
 	bcs	.skipmove
 	jsr	plMove
+
+                    ;胴体のパターン書き換え
+    lda <zplcount
+    clc
+    adc <zplspeed
+    sta <zplcount
+    jsr plWriteBodyPattern
+
                     ;尻尾
     ldx #1
     jsr plTailAction
