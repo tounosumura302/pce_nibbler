@@ -285,8 +285,9 @@ plHeadAction:
     ora <zply,x
     and #$07
     beq .act
-    clc
-    rts
+    jmp .move           ;branchだと届かない
+;    clc
+;    rts
                         ;尻尾を停止しているなら解除
 .act:
     lda <zplTailStop
@@ -360,6 +361,7 @@ plHeadAction:
                         ;よって3のみ（つまり丁字路で直進方向が塞がっている状態）
 ;    cmp     #3
 ;    bne     .notchanged
+
     sec                 ;丁字路の場合は一時停止
     stz <.tmp_dead_flg  ;死んでいない
     rts
@@ -402,8 +404,16 @@ plHeadAction:
     ora <.tmp_fldv
     sta [.tmp_fldadr_l]
 
+.move:
+;    clc                 ;指定方向に進行
+    jsr plMove
 
-    clc                 ;指定方向に進行
+    lda <zplheadtilel,x
+    sta satb+4,y
+    lda <zplheadtileh,x
+    sta satb+5,y
+
+    clc
     rts
 
 
@@ -412,6 +422,7 @@ plHeadAction:
 .dead:
     lda #1
     sta <.tmp_dead_flg  ;死んだ
+
     sec
     rts
 ;
@@ -439,6 +450,8 @@ plTailAction:
 .tmp_fldadr_l   equ     zarg2       ;フィールドアドレス
 .tmp_fldadr_h   equ     zarg3
 
+.tmp_frame  equ ztmp0
+
                         ;尻尾を停止させる指示が出ている場合は何もしない
     lda <zplTailStop
     bne .notmove
@@ -447,9 +460,10 @@ plTailAction:
     lda <zplx,x
     ora <zply,x
     and #$07
-    beq .move
-    clc
-    rts
+    bne .move2
+;    beq .move
+;    clc
+;    rts
 
 .move:
     jsr plGetBatFldAdr
@@ -457,6 +471,7 @@ plTailAction:
                         ;頭が移動した方向を尻尾の移動方向とする
     lda [.tmp_fldadr_l]
     pha
+;    pha
     asl a
     asl a
     asl a
@@ -476,14 +491,77 @@ plTailAction:
     sta <zarg4
     jsr vqPush
 
-    clc
+.move2:
+    jsr plMove
+
+                            ;尻尾のアニメーション用フレームカウンタ
+    lda <zframe
+    and #$03
+    asl a
+    asl a
+    sta <.tmp_frame
+
+                            ;TODO: 前にaslした後でまたlsrしてるのが無駄だなあ
+    lda <zpldir,x
+    lsr a
+    lsr a
+    lsr a
+    lsr a
+    tay
+    lda .dir2index,y
+    ora <.tmp_frame
+    tay
+    lda .TailPartsTiles,y
+    sta satb+8+4
+    lda .TailPartsTiles+1,y
+    sta satb+8+5
+    lda .TailPartsTiles+2,y
+    sta satb+8+6
+    lda .TailPartsTiles+3,y
+    sta satb+8+7
+
+
+;    clc
     rts
 
 .notmove:
-    sec
+;    sec
     rts
 
+                                ;方向のビット(LDRU)を .BodyPartsTiles のインデックスに変換
+                                ;ビットは1つしかセットされてないことが前提
+.dir2index:
+    db  0
+    db  0   ;U
+    db  1*16   ;R
+    db  0
+    db  2*16   ;D
+    db  0
+    db  0
+    db  0
+    db  3*16   ;L
 
+SpritePatternAddress  equ $4000
+.TailPartsTiles:
+    dw  (SpritePatternAddress+04*64)/32,%0000000010000000
+    dw  (SpritePatternAddress+05*64)/32,%0000000010000000
+    dw  (SpritePatternAddress+04*64)/32,%0000000010000000
+    dw  (SpritePatternAddress+05*64)/32,%0000100010000000
+
+    dw  (SpritePatternAddress+06*64)/32,%0000000010000000
+    dw  (SpritePatternAddress+07*64)/32,%0000000010000000
+    dw  (SpritePatternAddress+06*64)/32,%0000000010000000
+    dw  (SpritePatternAddress+07*64)/32,%1000000010000000
+
+    dw  (SpritePatternAddress+04*64)/32,%1000000010000000
+    dw  (SpritePatternAddress+05*64)/32,%1000000010000000
+    dw  (SpritePatternAddress+04*64)/32,%1000000010000000
+    dw  (SpritePatternAddress+05*64)/32,%1000100010000000
+
+    dw  (SpritePatternAddress+06*64)/32,%0000100010000000
+    dw  (SpritePatternAddress+07*64)/32,%0000100010000000
+    dw  (SpritePatternAddress+06*64)/32,%0000100010000000
+    dw  (SpritePatternAddress+07*64)/32,%1000100010000000
 
 
 ;       移動
@@ -546,10 +624,10 @@ plMove:
     adc     #0
     sta     satb+1,y
 
-    lda <zplheadtilel,x
-    sta satb+4,y
-    lda <zplheadtileh,x
-    sta satb+5,y
+;    lda <zplheadtilel,x
+;    sta satb+4,y
+;    lda <zplheadtileh,x
+;    sta satb+5,y
 
     rts
 
@@ -563,10 +641,12 @@ plMove:
 ;       @return         なし
 plWriteBodyPattern:
                             ;パターンデータの書き換えサイズ（ワード）
-                            ;書き換えるのは２プレーン分のみ
+                            ;書き換えるのは２プレーン分のみなので8ワード
     lda #8
     sta <zarg4
                             ;パターンデータ（４種類）の選択
+                            ;パターンデータは1セット16バイトで、上下左右各方向4セット
+                            ;並び順は LLLLDDDDRRRRUUUU 
     lda <zplcount
     and #%0110
     asl a
@@ -641,7 +721,7 @@ plTask:
 	clx
 	jsr	plHeadAction
 	bcs	.skipmove
-	jsr	plMove
+;	jsr	plMove
 
                     ;胴体のパターン書き換え
     lda <zplcount
@@ -653,8 +733,8 @@ plTask:
                     ;尻尾
     ldx #1
     jsr plTailAction
-    bcs .yield
-    jsr plMove
+;    bcs .yield
+;    jsr plMove
     bra .yield
 
 .skipmove:

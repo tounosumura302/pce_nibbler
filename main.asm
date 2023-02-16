@@ -464,7 +464,8 @@ spr_init:
 	sta	satb+10
 	stz	satb+11
 
-	stz	satb+12
+	lda	#4
+	sta	satb+12
 	lda	#$2		;vram address = $4000 -> $200
 	sta	satb+13
 
