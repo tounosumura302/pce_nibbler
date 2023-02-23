@@ -94,6 +94,41 @@ sp_tail:
 
 
 
+;    dw $ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
+;    dw $ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
+;    dw $f01f,$f83f,$f83f,$f83f,$f83f,$f83f,$f83f,$fc7f
+;    dw $fc7f,$fc7f,$fc7f,$fc7f,$fc7f,$feff,$feff,$feff
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
+;    dw $ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
+;    dw $f01f,$f83f,$f83f,$f83f,$fc3f,$fc7f,$fc7f,$fe7f
+;    dw $fe7f,$fe3f,$ff3f,$ff3f,$ffbf,$ff9f,$ffdf,$ffff
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
+;    dw $ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
+;    dw $ffff,$ffff,$ffff,$ffff,$ffff,$fffe,$ff80,$e000
+;    dw $0000,$e000,$ff80,$fffe,$ffff,$ffff,$ffff,$ffff
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
+;    dw $ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff,$ffff
+;    dw $ffff,$ffff,$ffff,$ffff,$ffff,$fffe,$fff0,$ff80
+;    dw $fc00,$f000,$c1e0,$9ffe,$ffff,$ffff,$ffff,$ffff
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+;    dw $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000
+
+
+
 
 ;    dw $0fe0,$07c0,$07c0,$07c0,$07c0,$07c0,$07c0,$0380
 ;    dw $0380,$0380,$0380,$0380,$0380,$0100,$0100,$0100

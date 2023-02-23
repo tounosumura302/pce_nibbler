@@ -9,6 +9,8 @@ zpldir: ds  2       ;移動方向(LDRU----)
 zpldirr:    ds  2   ;移動方向の逆方向(LDRU----)
 zplspeed:   ds  2   ;移動速度
 
+zpldirnum:  ds  2   ;移動方向(0=U 1=R 2=D 3=L)
+
 zplbodytilel:   ds  2   ;胴体のキャラクタ番号を保存したアドレス（下位8ビット）
 zplbodytileh:   ds  2   ;胴体のキャラクタ番号を保存したアドレス（上位8ビット）
 
@@ -19,7 +21,8 @@ zplbodycornertileh: ds  2   ;胴体の曲がった箇所のキャラクタ番号
 zplheadtilel: ds  2   ;頭のキャラクタ番号を保存したアドレス（下位8ビット）
 zplheadtileh: ds  2   ;頭のキャラクタ番号を保存したアドレス（上位8ビット）
 
-zplTailStop:    ds  1
+zplTailStop:    ds  1   ;尻尾を停止させる
+zplTailPriority:    ds  1   ;尻尾の表示プライオリティ
 
 zplcount:       ds  1
 
@@ -38,13 +41,17 @@ plInit:
 
     stz <zplTailStop
     stz <zplcount
+
+    lda #%10000000
+    sta <zplTailPriority
+
                         ;頭の座標
     clx
     lda     #(5*3+1)*8
     sta     <zplx
     lda     #(8*3+1)*8
     sta     <zply
-    lda     #2
+    lda     #4
     sta     <zplspeed
     lda     #%00100000
     jsr     plSetDir
@@ -54,7 +61,7 @@ plInit:
     sta     <zplx,x
     lda     #(8*3+1)*8
     sta     <zply,x
-    lda     #2
+    lda     #4
     sta     <zplspeed,x
     lda     #%00100000
     jsr     plSetDir
@@ -96,13 +103,25 @@ plSetDir:
     sta     <zpldirr,x
 
     pla
-                        ;胴体のキャラクタを求めておく
+
     lsr a
     lsr a
     lsr a
     lsr a
+    pha
     tay
-    lda .dir2index,y
+    lda .dir2num,y
+    sta <zpldirnum,x
+                        ;胴体のキャラクタを求めておく
+;    lsr a
+;    lsr a
+;    lsr a
+;    lsr a
+;    tay
+;    lda .dir2index,y
+
+    asl a
+    pha
 
     adc #LOW(.BodyPartsTiles)
     sta <zplbodytilel,x
@@ -110,14 +129,15 @@ plSetDir:
     adc #0
     sta <zplbodytileh,x
 
-    phy
-    lda .dir2index,y
-    tay
+;    phy
+;    lda .dir2index,y
+;    tay
+    ply
     lda .HeadPartsTiles,y
     sta <zplheadtilel,x
     lda .HeadPartsTiles+1,y
     sta <zplheadtileh,x
-    ply
+;    ply
 
 ;
 ;   胴体の曲がった箇所のキャラクタ番号
@@ -144,7 +164,8 @@ plSetDir:
 ; y*2をtilesのアドレスに加算 -> 表示するタイルのアドレス
 ;
 
-    tya
+;    tya
+    pla
     pha
 
     ora <zplprevdir,x
@@ -166,24 +187,29 @@ plSetDir:
 
     rts
 
-                                ;方向のビット(LDRU)を .BodyPartsTiles のインデックスに変換
-                                ;ビットは1つしかセットされてないことが前提
-.dir2index:
+.dir2num:
     db  0
     db  0   ;U
-    db  2   ;R
-;    db  10  ;UR
+    db  1   ;R
     db  0
-    db  4   ;D
-    db  0
-;    db  14   ;DR
+    db  2   ;D
     db  0
     db  0
-    db  6   ;L
-;    db  8   ;LU
+    db  0
+    db  3   ;L
+
+                                ;方向のビット(LDRU)を .BodyPartsTiles のインデックスに変換
+                                ;ビットは1つしかセットされてないことが前提
+;.dir2index:
+;    db  0
+;    db  0   ;U
+;    db  2   ;R
+;    db  0
+;    db  4   ;D
 ;    db  0
 ;    db  0
-;    db  12   ;LD
+;    db  0
+;    db  6   ;L
 
 ;   x 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
 ;   y  -  -  -  3  -  -  1  -  -  2  -  -  0  -  -  -
@@ -454,9 +480,11 @@ plTailAction:
 
                         ;尻尾を停止させる指示が出ている場合は何もしない
     lda <zplTailStop
-    bne .notmove
-
-                        ;グリッドの中間にいる場合は何もしない
+;    bne .notmove
+    beq .go
+    rts
+.go:
+                        ;グリッド同士の間にいる場合
     lda <zplx,x
     ora <zply,x
     and #$07
@@ -465,6 +493,7 @@ plTailAction:
 ;    clc
 ;    rts
 
+                        ;グリッドに収まった場合は方向転換
 .move:
     jsr plGetBatFldAdr
                         ;フィールド上の現在位置の値
@@ -476,7 +505,12 @@ plTailAction:
     asl a
     asl a
     asl a
-    sta <zpldir,x
+    jsr plSetDir
+
+                        ;方向転換をしたら
+    lda #%10000000
+    sta <zplTailPriority
+;    sta <zpldir,x
                         ;頭が移動した方向をクリア
     pla
     and #$f0
@@ -491,8 +525,44 @@ plTailAction:
     sta <zarg4
     jsr vqPush
 
+    bra .move3
+
+                        ;グリッド同士の間にいる場合
+                        ;次の移動方向が変わる予定なら、尻尾の表示プライオリティを変えて、胴体に隠れるようにする
 .move2:
+    lda <zplTailPriority
+    beq .move3
+
+    jsr plGetBatFldAdr
+    lda [.tmp_fldadr_l]
+    asl a
+    asl a
+    asl a
+    asl a
+    beq .move3          ;今の場所の胴体がすでに消えているなら何もしない
+    cmp <zpldir,x
+    beq .move3
+                        ;表示プライオリティをBGより下にして、胴体に隠れるようにする
+    stz <zplTailPriority
+
+.move3:
     jsr plMove
+
+    ldy <zpldirnum,x
+    lda <zplx,x
+    clc
+    adc .sprdx,y
+    sta satb+8+2
+    stz satb+8+2+1
+
+    lda <zply,x
+    clc
+    adc .sprdy,y
+    sta satb+8+0
+    cla
+    adc #0
+    sta satb+8+1
+
 
                             ;尻尾のアニメーション用フレームカウンタ
     lda <zframe
@@ -516,6 +586,7 @@ plTailAction:
     lda .TailPartsTiles+1,y
     sta satb+8+5
     lda .TailPartsTiles+2,y
+    ora <zplTailPriority        ;プライオリティ
     sta satb+8+6
     lda .TailPartsTiles+3,y
     sta satb+8+7
@@ -524,9 +595,22 @@ plTailAction:
 ;    clc
     rts
 
-.notmove:
+;.notmove:
 ;    sec
-    rts
+;    rts
+
+.sprdx:
+    db  $20-4       ;U
+    db  $20-8       ;R
+    db  $20-4       ;D
+    db  $20-0       ;L
+
+;   +16 はスクロールカウンタの差分
+.sprdy:
+    db  $40+16+1    ;U
+    db  $40+16+1-4  ;R
+    db  $40+16+1-8  ;D
+    db  $40+16+1-4  ;L
 
                                 ;方向のビット(LDRU)を .BodyPartsTiles のインデックスに変換
                                 ;ビットは1つしかセットされてないことが前提
@@ -543,25 +627,46 @@ plTailAction:
 
 SpritePatternAddress  equ $4000
 .TailPartsTiles:
-    dw  (SpritePatternAddress+04*64)/32,%0000000010000000
-    dw  (SpritePatternAddress+05*64)/32,%0000000010000000
-    dw  (SpritePatternAddress+04*64)/32,%0000000010000000
-    dw  (SpritePatternAddress+05*64)/32,%0000100010000000
+    dw  (SpritePatternAddress+04*64)/32,%0000000000000000
+    dw  (SpritePatternAddress+05*64)/32,%0000000000000000
+    dw  (SpritePatternAddress+04*64)/32,%0000000000000000
+    dw  (SpritePatternAddress+05*64)/32,%0000100000000000
 
-    dw  (SpritePatternAddress+06*64)/32,%0000000010000000
-    dw  (SpritePatternAddress+07*64)/32,%0000000010000000
-    dw  (SpritePatternAddress+06*64)/32,%0000000010000000
-    dw  (SpritePatternAddress+07*64)/32,%1000000010000000
+    dw  (SpritePatternAddress+06*64)/32,%0000000000000000
+    dw  (SpritePatternAddress+07*64)/32,%0000000000000000
+    dw  (SpritePatternAddress+06*64)/32,%0000000000000000
+    dw  (SpritePatternAddress+07*64)/32,%1000000000000000
 
-    dw  (SpritePatternAddress+04*64)/32,%1000000010000000
-    dw  (SpritePatternAddress+05*64)/32,%1000000010000000
-    dw  (SpritePatternAddress+04*64)/32,%1000000010000000
-    dw  (SpritePatternAddress+05*64)/32,%1000100010000000
+    dw  (SpritePatternAddress+04*64)/32,%1000000000000000
+    dw  (SpritePatternAddress+05*64)/32,%1000000000000000
+    dw  (SpritePatternAddress+04*64)/32,%1000000000000000
+    dw  (SpritePatternAddress+05*64)/32,%1000100000000000
 
-    dw  (SpritePatternAddress+06*64)/32,%0000100010000000
-    dw  (SpritePatternAddress+07*64)/32,%0000100010000000
-    dw  (SpritePatternAddress+06*64)/32,%0000100010000000
-    dw  (SpritePatternAddress+07*64)/32,%1000100010000000
+    dw  (SpritePatternAddress+06*64)/32,%0000100000000000
+    dw  (SpritePatternAddress+07*64)/32,%0000100000000000
+    dw  (SpritePatternAddress+06*64)/32,%0000100000000000
+    dw  (SpritePatternAddress+07*64)/32,%1000100000000000
+
+
+;    dw  (SpritePatternAddress+04*64)/32,%0000000010000000
+;    dw  (SpritePatternAddress+05*64)/32,%0000000010000000
+;    dw  (SpritePatternAddress+04*64)/32,%0000000010000000
+;    dw  (SpritePatternAddress+05*64)/32,%0000100010000000
+
+;    dw  (SpritePatternAddress+06*64)/32,%0000000010000000
+;    dw  (SpritePatternAddress+07*64)/32,%0000000010000000
+;    dw  (SpritePatternAddress+06*64)/32,%0000000010000000
+;    dw  (SpritePatternAddress+07*64)/32,%1000000010000000
+
+;    dw  (SpritePatternAddress+04*64)/32,%1000000010000000
+;    dw  (SpritePatternAddress+05*64)/32,%1000000010000000
+;    dw  (SpritePatternAddress+04*64)/32,%1000000010000000
+;    dw  (SpritePatternAddress+05*64)/32,%1000100010000000
+
+;    dw  (SpritePatternAddress+06*64)/32,%0000100010000000
+;    dw  (SpritePatternAddress+07*64)/32,%0000100010000000
+;    dw  (SpritePatternAddress+06*64)/32,%0000100010000000
+;    dw  (SpritePatternAddress+07*64)/32,%1000100010000000
 
 
 ;       移動
