@@ -237,6 +237,11 @@ tklInitWave:
     tkTaskAddress_  VSyncTask
     tkEndTaskList_
 
+tklAppear:
+    tkTaskAddress_  NibblerAppearTask
+    tkTaskAddress_  VSyncTask
+    tkEndTaskList_
+
 tklGameMain:
     tkTaskAddress_  plTask
     tkTaskAddress_  StatusTask

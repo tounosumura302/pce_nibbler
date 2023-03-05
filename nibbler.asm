@@ -9,10 +9,13 @@ WAVEMAP_BANK    equ 6
 
         .include "pce.asm"        
         .include "task.inc"
+        .include "script.inc"
+        
         
         .include "bank0.asm"
         .include "main.asm"
         .include "task.asm"
+    .include "script.asm"
 ;        .include "chrdriver.asm"
         .include "player.asm"
 ;        .include "pbullet.asm"
@@ -29,6 +32,7 @@ WAVEMAP_BANK    equ 6
         .include "mapdata.asm"
         .include "vqueue.asm"
     .include "digits.asm"
+    
         
         
         

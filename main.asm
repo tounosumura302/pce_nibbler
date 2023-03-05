@@ -155,7 +155,8 @@ DrawWaveTask:
 
 	jsr	tkYield
 
-	tkChangeTask_	tklGameMain
+;	tkChangeTask_	tklGameMain
+	tkChangeTask_	tklAppear
 	jsr	tkYield
 	bra	DrawWaveTask
 
@@ -374,6 +375,276 @@ VSyncTask:
 	bra	VSyncTask
 
 
+NibblerAppearTask:
+	lda	#LOW(.script)
+	sta	<zarg0
+	lda	#HIGH(.script)
+	sta	<zarg1
+	lda	#2
+	sta	<zarg2
+	jsr	scrInit
+.loop:
+	jsr	scrExecute
+	bcs	.end
+	jsr	tkYield
+	bra	.loop
+
+.end:
+	tkChangeTask_	tklGameMain
+	jsr	tkYield
+
+.script:
+	scrSetInterval_	2
+	; クロスハッチ用スプライト配置
+	scrSetSprite_	0,(11*3+1)*8+4,(4*3+1)*8,(SpritePatternAddress+08*64)/32,$82
+	scrSetSprite_	1,(11*3+1)*8+4,(4*3+1)*8+16,(SpritePatternAddress+08*64)/32,$82
+	scrSetSprite_	2,(11*3+1)*8+4,(4*3+1)*8+16*2,(SpritePatternAddress+08*64)/32,$82
+	scrSetSprite_	3,(11*3+1)*8+4,(4*3+1)*8+16*3,(SpritePatternAddress+08*64)/32,$82
+	scrSetSprite_	4,(11*3+1)*8+4,(4*3+1)*8+16*4,(SpritePatternAddress+08*64)/32,$82
+	scrWait_
+	; クロスハッチを左から右に表示
+	scrSetSpritePattern_	0,(SpritePatternAddress+09*64)/32
+	scrWait_
+	scrSetSpritePattern_	0,(SpritePatternAddress+10*64)/32
+	scrWait_
+
+	scrSetSpritePattern_	1,(SpritePatternAddress+09*64)/32
+	scrWait_
+	scrSetSpritePattern_	1,(SpritePatternAddress+10*64)/32
+	scrWait_
+
+	scrSetSpritePattern_	2,(SpritePatternAddress+09*64)/32
+	scrWait_
+	scrSetSpritePattern_	2,(SpritePatternAddress+10*64)/32
+	scrWait_
+
+	scrSetSpritePattern_	3,(SpritePatternAddress+09*64)/32
+	scrWait_
+	scrSetSpritePattern_	3,(SpritePatternAddress+10*64)/32
+	scrWait_
+
+	scrSetSpritePattern_	4,(SpritePatternAddress+09*64)/32
+	scrWait_
+	scrSetSpritePattern_	4,(SpritePatternAddress+10*64)/32
+	scrWait_
+	; ヘビの体を表示
+	scrSetBG_	11+25*32,.BodyParts,6
+	scrSetSprite_	5,(11*3+1)*8+4,(4*3+1)*8,(SpritePatternAddress+06*64)/32,$01
+	scrSetSprite_	6,(11*3+1)*8+4,(4*3+1)*8+16+16+16+8,(SpritePatternAddress+01*64)/32,$81
+	scrWait_
+	; クロスハッチを左から右に消去
+	scrSetSpritePattern_	0,(SpritePatternAddress+11*64)/32
+	scrWait_
+	scrSetSpritePattern_	0,(SpritePatternAddress+08*64)/32
+	scrWait_
+
+	scrSetSpritePattern_	1,(SpritePatternAddress+11*64)/32
+	scrWait_
+	scrSetSpritePattern_	1,(SpritePatternAddress+08*64)/32
+	scrWait_
+
+	scrSetSpritePattern_	2,(SpritePatternAddress+11*64)/32
+	scrWait_
+	scrSetSpritePattern_	2,(SpritePatternAddress+08*64)/32
+	scrWait_
+
+	scrSetSpritePattern_	3,(SpritePatternAddress+11*64)/32
+	scrWait_
+	scrSetSpritePattern_	3,(SpritePatternAddress+08*64)/32
+	scrWait_
+
+	scrSetSpritePattern_	4,(SpritePatternAddress+11*64)/32
+	scrWait_
+	scrSetSpritePattern_	4,(SpritePatternAddress+08*64)/32
+	scrWait_
+	; ヘビの体の色を左から右に変化
+	scrSetSpriteAttribute_	5,$00
+	scrWait_
+	scrSetBG_	11+25*32,.BodyParts_red,1
+	scrWait_
+	scrSetBG_	12+25*32,.BodyParts_red,1
+	scrWait_
+	scrSetBG_	13+25*32,.BodyParts_red,1
+	scrWait_
+	scrSetBG_	14+25*32,.BodyParts_red,1
+	scrWait_
+	scrSetBG_	15+25*32,.BodyParts_red,1
+	scrWait_
+	scrSetBG_	16+25*32,.BodyParts_red,1
+	scrWait_
+	scrSetSpriteAttribute_	6,$00
+	scrWait_
+	; スプライトの後始末
+	scrSetSpriteAttribute_	0,$00
+	scrSetSpriteAttribute_	1,$00
+	scrSetSpritePosition_	2,0,0
+	scrSetSpritePosition_	3,0,0
+	scrSetSpritePosition_	4,0,0
+	scrSetSpritePosition_	5,0,0
+	scrSetSpritePosition_	6,0,0
+
+	scrEnd_
+
+
+
+	db	4,2
+				;クロスハッチ用スプライト配置
+	db	6,0
+	dw	(11*3+1)*8+4,(4*3+1)*8
+	dw	(SpritePatternAddress+08*64)/32,$82
+	db	6,1
+	dw	(11*3+1)*8+4,(4*3+1)*8+16
+	dw	(SpritePatternAddress+08*64)/32,$82
+	db	6,2
+	dw	(11*3+1)*8+4,(4*3+1)*8+16+16
+	dw	(SpritePatternAddress+08*64)/32,$82
+	db	6,3
+	dw	(11*3+1)*8+4,(4*3+1)*8+16+16+16
+	dw	(SpritePatternAddress+08*64)/32,$82
+	db	6,4
+	dw	(11*3+1)*8+4,(4*3+1)*8+16+16+16+16
+	dw	(SpritePatternAddress+08*64)/32,$82
+	db	2
+				;クロスハッチを左から右へ
+	db	10,0
+	dw	(SpritePatternAddress+09*64)/32
+	db	2
+	db	10,0
+	dw	(SpritePatternAddress+10*64)/32
+	db	2
+
+	db	10,1
+	dw	(SpritePatternAddress+09*64)/32
+	db	2
+	db	10,1
+	dw	(SpritePatternAddress+10*64)/32
+	db	2
+
+	db	10,2
+	dw	(SpritePatternAddress+09*64)/32
+	db	2
+	db	10,2
+	dw	(SpritePatternAddress+10*64)/32
+	db	2
+
+	db	10,3
+	dw	(SpritePatternAddress+09*64)/32
+	db	2
+	db	10,3
+	dw	(SpritePatternAddress+10*64)/32
+	db	2
+
+	db	10,4
+	dw	(SpritePatternAddress+09*64)/32
+	db	2
+	db	10,4
+	dw	(SpritePatternAddress+10*64)/32
+	db	2
+				;ヘビを描画
+	db	14
+	dw	11+25*32,.BodyParts
+	db	6
+	db	6,5
+	dw	(11*3+1)*8+4,(4*3+1)*8
+	dw	(SpritePatternAddress+06*64)/32,$01
+	db	6,6
+	dw	(11*3+1)*8+4,(4*3+1)*8+16+16+16+8
+	dw	(SpritePatternAddress+01*64)/32,$81
+	db	2
+				;クロスハッチを左から右へ消す
+	db	10,0
+	dw	(SpritePatternAddress+11*64)/32
+	db	2
+	db	10,0
+	dw	(SpritePatternAddress+08*64)/32
+	db	2
+
+	db	10,1
+	dw	(SpritePatternAddress+11*64)/32
+	db	2
+	db	10,1
+	dw	(SpritePatternAddress+08*64)/32
+	db	2
+
+	db	10,2
+	dw	(SpritePatternAddress+11*64)/32
+	db	2
+	db	10,2
+	dw	(SpritePatternAddress+08*64)/32
+	db	2
+
+	db	10,3
+	dw	(SpritePatternAddress+11*64)/32
+	db	2
+	db	10,3
+	dw	(SpritePatternAddress+08*64)/32
+	db	2
+
+	db	10,4
+	dw	(SpritePatternAddress+11*64)/32
+	db	2
+	db	10,4
+	dw	(SpritePatternAddress+08*64)/32
+	db	2
+				;ヘビの体の色を変化
+	db	12,5
+	dw	$00
+	db	2
+	db	14
+	dw	11+25*32,.BodyParts_red
+	db	1
+	db	2
+	db	14
+	dw	12+25*32,.BodyParts_red
+	db	1
+	db	2
+	db	14
+	dw	13+25*32,.BodyParts_red
+	db	1
+	db	2
+	db	14
+	dw	14+25*32,.BodyParts_red
+	db	1
+	db	2
+	db	14
+	dw	15+25*32,.BodyParts_red
+	db	1
+	db	2
+	db	14
+	dw	16+25*32,.BodyParts_red
+	db	1
+	db	2
+	db	12,6
+	dw	$00
+	db	2
+
+	db	12,0
+	dw	$00
+	db	12,1
+	dw	$00
+	db	8,2
+	dw	0,0
+	db	8,3
+	dw	0,0
+	db	8,4
+	dw	0,0
+	db	8,5
+	dw	0,0
+	db	8,6
+	dw	0,0
+
+	db	0
+
+.BodyParts:
+	dw	BodyPartsR | $3000
+	dw	BodyPartsR | $3000
+	dw	BodyPartsR | $3000
+	dw	BodyPartsR | $3000
+	dw	BodyPartsR | $3000
+	dw	BodyPartsR | $3000
+
+.BodyParts_red:
+	dw	BodyPartsR | $2000
 
 
 ;	psg test	
