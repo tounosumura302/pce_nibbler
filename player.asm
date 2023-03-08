@@ -221,31 +221,36 @@ plSetDir:
 
                                 ;胴体のキャラクタ番号
 PatternAddress  equ $1000
-BodyPartsL  equ (PatternAddress+62*16)/16
-BodyPartsD  equ (PatternAddress+63*16)/16
-BodyPartsR  equ (PatternAddress+64*16)/16
-BodyPartsU  equ (PatternAddress+65*16)/16
+;BodyPartsL  equ (PatternAddress+66*16)/16
+;BodyPartsL  equ BG_BODY_L
+;BodyPartsD  equ (PatternAddress+67*16)/16
+;BodyPartsR  equ (PatternAddress+68*16)/16
+;BodyPartsU  equ (PatternAddress+69*16)/16
 
-BodyPartsLU equ (PatternAddress+66*16)/16
-BodyPartsRU equ (PatternAddress+67*16)/16
-BodyPartsLD equ (PatternAddress+68*16)/16
-BodyPartsRD equ (PatternAddress+69*16)/16
+;BodyPartsLU equ (PatternAddress+70*16)/16
+;BodyPartsRU equ (PatternAddress+71*16)/16
+;BodyPartsLD equ (PatternAddress+72*16)/16
+;BodyPartsRD equ (PatternAddress+73*16)/16
 
 .BodyPartsTiles:
-    dw  BodyPartsU | $2000
-    dw  BodyPartsR | $2000
-    dw  BodyPartsD | $2000
-    dw  BodyPartsL | $2000
-;    dw  BodyPartsLU
-;    dw  BodyPartsRU
-;    dw  BodyPartsLD
-;    dw  BodyPartsRD
+    dw  BG_BODY_U | $2000
+    dw  BG_BODY_R | $2000
+    dw  BG_BODY_D | $2000
+    dw  BG_BODY_L | $2000
+;    dw  BodyPartsU | $2000
+;    dw  BodyPartsR | $2000
+;    dw  BodyPartsD | $2000
+;    dw  BodyPartsL | $2000
 
 .BodyCornerPartsTiles:
-    dw  (PatternAddress+66*16)/16 | $2000
-    dw  (PatternAddress+67*16)/16 | $2000
-    dw  (PatternAddress+68*16)/16 | $2000
-    dw  (PatternAddress+69*16)/16 | $2000
+    dw  BG_BODY_CORNER_UL | $2000
+    dw  BG_BODY_CORNER_UR | $2000
+    dw  BG_BODY_CORNER_DL | $2000
+    dw  BG_BODY_CORNER_DR | $2000
+;    dw  (PatternAddress+70*16)/16 | $2000
+;    dw  (PatternAddress+71*16)/16 | $2000
+;    dw  (PatternAddress+72*16)/16 | $2000
+;    dw  (PatternAddress+73*16)/16 | $2000
 
 SpritePatternAddress  equ $4000
 .HeadPartsTiles:
@@ -461,7 +466,7 @@ plHeadAction:
 ;    dw  (PatternAddress+66*16)/16
 
 BlankPartsTiles:
-    dw  (PatternAddress+48*16)/16
+    dw  (PatternAddress+52*16)/16
 
 
 
@@ -764,9 +769,9 @@ plWriteBodyPattern:
     adc #0
     sta <zarg3
                             ;LのVRAMアドレス
-    lda #LOW(PatternAddress+62*16)
+    lda #LOW(PatternAddress+66*16)
     sta <zarg0
-    lda #HIGH(PatternAddress+62*16)
+    lda #HIGH(PatternAddress+66*16)
     sta <zarg1
     jsr vqPush
                             ;Dのパターンアドレス
@@ -778,9 +783,9 @@ plWriteBodyPattern:
     adc #0
     sta <zarg3
                             ;DのVRAMアドレス
-    lda #LOW(PatternAddress+63*16)
+    lda #LOW(PatternAddress+67*16)
     sta <zarg0
-    lda #HIGH(PatternAddress+63*16)
+    lda #HIGH(PatternAddress+67*16)
     sta <zarg1
     jsr vqPush
                             ;Rのパターンアドレス
@@ -792,9 +797,9 @@ plWriteBodyPattern:
     adc #0
     sta <zarg3
                             ;RのVRAMアドレス
-    lda #LOW(PatternAddress+64*16)
+    lda #LOW(PatternAddress+68*16)
     sta <zarg0
-    lda #HIGH(PatternAddress+64*16)
+    lda #HIGH(PatternAddress+68*16)
     sta <zarg1
     jsr vqPush
                             ;Uのパターンアドレス
@@ -806,9 +811,9 @@ plWriteBodyPattern:
     adc #0
     sta <zarg3
                             ;UのVRAMアドレス
-    lda #LOW(PatternAddress+65*16)
+    lda #LOW(PatternAddress+69*16)
     sta <zarg0
-    lda #HIGH(PatternAddress+65*16)
+    lda #HIGH(PatternAddress+69*16)
     sta <zarg1
     jsr vqPush
 

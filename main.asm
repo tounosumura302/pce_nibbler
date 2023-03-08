@@ -18,6 +18,7 @@ zarg4:	ds	1
 zarg5:	ds	1
 zarg6:	ds	1
 zarg7:	ds	1
+zarg8:	ds	1
 
 
 	;; scroll counter
@@ -238,6 +239,8 @@ DrawStatusString:
 	lda	#HIGH(zleft)
 	sta	<zarg6
 	stz	<zarg7
+	lda	#HIGH(BGPAL_WHITE)
+	sta	<zarg8
 	jsr	drawDigits
 
 	lda #LOW(5+31*32)
@@ -256,14 +259,16 @@ DrawStatusString:
 	sta	<zarg6
 	lda	#3
 	sta	<zarg7
+	lda	#HIGH(BGPAL_CYAN)
+	sta	<zarg8
 	jsr	drawDigits
 
 	rts
-.player1:	dw	$100+37,$100+38,$100+39,$100+40
-.hiscore:	dw	$100+41,$100+42,$100+43,$100+44
-.left:		dw	$100+45,$100+46
-.time:		dw	$100+29,$100+18,$100+22,$100+14
-.wave:		dw	$100+32,$100+10,$100+31,$100+14
+.player1:	dw	($100+38)|BGPAL_YELLOW,($100+39)|BGPAL_YELLOW,($100+40)|BGPAL_YELLOW,($100+41)|BGPAL_YELLOW
+.hiscore:	dw	($100+42)|BGPAL_CYAN  ,($100+43)|BGPAL_CYAN  ,($100+44)|BGPAL_CYAN  ,($100+45)|BGPAL_CYAN
+.left:		dw	($100+46)|BGPAL_YELLOW,($100+47)|BGPAL_YELLOW
+.time:		dw	($100+29)|BGPAL_YELLOW,($100+18)|BGPAL_YELLOW,($100+22)|BGPAL_YELLOW,($100+14)|BGPAL_YELLOW
+.wave:		dw	($100+32)|BGPAL_WHITE ,($100+10)|BGPAL_WHITE ,($100+31)|BGPAL_WHITE ,($100+14)|BGPAL_WHITE 
 
 WaveClearTask:
 	lda	<zwave
@@ -308,6 +313,8 @@ StatusTask:
 	lda	#HIGH(ztime)
 	sta	<zarg6
 	stz	<zarg7
+	lda	#HIGH(BGPAL_WHITE)
+	sta	<zarg8
 	jsr	drawDigits
 ;.yield:
 ;	jsr	tkYield
@@ -334,6 +341,8 @@ StatusTask:
 	sta	<zarg6
 	lda	#3
 	sta	<zarg7
+	lda	#HIGH(BGPAL_WHITE)
+	sta	<zarg8
 	jsr	drawDigits
 .yield:
 	jsr	tkYield
@@ -374,7 +383,9 @@ VSyncTask:
 	jsr	tkYield
 	bra	VSyncTask
 
-
+;
+;	nibbler出現時のアニメーション
+;
 NibblerAppearTask:
 	lda	#LOW(.script)
 	sta	<zarg0
@@ -386,18 +397,19 @@ NibblerAppearTask:
 .loop:
 	jsr	scrExecute
 	bcs	.end
-	jsr	tkYield
+	tkYield_
 	bra	.loop
 
 .end:
 	tkChangeTask_	tklGameMain
-	jsr	tkYield
+	tkYield_
 
+	; nibbler出現時のアニメーションスクリプト
 .script:
 	scrSetInterval_	2
 	; クロスハッチ用スプライト配置
-	scrSetSprite_	0,(11*3+1)*8+4,(4*3+1)*8,(SpritePatternAddress+08*64)/32,$82
-	scrSetSprite_	1,(11*3+1)*8+4,(4*3+1)*8+16,(SpritePatternAddress+08*64)/32,$82
+	scrSetSprite_	0,(11*3+1)*8+4,(4*3+1)*8+16*0,(SpritePatternAddress+08*64)/32,$82
+	scrSetSprite_	1,(11*3+1)*8+4,(4*3+1)*8+16*1,(SpritePatternAddress+08*64)/32,$82
 	scrSetSprite_	2,(11*3+1)*8+4,(4*3+1)*8+16*2,(SpritePatternAddress+08*64)/32,$82
 	scrSetSprite_	3,(11*3+1)*8+4,(4*3+1)*8+16*3,(SpritePatternAddress+08*64)/32,$82
 	scrSetSprite_	4,(11*3+1)*8+4,(4*3+1)*8+16*4,(SpritePatternAddress+08*64)/32,$82
@@ -428,7 +440,7 @@ NibblerAppearTask:
 	scrSetSpritePattern_	4,(SpritePatternAddress+10*64)/32
 	scrWait_
 	; ヘビの体を表示
-	scrSetBG_	11+25*32,.BodyParts,6
+	scrSetBG_	11+25*32,.BodyParts_blue,6
 	scrSetSprite_	5,(11*3+1)*8+4,(4*3+1)*8,(SpritePatternAddress+06*64)/32,$01
 	scrSetSprite_	6,(11*3+1)*8+4,(4*3+1)*8+16+16+16+8,(SpritePatternAddress+01*64)/32,$81
 	scrWait_
@@ -474,6 +486,7 @@ NibblerAppearTask:
 	scrWait_
 	scrSetSpriteAttribute_	6,$00
 	scrWait_
+	scrWait_
 	; スプライトの後始末
 	scrSetSpriteAttribute_	0,$00
 	scrSetSpriteAttribute_	1,$00
@@ -485,166 +498,18 @@ NibblerAppearTask:
 
 	scrEnd_
 
+	; 胴体表示データ（青）
+.BodyParts_blue:
+	dw	BG_BODY_R | $3000
+	dw	BG_BODY_R | $3000
+	dw	BG_BODY_R | $3000
+	dw	BG_BODY_R | $3000
+	dw	BG_BODY_R | $3000
+	dw	BG_BODY_R | $3000
 
-
-	db	4,2
-				;クロスハッチ用スプライト配置
-	db	6,0
-	dw	(11*3+1)*8+4,(4*3+1)*8
-	dw	(SpritePatternAddress+08*64)/32,$82
-	db	6,1
-	dw	(11*3+1)*8+4,(4*3+1)*8+16
-	dw	(SpritePatternAddress+08*64)/32,$82
-	db	6,2
-	dw	(11*3+1)*8+4,(4*3+1)*8+16+16
-	dw	(SpritePatternAddress+08*64)/32,$82
-	db	6,3
-	dw	(11*3+1)*8+4,(4*3+1)*8+16+16+16
-	dw	(SpritePatternAddress+08*64)/32,$82
-	db	6,4
-	dw	(11*3+1)*8+4,(4*3+1)*8+16+16+16+16
-	dw	(SpritePatternAddress+08*64)/32,$82
-	db	2
-				;クロスハッチを左から右へ
-	db	10,0
-	dw	(SpritePatternAddress+09*64)/32
-	db	2
-	db	10,0
-	dw	(SpritePatternAddress+10*64)/32
-	db	2
-
-	db	10,1
-	dw	(SpritePatternAddress+09*64)/32
-	db	2
-	db	10,1
-	dw	(SpritePatternAddress+10*64)/32
-	db	2
-
-	db	10,2
-	dw	(SpritePatternAddress+09*64)/32
-	db	2
-	db	10,2
-	dw	(SpritePatternAddress+10*64)/32
-	db	2
-
-	db	10,3
-	dw	(SpritePatternAddress+09*64)/32
-	db	2
-	db	10,3
-	dw	(SpritePatternAddress+10*64)/32
-	db	2
-
-	db	10,4
-	dw	(SpritePatternAddress+09*64)/32
-	db	2
-	db	10,4
-	dw	(SpritePatternAddress+10*64)/32
-	db	2
-				;ヘビを描画
-	db	14
-	dw	11+25*32,.BodyParts
-	db	6
-	db	6,5
-	dw	(11*3+1)*8+4,(4*3+1)*8
-	dw	(SpritePatternAddress+06*64)/32,$01
-	db	6,6
-	dw	(11*3+1)*8+4,(4*3+1)*8+16+16+16+8
-	dw	(SpritePatternAddress+01*64)/32,$81
-	db	2
-				;クロスハッチを左から右へ消す
-	db	10,0
-	dw	(SpritePatternAddress+11*64)/32
-	db	2
-	db	10,0
-	dw	(SpritePatternAddress+08*64)/32
-	db	2
-
-	db	10,1
-	dw	(SpritePatternAddress+11*64)/32
-	db	2
-	db	10,1
-	dw	(SpritePatternAddress+08*64)/32
-	db	2
-
-	db	10,2
-	dw	(SpritePatternAddress+11*64)/32
-	db	2
-	db	10,2
-	dw	(SpritePatternAddress+08*64)/32
-	db	2
-
-	db	10,3
-	dw	(SpritePatternAddress+11*64)/32
-	db	2
-	db	10,3
-	dw	(SpritePatternAddress+08*64)/32
-	db	2
-
-	db	10,4
-	dw	(SpritePatternAddress+11*64)/32
-	db	2
-	db	10,4
-	dw	(SpritePatternAddress+08*64)/32
-	db	2
-				;ヘビの体の色を変化
-	db	12,5
-	dw	$00
-	db	2
-	db	14
-	dw	11+25*32,.BodyParts_red
-	db	1
-	db	2
-	db	14
-	dw	12+25*32,.BodyParts_red
-	db	1
-	db	2
-	db	14
-	dw	13+25*32,.BodyParts_red
-	db	1
-	db	2
-	db	14
-	dw	14+25*32,.BodyParts_red
-	db	1
-	db	2
-	db	14
-	dw	15+25*32,.BodyParts_red
-	db	1
-	db	2
-	db	14
-	dw	16+25*32,.BodyParts_red
-	db	1
-	db	2
-	db	12,6
-	dw	$00
-	db	2
-
-	db	12,0
-	dw	$00
-	db	12,1
-	dw	$00
-	db	8,2
-	dw	0,0
-	db	8,3
-	dw	0,0
-	db	8,4
-	dw	0,0
-	db	8,5
-	dw	0,0
-	db	8,6
-	dw	0,0
-
-	db	0
-
-.BodyParts:
-	dw	BodyPartsR | $3000
-	dw	BodyPartsR | $3000
-	dw	BodyPartsR | $3000
-	dw	BodyPartsR | $3000
-	dw	BodyPartsR | $3000
-	dw	BodyPartsR | $3000
-
+	; 胴体表示データ（赤）
 .BodyParts_red:
-	dw	BodyPartsR | $2000
+	dw	BG_BODY_R | $2000
 
 
 ;	psg test	

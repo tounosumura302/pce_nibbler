@@ -17,7 +17,6 @@ WAVEMAP_BANK    equ 6
         .include "task.asm"
     .include "script.asm"
 ;        .include "chrdriver.asm"
-        .include "player.asm"
 ;        .include "pbullet.asm"
 ;        .include "direction.asm"
 ;        .include "enemy.asm"
@@ -33,6 +32,7 @@ WAVEMAP_BANK    equ 6
         .include "vqueue.asm"
     .include "digits.asm"
     
+        .include "player.asm"
         
         
         

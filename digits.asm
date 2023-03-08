@@ -6,8 +6,11 @@
 ;   上位桁の0は空白で表示
 ;
 ;   @args       zarg0,1 = BAT address
-;               zarg2,3 = 数値データアドレス
+;               zarg2,3 = 表示データアドレス
 ;               zarg4   = 数値データの長さ（バイト）
+;               zarg5,6 = 数値データアドレス
+;               zarg7   = カンマの間隔（なしなら 0）
+;               zarg8   = パレット
 ;   @saveregs   なし
 ;   @return     なし
 drawDigits:
@@ -19,6 +22,8 @@ drawDigits:
 .arg_bcdadr_l   equ zarg5
 .arg_bcdadr_h   equ zarg6
 .arg_comma_count    equ zarg7
+.arg_palette    equ zarg8
+
 
 .tmp_comma_count    equ ztmp0
 
@@ -35,9 +40,11 @@ drawDigits:
     asl a
     tay
 
+                        ;表示データの各桁の上位1バイト1をセットしておく
     dey
-
-    lda #1
+;    lda #1
+    lda <.arg_palette
+    ora #1              ;BGパターンは $1xx （xx はBCD）とする
 .clearloop:
     sta [.arg_bufadr_l],y
     cpy #1
@@ -67,7 +74,8 @@ drawDigits:
     dec <.tmp_comma_count
     bne .drawl
     pha
-    lda #36
+;    lda #36
+    lda #LOW(BG_COMMA)
     sta [.arg_bufadr_l],y
     dey
     dey
@@ -85,7 +93,8 @@ drawDigits:
     dec <.tmp_comma_count
     bne .drawh
 ;    pha
-    lda #36
+;    lda #36             ; TODO: カンマのコード
+    lda #LOW(BG_COMMA)
     sta [.arg_bufadr_l],y
     dey
     dey
@@ -122,7 +131,8 @@ drawDigits:
     cmp #36
     bne .push
 .next:
-    lda #48
+;    lda #52             ; TOOD: スペースのコード
+    lda #LOW(BG_SPACE)
     sta [.arg_bufadr_l],y
     iny
     iny
@@ -140,226 +150,8 @@ drawDigits:
     rts
 
 
-    .if 0
-drawDigits:
-.arg_batadr_l   equ zarg0
-.arg_batadr_h   equ zarg1
-.arg_bufadr_l   equ zarg2
-.arg_bufadr_h   equ zarg3
-.arg_len        equ zarg4
-.arg_bcdadr_l   equ zarg5
-.arg_bcdadr_h   equ zarg6
-.arg_comma_count    equ zarg7
-
-.tmp_comma_count    equ ztmp0
-                        ;BCDを1バイト1桁の文字列に変換
-    ldy <.arg_len
-    dey                 ;Y = 数値データのインデックス
-    clx                 ;X = 描画データバッファのインデックス
-
-                        ;上位の桁が0の場合は0ではなく空白を描画
-.blankloop:
-                        ;BCDの上位桁
-    lda [.arg_bcdadr_l],y
-    sxy
-    pha
-
-    lsr a
-    lsr a
-    lsr a
-    lsr a
-    bne .drawh
-    lda #48             ;TODO: 空白が48
-    sta [.arg_bufadr_l],y
-    iny
-    lda #1
-    sta [.arg_bufadr_l],y
-    iny
-                        ;BCDの下位桁
-    pla
-    and #$0f
-    bne .drawl
-    lda #48             ;TODO: 空白が48
-    sta [.arg_bufadr_l],y
-    iny
-    lda #1
-    sta [.arg_bufadr_l],y
-    iny
-
-    sxy
-    cpy #0
-    beq .push
-    dey
-    bra .blankloop
-
-                        ;数値の描画
-.drawloop:
-                        ;BCDの上位桁
-    lda [.arg_bcdadr_l],y
-    sxy
-    pha
-
-    lsr a
-    lsr a
-    lsr a
-    lsr a
-.drawh:
-    sta [.arg_bufadr_l],y
-    iny
-    lda #1
-    sta [.arg_bufadr_l],y
-    iny
-                        ;BCDの下位桁
-    pla
-    and #$0f
-.drawl:
-    sta [.arg_bufadr_l],y
-    iny
-    lda #1
-    sta [.arg_bufadr_l],y
-    iny
-
-    sxy
-    cpy #0
-    beq .push
-    dey
-    bra .drawloop
-
-.push:
-    asl <zarg4
-    jsr vqPush
-
-    rts
-
-    .endif
-
-    .if 0
-
-drawDigits:
-.arg_batadr_l   equ zarg0
-.arg_batadr_h   equ zarg1
-.arg_adr_l  equ zarg2
-.arg_adr_h  equ zarg3
-.arg_len    equ zarg4
-.arg_buffer_ix  equ zarg5
-.arg_comma_num  equ zarg6
-
-.tmp_comma_count    equ ztmp0
-                        ;BCDを1バイト1桁の文字列に変換
-    ldy <.arg_len
-    dey                 ;Y = 数値データのインデックス
-;    clx                 ;X = 描画データバッファのインデックス
-    ldx <.arg_buffer_ix
-
-                        ;上位の桁が0の場合は0ではなく空白を描画
-.blankloop:
-                        ;BCDの上位桁
-    lda [.arg_adr_l],y
-    lsr a
-    lsr a
-    lsr a
-    lsr a
-    bne .drawh
-    lda #48             ;TODO: 空白が48
-    sta dgBuffer,x
-    inx
-                        ;BCDの下位桁
-    lda [.arg_adr_l],y
-    and #$0f
-    bne .drawl
-    lda #48             ;TODO: 空白が48
-    sta dgBuffer,x
-    inx
-
-    cpy #0
-    beq .convert
-    dey
-    bra .blankloop
-
-                        ;数値の描画
-.drawloop:
-                        ;BCDの上位桁
-    lda [.arg_adr_l],y
-    lsr a
-    lsr a
-    lsr a
-    lsr a
-.drawh:
-    sta dgBuffer,x
-    inx
-                        ;BCDの下位桁
-    lda [.arg_adr_l],y
-    and #$0f
-.drawl:
-    sta dgBuffer,x
-    inx
-    cpy #0
-    beq .convert
-    dey
-    bra .drawloop
-
-                        ;文字列をBATデータに変換
-.convert:
-    lda <.arg_len
-    asl a
-    tax
-    asl a
-    clc
-    adc <.arg_comma_num
-    adc <.arg_comma_num
-    tay
-                        ;vqPush のパラメータ（長さ）をあらかじめセット
-    txa
-    clc
-    adc <.arg_comma_num
-    sta <zarg4
-                        ;カンマのカウンタ
-                        ;arg_comma_num（カンマの数）が0の場合はカンマカウンタを0にすることで事実上表示されないようになる
-    lda <.arg_comma_num
-    beq .set
-    lda #4
-.set:
-    sta <.tmp_comma_count
-
-.convloop:
-    dey
-    dey
-    dex
-                        ;カンマをセット
-    dec <.tmp_comma_count
-    bne .nocomma
-    lda #3
-    sta <.tmp_comma_count
-                        ;TODO: カンマのVRAMアドレスが $1240〜 であること
-    lda #36
-    sta dgBuffer,y
-    lda #1
-    sta dgBuffer+1,y
-    dey
-    dey
-.nocomma:
-                        ;TODO: 数字のVRAMアドレスが $1000〜 であること
-    lda dgBuffer,x
-    sta dgBuffer,y
-    lda #1
-    sta dgBuffer+1,y
-
-    cpx #0
-    bne .convloop
-
-    lda #LOW(dgBuffer)
-    sta <zarg2
-    lda #HIGH(dgBuffer)
-    sta <zarg3
-                        ;zarg4（長さ）は上でセット済み
-    jsr vqPush
-
-    rts
-
-    .endif
-
-    .bss
-                        ;BCD変換バッファ
-dgBuffer    ds  64
+;    .bss
+;                        ;BCD変換バッファ
+;dgBuffer    ds  64
 
     .code
