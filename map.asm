@@ -220,6 +220,8 @@ DrawMapGrid:
     bbr7    <.tmp_dotcombi,.setchar
 
     inc <zdotnum            ;ドット数を増加
+;    lda #1
+;    sta <zdotnum
 
     lda #$0f
     tsb <.tmp_vmap_value

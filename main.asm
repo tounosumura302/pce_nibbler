@@ -114,10 +114,10 @@ main:
 
 	stz	<zwave
 
-	lda	#$99
-	sta	<ztime
-	lda	#$9
-	sta	<ztime+1
+;	lda	#$99
+;	sta	<ztime
+;	lda	#$9
+;	sta	<ztime+1
 
 	lda	#$0
 	sta	<zscore
@@ -152,14 +152,19 @@ mainloop:
 DrawWaveTask:
 	jsr	DrawWave
 	jsr	plInit
+
+	lda	#$99
+	sta	<ztime
+	lda	#$9
+	sta	<ztime+1
 	jsr	DrawStatusString
 
-	jsr	tkYield
+	tkYield_
 
 ;	tkChangeTask_	tklGameMain
 	tkChangeTask_	tklAppear
-	jsr	tkYield
-	bra	DrawWaveTask
+	tkYield_
+;	bra	DrawWaveTask
 
 DrawStatusString:
 						;PLAYER1
@@ -265,12 +270,61 @@ DrawStatusString:
 
 	rts
 .player1:	dw	($100+38)|BGPAL_YELLOW,($100+39)|BGPAL_YELLOW,($100+40)|BGPAL_YELLOW,($100+41)|BGPAL_YELLOW
-.hiscore:	dw	($100+42)|BGPAL_CYAN  ,($100+43)|BGPAL_CYAN  ,($100+44)|BGPAL_CYAN  ,($100+45)|BGPAL_CYAN
+.hiscore:	dw	($100+42)|BGPAL_RED   ,($100+43)|BGPAL_RED   ,($100+44)|BGPAL_RED   ,($100+45)|BGPAL_RED
 .left:		dw	($100+46)|BGPAL_YELLOW,($100+47)|BGPAL_YELLOW
 .time:		dw	($100+29)|BGPAL_YELLOW,($100+18)|BGPAL_YELLOW,($100+22)|BGPAL_YELLOW,($100+14)|BGPAL_YELLOW
 .wave:		dw	($100+32)|BGPAL_WHITE ,($100+10)|BGPAL_WHITE ,($100+31)|BGPAL_WHITE ,($100+14)|BGPAL_WHITE 
 
 WaveClearTask:
+						;TIME->BONUS 書き換え
+	lda #LOW(19+31*32)
+    sta <zarg0
+    lda #HIGH(19+31*32)
+    sta <zarg1
+	lda	#LOW(.bonus)
+	sta	<zarg2
+	lda	#HIGH(.bonus)
+	sta	<zarg3
+	lda	#4
+	sta	<zarg4
+	jsr	vqPush
+
+						;点数
+	lda	#$10
+	sta	<zpoint
+	stz	<zpoint+1
+						;残りタイムをスコアに加算する
+.bonusloop:
+	sed
+
+	lda	<ztime
+	bne	.count
+	lda	<ztime+1
+	beq	.endtime
+	
+	sec
+	sbc	#1
+	sta	<ztime+1
+	cla
+.count:
+	sec
+	sbc	#1
+	sta	<ztime
+
+	cld
+
+	jsr	addScore
+
+	jsr	drawTime
+	jsr	drawScore
+
+	tkYield_
+	bra	.bonusloop
+
+						;終了
+.endtime:
+	cld
+
 	lda	<zwave
 	inc	a
 	cmp	#100
@@ -280,24 +334,12 @@ WaveClearTask:
 	sta	<zwave
 
 	tkChangeTask_	tklInitWave
-	jsr	tkYield
+	tkYield_
 
-StatusTask:
-					;TODO: タイマーの減少間隔調整
-	lda	<zframe
-	and	#32-1
-	bne	.score
+.bonus:		dw	BG_SPACE|BGPAL_YELLOW,BG_BONUS|BGPAL_YELLOW,(BG_BONUS+1)|BGPAL_YELLOW,(BG_BONUS+2)|BGPAL_YELLOW
 
-	sed
-	lda	<ztime
-	sec
-	sbc	#1
-	sta	<ztime
-	lda	<ztime+1
-	sbc	#0
-	sta	<ztime+1
-	cld
 
+drawTime:
 	lda #LOW(23+31*32)
     sta <zarg0
     lda #HIGH(23+31*32)
@@ -316,15 +358,10 @@ StatusTask:
 	lda	#HIGH(BGPAL_WHITE)
 	sta	<zarg8
 	jsr	drawDigits
-;.yield:
-;	jsr	tkYield
-;	bra	TimerTask
-;
-;ScoreTask:
-.score:
-	tst	#$0f,<zframe
-	bne	.yield
 
+	rts
+
+drawScore:
 	lda #LOW(5+30*32)
     sta <zarg0
     lda #HIGH(5+30*32)
@@ -344,9 +381,113 @@ StatusTask:
 	lda	#HIGH(BGPAL_WHITE)
 	sta	<zarg8
 	jsr	drawDigits
+
+	rts
+
+StatusTask:
+					;TODO: タイマーの減少間隔調整
+	lda	<zframe
+	and	#32-1
+	bne	.score
+
+	sed
+	lda	<ztime
+	sec
+	sbc	#1
+	sta	<ztime
+	lda	<ztime+1
+	sbc	#0
+	sta	<ztime+1
+	cld
+
+	jsr	drawTime
+;	lda #LOW(23+31*32)
+;    sta <zarg0
+;    lda #HIGH(23+31*32)
+;    sta <zarg1
+;	lda	#LOW(timerBuffer)
+;	sta	<zarg2
+;	lda	#HIGH(timerBuffer)
+;	sta	<zarg3
+;	lda	#2
+;	sta	<zarg4
+;	lda	#LOW(ztime)
+;	sta	<zarg5
+;	lda	#HIGH(ztime)
+;	sta	<zarg6
+;	stz	<zarg7
+;	lda	#HIGH(BGPAL_WHITE)
+;	sta	<zarg8
+;	jsr	drawDigits
+
+;.yield:
+;	jsr	tkYield
+;	bra	TimerTask
+;
+;ScoreTask:
+.score:
+	tst	#$0f,<zframe
+	bne	.yield
+
+	jsr	drawScore
+;	lda #LOW(5+30*32)
+;    sta <zarg0
+;    lda #HIGH(5+30*32)
+;    sta <zarg1
+;	lda	#LOW(scoreBuffer)
+;	sta	<zarg2
+;	lda	#HIGH(scoreBuffer)
+;	sta	<zarg3
+;	lda	#5
+;	sta	<zarg4
+;	lda	#LOW(zscore)
+;	sta	<zarg5
+;	lda	#HIGH(zscore)
+;	sta	<zarg6
+;	lda	#3
+;	sta	<zarg7
+;	lda	#HIGH(BGPAL_WHITE)
+;	sta	<zarg8
+;	jsr	drawDigits
 .yield:
 	jsr	tkYield
 	bra	StatusTask
+
+
+;
+;	スコア加算
+;
+;       @args           zpoint = 加算する点数（2バイト、1000点の桁まで）
+;       @saveregs       x,y
+;       @return         なし
+
+addScore:
+.arg_scoreptr	equ	zarg0
+
+	sed
+
+	lda	<zscore
+	clc
+	adc	<zpoint
+	sta	<zscore
+	lda	<zscore+1
+	adc	<zpoint+1
+	sta	<zscore+1
+	lda	<zscore+2
+	adc	#0
+	sta	<zscore+2
+	lda	<zscore+3
+	adc	#0
+	sta	<zscore+3
+	lda	<zscore+4
+	adc	#0
+	sta	<zscore+4
+
+	cld
+	rts
+
+	.zp
+zpoint	ds	5
 
 	.bss
 timerBuffer	ds	2*2*2
@@ -488,8 +629,8 @@ NibblerAppearTask:
 	scrWait_
 	scrWait_
 	; スプライトの後始末
-	scrSetSpriteAttribute_	0,$00
-	scrSetSpriteAttribute_	1,$00
+	scrSetSpriteAttribute_	0,$80	;頭　スプライト優先
+	scrSetSpriteAttribute_	1,$00	;尻尾
 	scrSetSpritePosition_	2,0,0
 	scrSetSpritePosition_	3,0,0
 	scrSetSpritePosition_	4,0,0
