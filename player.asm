@@ -24,7 +24,7 @@ zplheadtileh: ds  2   ;頭のキャラクタ番号を保存したアドレス（
 zplTailStop:    ds  1   ;尻尾を停止させる
 zplTailPriority:    ds  1   ;尻尾の表示プライオリティ
 
-zplcount:       ds  1
+zplcount:       ds  2
 
     .code
     .bank   MAIN_BANK
@@ -41,6 +41,7 @@ plInit:
 
     stz <zplTailStop
     stz <zplcount
+    stz <zplcount+1
 
     lda #%10000000
     sta <zplTailPriority
@@ -51,7 +52,7 @@ plInit:
     sta     <zplx
     lda     #(8*3+1)*8
     sta     <zply
-    lda     #4
+    lda     #3
     sta     <zplspeed
     lda     #%00100000
     jsr     plSetDir
@@ -61,7 +62,7 @@ plInit:
     sta     <zplx,x
     lda     #(8*3+1)*8
     sta     <zply,x
-    lda     #4
+    lda     #3
     sta     <zplspeed,x
     lda     #%00100000
     jsr     plSetDir
@@ -312,9 +313,10 @@ plHeadAction:
 .tmp_dead_flg   equ ztmp0
 
                         ;グリッドの中間にいる場合は何もしない
-    lda <zplx,x
-    ora <zply,x
-    and #$07
+    tst #$7,<zplcount,x
+;    lda <zplx,x
+;    ora <zply,x
+;    and #$07
     beq .act
     jmp .move           ;branchだと届かない
 ;    clc
@@ -490,9 +492,10 @@ plTailAction:
     rts
 .go:
                         ;グリッド同士の間にいる場合
-    lda <zplx,x
-    ora <zply,x
-    and #$07
+    tst #$7,<zplcount,x
+;    lda <zplx,x
+;    ora <zply,x
+;    and #$07
     bne .move2
 ;    beq .move
 ;    clc
@@ -679,6 +682,23 @@ SpritePatternAddress  equ $4000
 ;       @saveregs       x,y
 ;       @return         なし
 plMove:
+.tmp_x  equ ztmp0
+.tmp_y  equ ztmp1
+
+    lda <zplx,x
+    sta <.tmp_x
+    lda <zply,x
+    sta <.tmp_y
+
+    lda <zplcount,x
+    clc
+    adc <zplspeed
+    cmp #8
+    bcc .under8
+    lda #8
+.under8:
+    sta <zplcount,x
+
     lda     <zpldir,x         ;bits of zpldir = LDRU----
     asl     a
     bcs     .moveleft
@@ -688,28 +708,44 @@ plMove:
     bcs     .moveright
     bpl     .notmove
 .moveup:
-    lda     <zply,x
+    lda <.tmp_y
     sec
-    sbc     <zplspeed,x
-    sta     <zply,x
+    sbc <zplcount,x
+    sta <.tmp_y
+;    lda     <zply,x
+;    sec
+;    sbc     <zplspeed,x
+;    sta     <zply,x
     bra     .moved
 .moveleft:
-    lda     <zplx,x
+    lda <.tmp_x
     sec
-    sbc     <zplspeed,x
-    sta     <zplx,x
+    sbc <zplcount,x
+    sta <.tmp_x
+;    lda     <zplx,x
+;    sec
+;    sbc     <zplspeed,x
+;    sta     <zplx,x
     bra     .moved
 .movedown:
-    lda     <zply,x
+    lda <.tmp_y
     clc
-    adc     <zplspeed,x
-    sta     <zply,x
+    adc <zplcount,x
+    sta <.tmp_y
+;    lda     <zply,x
+;    clc
+;    adc     <zplspeed,x
+;    sta     <zply,x
     bra     .moved
 .moveright:
-    lda     <zplx,x
+    lda <.tmp_x
     clc
-    adc     <zplspeed,x
-    sta     <zplx,x
+    adc <zplcount,x
+    sta <.tmp_x
+;    lda     <zplx,x
+;    clc
+;    adc     <zplspeed,x
+;    sta     <zplx,x
 .notmove:
 .moved:
                         ;スプライト座標設定
@@ -719,14 +755,16 @@ plMove:
     asl a
     tay
 
-    lda     <zplx,x
+;    lda     <zplx,x
+    lda <.tmp_x
     clc
     adc     #$20-4
     sta     satb+2,y
     cla
     sta     satb+3,y
 
-    lda     <zply,x
+;    lda     <zply,x
+    lda <.tmp_y
     clc
     adc     #$40-4+16+1   ;+16 はスクロールカウンタの差分
     sta     satb+0,y
@@ -734,11 +772,18 @@ plMove:
     adc     #0
     sta     satb+1,y
 
-;    lda <zplheadtilel,x
-;    sta satb+4,y
-;    lda <zplheadtileh,x
-;    sta satb+5,y
 
+    lda <zplcount,x
+    cmp #8
+    beq .movetonextgrid
+    rts
+
+.movetonextgrid:
+    lda <.tmp_x
+    sta <zplx,x
+    lda <.tmp_y
+    sta <zply,x
+    stz <zplcount,x
     rts
 
 
@@ -834,10 +879,10 @@ plTask:
 ;	jsr	plMove
 
                     ;胴体のパターン書き換え
-    lda <zplcount
-    clc
-    adc <zplspeed
-    sta <zplcount
+;    lda <zplcount
+;    clc
+;    adc <zplspeed
+;    sta <zplcount
     jsr plWriteBodyPattern
 
                     ;尻尾
