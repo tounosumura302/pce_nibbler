@@ -30,6 +30,7 @@ zframe:	.ds	1
 
 zdotnum:	ds	1
 zwave:	ds	1
+zdotpoint:	ds	2
 ztime:	ds	2
 
 zscore:	ds	5
@@ -114,6 +115,10 @@ main:
 
 	stz	<zwave
 
+	lda	#$10
+	sta	<zdotpoint
+	stz	<zdotpoint+1
+
 ;	lda	#$99
 ;	sta	<ztime
 ;	lda	#$9
@@ -153,7 +158,7 @@ DrawWaveTask:
 	jsr	DrawWave
 	jsr	plInit
 
-	lda	#$99
+	lda	#$90
 	sta	<ztime
 	lda	#$9
 	sta	<ztime+1
@@ -208,9 +213,9 @@ DrawStatusString:
     sta <zarg0
     lda #HIGH(19+31*32)
     sta <zarg1
-	lda	#LOW(.time)
+	lda	#LOW(strTime_yellow)
 	sta	<zarg2
-	lda	#HIGH(.time)
+	lda	#HIGH(strTime_yellow)
 	sta	<zarg3
 	lda	#4
 	sta	<zarg4
@@ -272,8 +277,13 @@ DrawStatusString:
 .player1:	dw	($100+38)|BGPAL_YELLOW,($100+39)|BGPAL_YELLOW,($100+40)|BGPAL_YELLOW,($100+41)|BGPAL_YELLOW
 .hiscore:	dw	($100+42)|BGPAL_RED   ,($100+43)|BGPAL_RED   ,($100+44)|BGPAL_RED   ,($100+45)|BGPAL_RED
 .left:		dw	($100+46)|BGPAL_YELLOW,($100+47)|BGPAL_YELLOW
-.time:		dw	($100+29)|BGPAL_YELLOW,($100+18)|BGPAL_YELLOW,($100+22)|BGPAL_YELLOW,($100+14)|BGPAL_YELLOW
+;.time:		dw	($100+29)|BGPAL_YELLOW,($100+18)|BGPAL_YELLOW,($100+22)|BGPAL_YELLOW,($100+14)|BGPAL_YELLOW
 .wave:		dw	($100+32)|BGPAL_WHITE ,($100+10)|BGPAL_WHITE ,($100+31)|BGPAL_WHITE ,($100+14)|BGPAL_WHITE 
+
+strTime_yellow:
+		dw	($100+29)|BGPAL_YELLOW,($100+18)|BGPAL_YELLOW,($100+22)|BGPAL_YELLOW,($100+14)|BGPAL_YELLOW
+strTime_blue:
+		dw	($100+29)|BGPAL_BLUE,($100+18)|BGPAL_BLUE,($100+22)|BGPAL_BLUE,($100+14)|BGPAL_BLUE
 
 WaveClearTask:
 						;TIME->BONUS 書き換え
@@ -290,9 +300,11 @@ WaveClearTask:
 	jsr	vqPush
 
 						;点数
-	lda	#$10
+;	lda	#$10
+	lda	<zdotpoint
 	sta	<zpoint
-	stz	<zpoint+1
+	lda	<zdotpoint+1
+	sta	<zpoint+1
 						;残りタイムをスコアに加算する
 .bonusloop:
 	sed
@@ -308,7 +320,7 @@ WaveClearTask:
 	cla
 .count:
 	sec
-	sbc	#1
+	sbc	#10
 	sta	<ztime
 
 	cld
@@ -332,6 +344,17 @@ WaveClearTask:
 	cla
 .set:
 	sta	<zwave
+
+						;素点を増やす
+	sed
+	lda	<zdotpoint
+	clc
+	adc	#$10
+	sta	<zdotpoint
+	lda	<zdotpoint+1
+	adc	#0
+	sta	<zdotpoint+1
+	cld
 
 	tkChangeTask_	tklInitWave
 	tkYield_
@@ -388,12 +411,12 @@ StatusTask:
 					;TODO: タイマーの減少間隔調整
 	lda	<zframe
 	and	#32-1
-	bne	.score
+	bne	.string
 
 	sed
 	lda	<ztime
 	sec
-	sbc	#1
+	sbc	#10
 	sta	<ztime
 	lda	<ztime+1
 	sbc	#0
@@ -401,56 +424,39 @@ StatusTask:
 	cld
 
 	jsr	drawTime
-;	lda #LOW(23+31*32)
-;    sta <zarg0
-;    lda #HIGH(23+31*32)
-;    sta <zarg1
-;	lda	#LOW(timerBuffer)
-;	sta	<zarg2
-;	lda	#HIGH(timerBuffer)
-;	sta	<zarg3
-;	lda	#2
-;	sta	<zarg4
-;	lda	#LOW(ztime)
-;	sta	<zarg5
-;	lda	#HIGH(ztime)
-;	sta	<zarg6
-;	stz	<zarg7
-;	lda	#HIGH(BGPAL_WHITE)
-;	sta	<zarg8
-;	jsr	drawDigits
 
-;.yield:
-;	jsr	tkYield
-;	bra	TimerTask
-;
-;ScoreTask:
+.string:
+	lda	<zframe
+	and	#16-1
+	bne	.score
+
+	bbr4	<zframe,.yellow
+	lda	#LOW(strTime_blue)
+	sta	<zarg2
+	lda	#HIGH(strTime_blue)
+	sta	<zarg3
+	bra	.write
+.yellow:
+	lda	#LOW(strTime_yellow)
+	sta	<zarg2
+	lda	#HIGH(strTime_yellow)
+	sta	<zarg3
+.write
+	lda #LOW(19+31*32)
+    sta <zarg0
+    lda #HIGH(19+31*32)
+    sta <zarg1
+	lda	#4
+	sta	<zarg4
+	jsr	vqPush
+
 .score:
 	tst	#$0f,<zframe
 	bne	.yield
 
 	jsr	drawScore
-;	lda #LOW(5+30*32)
-;    sta <zarg0
-;    lda #HIGH(5+30*32)
-;    sta <zarg1
-;	lda	#LOW(scoreBuffer)
-;	sta	<zarg2
-;	lda	#HIGH(scoreBuffer)
-;	sta	<zarg3
-;	lda	#5
-;	sta	<zarg4
-;	lda	#LOW(zscore)
-;	sta	<zarg5
-;	lda	#HIGH(zscore)
-;	sta	<zarg6
-;	lda	#3
-;	sta	<zarg7
-;	lda	#HIGH(BGPAL_WHITE)
-;	sta	<zarg8
-;	jsr	drawDigits
 .yield:
-	jsr	tkYield
+	tkYield_
 	bra	StatusTask
 
 

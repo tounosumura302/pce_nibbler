@@ -354,6 +354,12 @@ plHeadAction:
     inc <zplTailStop
 
     dec <zdotnum        ;ドット数減少
+                        ;点数
+    lda <zdotpoint
+    sta <zpoint
+    lda <zdotpoint+1
+    sta <zpoint+1
+    jsr addScore
 
 .controller:
                         ;
@@ -904,40 +910,27 @@ plTask:
     bra plTask
 
 .dead:
-                    ;TODO: 死亡時の処理
-                    ;タスクの処理の変更は、plTaskの中から呼び出さないとだめ（spが変わってしまっているから）
     stz <zplTailStop
 
-    lda #LOW(plDeadTask-1)
-    sta <zarg0
-    lda #HIGH(plDeadTask-1)
-    sta <zarg1
-    jsr tkLink
+ 	tkChangeTask_	tklDead
+    tkYield_
 
 .clear:
  	tkChangeTask_	tklClearWave
-    jsr tkYield
+    tkYield_
 
 
 ;
 ;   自分の胴体を噛んだ時の処理
 ;
-;   TODO:
-
 plDeadTask:
     ldx #1
     jsr plTailAction
     lda <zpldir,x
     beq .over
-    jsr plMove
-    jsr tkYield
+    tkYield_
     bra plDeadTask
 
 .over:
  	tkChangeTask_	tklInitWave
-    jsr tkYield
-;    lda #LOW(tkDummyTask-1)
-;    sta <zarg0
-;    lda #HIGH(tkDummyTask-1)
-;    sta <zarg1
-;    jsr tkLink
+    tkYield_

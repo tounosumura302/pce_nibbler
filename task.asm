@@ -248,6 +248,11 @@ tklGameMain:
     tkTaskAddress_  VSyncTask
     tkEndTaskList_
 
+tklDead:
+    tkTaskAddress_  plDeadTask
+    tkTaskAddress_  VSyncTask
+    tkEndTaskList_
+
 tklClearWave:
     tkTaskAddress_  WaveClearTask
     tkTaskAddress_  VSyncTask

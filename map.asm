@@ -2,6 +2,32 @@
     .bank   MAIN_BANK
 
 ;
+;   BATクリア
+;
+;   @args       なし
+;   @saveregs   なし
+;   @return     なし
+
+clearBAT:
+    st0     #0
+    st1     #0
+    st2     #0
+    st0     #2
+
+    ldx     #16
+.cl2:
+    cly
+.cl1:
+    st1     #LOW(BG_SPACE)
+    st2     #HIGH(BG_SPACE)
+    dey
+    bne     .cl1
+    dex
+    bne     .cl2
+
+    rts
+
+;
 ;   Wave描画
 ;
 ;   @args       zwave = wave番号
@@ -12,6 +38,7 @@ DrawWave:
 .arg_wavemap_h  equ zarg1
 .tmp_mul_h  equ ztmp0
 
+    jsr clearBAT
                             ;zwave*81 の計算
     stz <.tmp_mul_h
     lda <zwave
