@@ -33,7 +33,7 @@ clearBAT:
 ;   @args       zwave = wave番号
 ;   @saveregs   なし
 ;   @return     なし
-DrawWave:
+DrawWaveMap:
 .arg_wavemap_l  equ zarg0   ;waveマップデータアドレス
 .arg_wavemap_h  equ zarg1
 .tmp_mul_h  equ ztmp0

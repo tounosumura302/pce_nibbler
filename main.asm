@@ -36,7 +36,11 @@ ztime:	ds	2
 zscore:	ds	5
 zhiscore:	ds	5
 
+zhiscoreflg:	ds	1
+
 zleft:	ds	1
+
+
 
 ;--- CODE area ----------
 
@@ -113,34 +117,10 @@ main:
 
 	jsr	tkInit
 
-	stz	<zwave
 
-	lda	#$10
-	sta	<zdotpoint
-	stz	<zdotpoint+1
 
-;	lda	#$99
-;	sta	<ztime
-;	lda	#$9
-;	sta	<ztime+1
 
-	lda	#$0
-	sta	<zscore
-	stz	<zscore+1
-	stz	<zscore+2
-	stz	<zscore+3
-	stz	<zscore+4
-
-	lda	#$0
-	sta	<zhiscore
-	stz	<zhiscore+1
-	stz	<zhiscore+2
-	stz	<zhiscore+3
-	lda	#$90
-	sta	<zhiscore+4
-
-	lda	#2
-	sta	<zleft
+	jsr	initGameParms
 
 	tkChangeTask_	tklInitWave
 
@@ -153,9 +133,38 @@ mainloop:
 	jsr	tkChangeTasks
 	jmp	mainloop
 
+initGameParms:
+	stz	<zwave
 
-DrawWaveTask:
-	jsr	DrawWave
+	lda	#$10
+	sta	<zdotpoint
+	stz	<zdotpoint+1
+
+	lda	#$0
+	sta	<zscore
+	stz	<zscore+1
+	stz	<zscore+2
+	stz	<zscore+3
+	stz	<zscore+4
+
+	stz	<zhiscore
+	stz	<zhiscore+1
+	lda	#$05
+	sta	<zhiscore+2
+	stz	<zhiscore+3
+	stz	<zhiscore+4
+
+	stz	<zhiscoreflg
+
+	lda	#2
+	sta	<zleft
+
+	lda	#2
+	sta	<zplspeed
+
+	rts
+
+initWaveParms:
 	jsr	plInit
 
 	lda	#$90
@@ -163,6 +172,19 @@ DrawWaveTask:
 	lda	#$9
 	sta	<ztime+1
 	jsr	DrawStatusString
+
+	rts
+
+DrawWaveTask:
+	jsr	initWaveParms
+	jsr	DrawWaveMap
+;	jsr	plInit
+
+;	lda	#$90
+;	sta	<ztime
+;	lda	#$9
+;	sta	<ztime+1
+;	jsr	DrawStatusString
 
 	tkYield_
 
@@ -233,45 +255,10 @@ DrawStatusString:
 	sta	<zarg4
 	jsr	vqPush
 
-
-	lda #LOW(25+30*32)
-    sta <zarg0
-    lda #HIGH(25+30*32)
-    sta <zarg1
-	lda	#LOW(leftBuffer)
-	sta	<zarg2
-	lda	#HIGH(leftBuffer)
-	sta	<zarg3
-	lda	#1
-	sta	<zarg4
-	lda	#LOW(zleft)
-	sta	<zarg5
-	lda	#HIGH(zleft)
-	sta	<zarg6
-	stz	<zarg7
-	lda	#HIGH(BGPAL_WHITE)
-	sta	<zarg8
-	jsr	drawDigits
-
-	lda #LOW(5+31*32)
-    sta <zarg0
-    lda #HIGH(5+31*32)
-    sta <zarg1
-	lda	#LOW(hiscoreBuffer)
-	sta	<zarg2
-	lda	#HIGH(hiscoreBuffer)
-	sta	<zarg3
-	lda	#5
-	sta	<zarg4
-	lda	#LOW(zhiscore)
-	sta	<zarg5
-	lda	#HIGH(zhiscore)
-	sta	<zarg6
-	lda	#3
-	sta	<zarg7
-	lda	#HIGH(BGPAL_CYAN)
-	sta	<zarg8
-	jsr	drawDigits
+	jsr	drawScore
+	jsr	drawHighScore
+	jsr	drawLeft
+	jsr	drawTime
 
 	rts
 .player1:	dw	($100+38)|BGPAL_YELLOW,($100+39)|BGPAL_YELLOW,($100+40)|BGPAL_YELLOW,($100+41)|BGPAL_YELLOW
@@ -405,6 +392,90 @@ drawScore:
 	sta	<zarg8
 	jsr	drawDigits
 
+						;ハイスコアの場合はハイスコアも描画
+	tst	#$ff,<zhiscoreflg
+	beq	.ret
+						;スコアの表示内容をコピー
+	cly
+.loop:
+	lda	scoreBuffer,y
+	sta	hiscoreBuffer,y
+	iny
+	lda	scoreBuffer,y
+	and	#$0f
+	ora	#HIGH(BGPAL_CYAN)
+	sta	hiscoreBuffer,y
+	iny
+	cpy	#13*2
+	bmi	.loop
+
+	lda #LOW(5+31*32)
+    sta <zarg0
+    lda #HIGH(5+31*32)
+    sta <zarg1
+	lda	#LOW(hiscoreBuffer)
+	sta	<zarg2
+	lda	#HIGH(hiscoreBuffer)
+	sta	<zarg3
+	lda	#13
+	sta	<zarg4
+	jsr	vqPush
+
+.ret:
+	rts
+
+drawLeft:
+	lda #LOW(25+30*32)
+    sta <zarg0
+    lda #HIGH(25+30*32)
+    sta <zarg1
+	lda	#LOW(leftBuffer)
+	sta	<zarg2
+	lda	#HIGH(leftBuffer)
+	sta	<zarg3
+	lda	#1
+	sta	<zarg4
+	lda	#LOW(zleft)
+	sta	<zarg5
+	lda	#HIGH(zleft)
+	sta	<zarg6
+	stz	<zarg7
+	lda	#HIGH(BGPAL_WHITE)
+	sta	<zarg8
+	jsr	drawDigits
+
+	rts
+
+drawHighScore:
+	tst	#$ff,<zhiscoreflg
+	bne	.top
+	lda	#LOW(zhiscore)
+	sta	<zarg5
+	lda	#HIGH(zhiscore)
+	sta	<zarg6
+	bra	.d
+.top:
+	lda	#LOW(zscore)
+	sta	<zarg5
+	lda	#HIGH(zscore)
+	sta	<zarg6
+.d:
+	lda #LOW(5+31*32)
+    sta <zarg0
+    lda #HIGH(5+31*32)
+    sta <zarg1
+	lda	#LOW(hiscoreBuffer)
+	sta	<zarg2
+	lda	#HIGH(hiscoreBuffer)
+	sta	<zarg3
+	lda	#5
+	sta	<zarg4
+	lda	#3
+	sta	<zarg7
+	lda	#HIGH(BGPAL_CYAN)
+	sta	<zarg8
+	jsr	drawDigits
+
 	rts
 
 StatusTask:
@@ -490,16 +561,50 @@ addScore:
 	sta	<zscore+4
 
 	cld
+
+	jsr	checkHighScore
 	rts
+
+;
+;	ハイスコアを超えているか調べる
+;
+checkHighScore:
+	tst	#$ff,<zhiscoreflg
+	bne	.ret
+
+	lda	<zscore+4
+	cmp	<zhiscore+4
+	bmi	.ret
+	lda	<zscore+3
+	cmp	<zhiscore+3
+	bmi	.ret
+	lda	<zscore+2
+	cmp	<zhiscore+2
+	bmi	.ret
+	lda	<zscore+1
+	cmp	<zhiscore+1
+	bmi	.ret
+	lda	<zscore+0
+	cmp	<zhiscore+0
+	bmi	.ret
+
+	inc	<zhiscoreflg
+
+.ret:
+	rts
+
 
 	.zp
 zpoint	ds	5
 
+
+
+
 	.bss
-timerBuffer	ds	2*2*2
-leftBuffer	ds	1*2*2
-scoreBuffer	ds	(10+3)*2*2
-hiscoreBuffer	ds	(10+3)*2*2
+timerBuffer	ds	4*2
+leftBuffer	ds	2*2
+scoreBuffer	ds	(10+3)*2
+hiscoreBuffer	ds	(10+3)*2
 
 	.code
 
@@ -548,6 +653,8 @@ NibblerAppearTask:
 	bra	.loop
 
 .end:
+	jsr	initWaveParms
+
 	tkChangeTask_	tklGameMain
 	tkYield_
 

@@ -52,8 +52,8 @@ plInit:
     sta     <zplx
     lda     #(8*3+1)*8
     sta     <zply
-    lda     #3
-    sta     <zplspeed
+;    lda     #4
+;    sta     <zplspeed
     lda     #%00100000
     jsr     plSetDir
                         ;尻尾の座標
@@ -62,8 +62,8 @@ plInit:
     sta     <zplx,x
     lda     #(8*3+1)*8
     sta     <zply,x
-    lda     #3
-    sta     <zplspeed,x
+;    lda     #4
+;    sta     <zplspeed,x
     lda     #%00100000
     jsr     plSetDir
                         ;胴体
@@ -77,6 +77,9 @@ plInit:
     iny
     cpy #6
     bne .loop
+                        ;尻尾の速度を頭に合わせる
+    lda <zplspeed
+    sta <zplspeed+1
 
     rts
 
@@ -303,8 +306,6 @@ plGetBatFldAdr:
 ;       @saveregs       x
 ;       @return         その場で停止すべき時は cf=1
 plHeadAction:
-;.tmp_fldadr_l   equ     zarg2       ;フィールドアドレス
-;.tmp_fldadr_h   equ     zarg3
 .tmp_fldadr_l   equ     ztmp0       ;フィールドアドレス
 .tmp_fldadr_h   equ     ztmp1
 .tmp_fldv       equ     ztmp2       ;フィールド上の値
@@ -314,13 +315,8 @@ plHeadAction:
 
                         ;グリッドの中間にいる場合は何もしない
     tst #$7,<zplcount,x
-;    lda <zplx,x
-;    ora <zply,x
-;    and #$07
     beq .act
     jmp .move           ;branchだと届かない
-;    clc
-;    rts
                         ;尻尾を停止しているなら解除
 .act:
     lda <zplTailStop
@@ -328,9 +324,6 @@ plHeadAction:
     dec a
     sta <zplTailStop
 .act2:
-;                        ;方向転換フラグをクリアしておく
-;    stz <zpldirchg,x
-
     jsr plGetBatFldAdr
                         ;zarg2,3 の値をコピーしておく（他のサブルーチン呼び出しで競合することがあるため）
     lda <zarg2
@@ -341,13 +334,14 @@ plHeadAction:
     lda     [.tmp_fldadr_l]
     sta     <.tmp_fldv
 
-;    lda <.tmp_fldv
     and #$0f
     beq .controller
                         ;現在位置に尻尾があったら死亡
     cmp #9
-    bmi .dead
-
+;    bmi .dead
+    bpl .notdead        ;bmi だと届かない
+    jmp .dead
+.notdead:
     cmp #$0f
     bne .controller
                         ;現在位置にドットがあるなら尻尾を停止させる（胴体を伸ばす）
@@ -413,10 +407,8 @@ plHeadAction:
 .changed:
     jsr     plSetDir
                         ;胴体のキャラクタ
-;    lda #LOW(BodyCornerPartsTiles)
     lda <zplbodycornertilel,x
     sta <zarg2
-;    lda #HIGH(BodyCornerPartsTiles)
     lda <zplbodycornertileh,x
     sta <zarg3
     bra .draw
@@ -443,6 +435,27 @@ plHeadAction:
     ora <.tmp_fldv
     sta [.tmp_fldadr_l]
 
+;.move:
+                            ;移動先に尻尾があったら死亡
+                            ;nibblerの動画を見ると完全に重なった時でなく口先が触れただけで死んでいるため
+                            ;移動先のvmapアドレスを求める
+    lda <zpldirnum,x
+    asl a
+    tay
+    lda <.tmp_fldadr_l
+    clc
+    adc .dirnum2vmapdiff,y
+    sta <.tmp_fldadr_l
+    lda <.tmp_fldadr_h
+    adc .dirnum2vmapdiff+1,y
+    sta <.tmp_fldadr_h
+                            ;胴体有無判定
+    lda [.tmp_fldadr_l]
+    and #$0f
+    beq .move
+    cmp #9
+    bmi .dead
+
 .move:
 ;    clc                 ;指定方向に進行
     jsr plMove
@@ -455,9 +468,12 @@ plHeadAction:
     clc
     rts
 
+                        ;移動先のvmapアドレス差分
+.dirnum2vmapdiff:
+;         U   R   D   L
+    dw  -32,  1, 32, -1
 
                         ;死亡
-                        ;TODO: 死亡時の処理を実装
 .dead:
     lda #1
     sta <.tmp_dead_flg  ;死んだ
@@ -932,5 +948,6 @@ plDeadTask:
     bra plDeadTask
 
 .over:
- 	tkChangeTask_	tklInitWave
+; 	tkChangeTask_	tklInitWave
+ 	tkChangeTask_	tklAppear
     tkYield_
