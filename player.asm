@@ -355,6 +355,8 @@ plHeadAction:
     sta <zpoint+1
     jsr addScore
 
+    jsr pcmPlay
+
 .controller:
                         ;
                         ;コントローラーが押されている場合の方向転換判定 ldru

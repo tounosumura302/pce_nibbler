@@ -15,7 +15,8 @@ BANK0_BANK .equ 0
         .org $fff6
         .dw     interrupt_dummy         ;$fff6 IRQ2/BRK
         .dw     interrupt_dummy2         ;$fff8 IRQ1
-        .dw     interrupt_dummy3         ;$fffa timer
+;        .dw     interrupt_dummy3         ;$fffa timer
+        .dw     pcmTimerHandler         ;$fffa timer
         .dw     interrupt_dummy4         ;$fffc NMI
         .dw     interrupt_reset         ;$fffe RESET
 ;
@@ -61,7 +62,8 @@ interrupt_reset:
         jsr     initVdc
         jsr     initPad
 
-        stz     IntCtrlMask             ; disable interrupt
+        lda     #7
+        sta     IntCtrlMask             ; disable interrupt
 
         lda     #5
         sta     VdcReg

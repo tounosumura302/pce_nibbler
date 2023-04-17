@@ -34,6 +34,7 @@ WAVEMAP_BANK    equ 6
     
         .include "player.asm"
         
-        
+    .include "pcm.asm"
+            
         
         

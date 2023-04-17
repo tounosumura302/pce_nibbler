@@ -131,6 +131,8 @@ main:
 
 	jsr	initGameParms
 
+	jsr	pcmInit
+
 	tkChangeTask_	tklInitWave
 
 mainloop:
@@ -787,8 +789,8 @@ initPsgTest:
 	stz	PsgFreqH
 
 ;	set volume
-	;lda	#$ff
-	cla
+	lda	#$ff
+;	cla
 	sta	PsgChVol
 	sta	PsgMainVol
 
