@@ -118,15 +118,20 @@ main:
 	jsr	tkInit
 
 
+					;ハイスコア初期化
+	stz	<zhiscore
+	stz	<zhiscore+1
+	lda	#$05
+	sta	<zhiscore+2
+	stz	<zhiscore+3
+	stz	<zhiscore+4
+
+	stz	<zhiscoreflg
 
 
 	jsr	initGameParms
 
 	tkChangeTask_	tklInitWave
-
-
-	;; initialize sprite
-;	jsr	plInit
 
 mainloop:
 	jsr	tkDispatch
@@ -146,15 +151,6 @@ initGameParms:
 	stz	<zscore+2
 	stz	<zscore+3
 	stz	<zscore+4
-
-	stz	<zhiscore
-	stz	<zhiscore+1
-	lda	#$05
-	sta	<zhiscore+2
-	stz	<zhiscore+3
-	stz	<zhiscore+4
-
-	stz	<zhiscoreflg
 
 	lda	#2
 	sta	<zleft
