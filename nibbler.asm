@@ -7,6 +7,9 @@ BGPATTERN_BANK  equ 4
 SPRPATTERN_BANK equ 5
 WAVEMAP_BANK    equ 6
 
+PCM_0_BANK  equ 10
+PCM_1_BANK  equ 11
+
         .include "pce.asm"        
         .include "task.inc"
         .include "script.inc"
@@ -36,5 +39,7 @@ WAVEMAP_BANK    equ 6
         
     .include "pcm.asm"
             
-        
+    .include "sr_help_8.asm"
+    .include "sr_100pts_8.asm"
+            
         

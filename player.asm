@@ -355,6 +355,7 @@ plHeadAction:
     sta <zpoint+1
     jsr addScore
 
+    lda #1
     jsr pcmPlay
 
 .controller:

@@ -113,7 +113,7 @@ main:
 
 	jsr	vqInit
 
-	jsr	initPsgTest
+;	jsr	initPsgTest
 
 	jsr	tkInit
 
