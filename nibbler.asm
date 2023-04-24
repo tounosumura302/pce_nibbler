@@ -9,6 +9,7 @@ WAVEMAP_BANK    equ 6
 
 PCM_0_BANK  equ 10
 PCM_1_BANK  equ 11
+PCM_2_BANK  equ 12
 
         .include "pce.asm"        
         .include "task.inc"
@@ -41,5 +42,7 @@ PCM_1_BANK  equ 11
             
     .include "sr_help_8.asm"
     .include "sr_100pts_8.asm"
+    .include "pcm_start.asm"
+    
             
         

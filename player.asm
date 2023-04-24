@@ -346,6 +346,7 @@ plHeadAction:
     bne .controller
                         ;現在位置にドットがあるなら尻尾を停止させる（胴体を伸ばす）
     inc <zplTailStop
+    inc <zplTailStop
 
     dec <zdotnum        ;ドット数減少
                         ;点数
@@ -943,12 +944,15 @@ plTask:
 ;   自分の胴体を噛んだ時の処理
 ;
 plDeadTask:
+    lda #0
+    jsr pcmPlay
+.loop:
     ldx #1
     jsr plTailAction
     lda <zpldir,x
     beq .over
     tkYield_
-    bra plDeadTask
+    bra .loop
 
 .over:
 ; 	tkChangeTask_	tklInitWave

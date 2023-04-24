@@ -45,7 +45,9 @@ pcmPlay:
     sta PsgMainVol
                     ;タイマー割り込み設定
     cli
-    stz TimerCounter    ;6.992kHz
+    lda pcmTimerRates,y
+    sta TimerCounter    ;6.992kHz
+;    stz TimerCounter    ;6.992kHz
     lda #1
     sta TimerCtrl
                     ;タイマー割り込み有効
@@ -80,6 +82,7 @@ pcmTimerHandler:
     sta PsgWave
                         ;PCMデータアドレスを進める
     iny
+
     sty <zPcmDataIx
     bne .ret
     inc <zPcmDataPtr+1
@@ -115,14 +118,20 @@ pcmTimerHandler:
 pcmBanks:
     db  BANK(pcm_data_0)
     db  BANK(pcm_data_1)
+    db  BANK(pcm_data_2)
 
 pcmDataLs:
     db  LOW(pcm_data_0)
     db  LOW(pcm_data_1)
+    db  LOW(pcm_data_2)
 
 pcmDataHs:
     db  HIGH(pcm_data_0)
     db  HIGH(pcm_data_1)
+    db  HIGH(pcm_data_2)
+
+pcmTimerRates:
+    db  0,0,1
 
 ;PcmData:
 ;    db  $1f,$1f,$1f,$1f,$1f,$1f,$1f,$1f

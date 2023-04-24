@@ -141,7 +141,9 @@ mainloop:
 	jmp	mainloop
 
 initGameParms:
-	stz	<zwave
+	lda	#2
+	sta	<zwave
+;	stz	<zwave
 
 	lda	#$10
 	sta	<zdotpoint
@@ -157,7 +159,7 @@ initGameParms:
 	lda	#2
 	sta	<zleft
 
-	lda	#2
+	lda	#3
 	sta	<zplspeed
 
 	rts
@@ -637,6 +639,9 @@ VSyncTask:
 ;	nibbler出現時のアニメーション
 ;
 NibblerAppearTask:
+    lda #2
+    jsr pcmPlay
+
 	lda	#LOW(.script)
 	sta	<zarg0
 	lda	#HIGH(.script)
